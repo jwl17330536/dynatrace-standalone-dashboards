@@ -1,0 +1,71 @@
+{
+  "name": "Sample Test Dashboard",
+  "type": "dashboard",
+  "owner": "<YOUR_DYNATRACE_USER_ID>",
+  "isPrivate": false,
+  "description": "Simple test dashboard for verifying the DT Community Assets import flow.",
+  "version": 1,
+  "modificationInfo": {
+    "createdBy": "",
+    "createdTime": "",
+    "lastModifiedBy": "",
+    "lastModifiedTime": ""
+  },
+  "content": {
+    "annotations": [],
+    "importedWithCode": false,
+    "layouts": {
+      "0": { "h": 4, "w": 24, "x": 0, "y": 0 },
+      "1": { "h": 6, "w": 12, "x": 0, "y": 4 },
+      "2": { "h": 6, "w": 12, "x": 12, "y": 4 }
+    },
+    "tiles": {
+      "0": {
+        "type": "markdown",
+        "content": "# Sample Test Dashboard\n\nThis dashboard was imported via **[DT Community Assets](https://oei3894h.sprint.apps.dynatracelabs.com/ui/apps/my.dt.community.assets)**.\n\nIf you can see this, the import flow is working correctly."
+      },
+      "1": {
+        "type": "data",
+        "title": "Host Count",
+        "query": "fetch dt.entity.host\n| summarize count()",
+        "visualization": "singleValue",
+        "visualizationSettings": {
+          "autoSelectVisualization": false,
+          "singleValue": {
+            "label": "Hosts",
+            "showLabel": true
+          }
+        },
+        "davis": { "enabled": false, "davisVisualization": { "isAvailable": true } },
+        "querySettings": {
+          "maxResultRecords": 1000,
+          "defaultScanLimitGbytes": 500,
+          "defaultSamplingRatio": 10,
+          "enableSampling": false,
+          "maxResultMegaBytes": 100
+        }
+      },
+      "2": {
+        "type": "data",
+        "title": "Problem Count (last 2h)",
+        "query": "fetch events\n| filter event.kind == \"DAVIS_PROBLEM\"\n| filter event.status == \"ACTIVE\"\n| summarize count()",
+        "visualization": "singleValue",
+        "visualizationSettings": {
+          "autoSelectVisualization": false,
+          "singleValue": {
+            "label": "Active Problems",
+            "showLabel": true
+          }
+        },
+        "davis": { "enabled": false, "davisVisualization": { "isAvailable": true } },
+        "querySettings": {
+          "maxResultRecords": 1000,
+          "defaultScanLimitGbytes": 500,
+          "defaultSamplingRatio": 10,
+          "enableSampling": false,
+          "maxResultMegaBytes": 100
+        }
+      }
+    }
+  }
+}
