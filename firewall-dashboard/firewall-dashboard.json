@@ -1,0 +1,178 @@
+{
+  "name": "Firewall Dashboard v4",
+  "type": "dashboard",
+  "owner": "<YOUR_DYNATRACE_USER_ID>",
+  "isPrivate": true,
+  "description": "Edge firewall \u2014 DNAT verified, content filter / WAN failover event-driven, BGW WAN blocks, syslog ingest health.",
+  "version": 1,
+  "modificationInfo": {
+    "createdBy": "",
+    "createdTime": "",
+    "lastModifiedBy": "",
+    "lastModifiedTime": ""
+  },
+  "content": {
+    "annotations": [],
+    "importedWithCode": false,
+    "layouts": {
+      "0": {
+        "h": 2,
+        "w": 24,
+        "x": 0,
+        "y": 0
+      },
+      "1": {
+        "h": 4,
+        "w": 24,
+        "x": 0,
+        "y": 2
+      },
+      "2": {
+        "h": 7,
+        "w": 24,
+        "x": 0,
+        "y": 6
+      },
+      "3": {
+        "h": 7,
+        "w": 12,
+        "x": 0,
+        "y": 13
+      },
+      "4": {
+        "h": 7,
+        "w": 12,
+        "x": 12,
+        "y": 13
+      },
+      "5": {
+        "h": 7,
+        "w": 12,
+        "x": 0,
+        "y": 20
+      },
+      "6": {
+        "h": 7,
+        "w": 12,
+        "x": 12,
+        "y": 20
+      }
+    },
+    "settings": {
+      "defaultTimeframe": {
+        "enabled": true,
+        "value": {
+          "from": "now()-24h",
+          "to": "now()"
+        }
+      }
+    },
+    "tiles": {
+      "0": {
+        "content": "## Firewall Dashboard v4\n[v3 dashboard](https://oei3894h.sprint.apps.dynatracelabs.com/ui/apps/dynatrace.dashboards/dashboard/69f08256-8454-4551-89f4-e844cc585e7e) \u00b7 Syslog `syslog-172.16.1.1.log` \u00b7 DNAT metric `log.firewall_portforward_hits`\n**DNAT ingest restored (2026-09-09):** UDM `rsyslogd` includes `firewall_default_policy` (+ `log_all_contents`). External port-forward hits emit `PortForward DNAT` to dt02 and Dynatrace. Content-filter and wan-failover/ubios remain event-driven. BGW WAN blocks use the dt02 poller.",
+        "type": "markdown"
+      },
+      "1": {
+        "davis": {
+          "davisVisualization": {
+            "isAvailable": true
+          },
+          "enabled": false
+        },
+        "query": "fetch logs, from: now()-24h\n| filter matchesValue(log.file.name, \"syslog-172.16.1.1.log\")\n| summarize total = count(),\n    cef = countIf(matchesPhrase(content, \"CEF: 0|Ubiquiti\")),\n    dnat = countIf(matchesPhrase(content, \"PortForward DNAT\")),\n    content_filter = countIf(matchesPhrase(content, \"contentFilteringBlock\")),\n    wan_failover = countIf(contains(content, \"wan-failover\") or contains(content, \"ubios\"))\n| fields total, cef, dnat, content_filter, wan_failover",
+        "title": "UDM Syslog Ingest Health (24h)",
+        "type": "data",
+        "visualization": "table",
+        "visualizationSettings": {
+          "autoSelectVisualization": false,
+          "table": {
+            "linewrapEnabled": true
+          }
+        }
+      },
+      "2": {
+        "davis": {
+          "davisVisualization": {
+            "isAvailable": true
+          },
+          "enabled": false
+        },
+        "query": "timeseries hits = sum(log.firewall_portforward_hits), interval:5m",
+        "title": "DNAT Hits Over Time",
+        "type": "data",
+        "visualization": "lineChart",
+        "visualizationSettings": {
+          "autoSelectVisualization": false,
+          "chartSettings": {
+            "legend": {
+              "hidden": true,
+              "position": "bottom"
+            }
+          }
+        }
+      },
+      "3": {
+        "davis": {
+          "davisVisualization": {
+            "isAvailable": true
+          },
+          "enabled": false
+        },
+        "query": "fetch logs\n| filter matchesValue(log.file.name, \"syslog-172.16.1.1.log\")\n| filter matchesPhrase(content, \"PortForward DNAT\")\n| filter isNotNull(fw.dnat.src) or isNotNull(SRC)\n| fieldsAdd src = coalesce(fw.dnat.src, SRC)\n| summarize hits = count(), by:{src}\n| sort hits desc\n| limit 15",
+        "title": "Top External Sources (DNAT)",
+        "type": "data",
+        "visualization": "categoricalBarChart",
+        "visualizationSettings": {
+          "autoSelectVisualization": false
+        }
+      },
+      "4": {
+        "davis": {
+          "davisVisualization": {
+            "isAvailable": true
+          },
+          "enabled": false
+        },
+        "query": "fetch logs\n| filter matchesValue(log.file.name, \"syslog-172.16.1.1.log\")\n| filter matchesPhrase(content, \"PortForward DNAT\")\n| filter isNotNull(fw.dnat.service) or isNotNull(service)\n| fieldsAdd svc = coalesce(fw.dnat.service, service)\n| summarize hits = count(), by:{svc}\n| sort hits desc",
+        "title": "Hits by Service",
+        "type": "data",
+        "visualization": "pieChart",
+        "visualizationSettings": {
+          "autoSelectVisualization": false
+        }
+      },
+      "5": {
+        "davis": {
+          "davisVisualization": {
+            "isAvailable": true
+          },
+          "enabled": false
+        },
+        "query": "fetch logs\n| filter matchesValue(log.file.name, \"syslog-172.16.1.1.log\")\n| filter matchesPhrase(content, \"contentFilteringBlock\")\n| filter NOT matchesPhrase(content, \"NEWLY_DISCOVERED_DOMAINS\")\n| filter isNotNull(fw.filter.category) or matchesPhrase(content, \"contentFilteringBlock\")\n| fieldsAdd category = coalesce(fw.filter.category, \"unknown\")\n| summarize blocks = count(), by:{category}\n| sort blocks desc\n| limit 10",
+        "title": "Content Filter Blocks",
+        "type": "data",
+        "visualization": "categoricalBarChart",
+        "visualizationSettings": {
+          "autoSelectVisualization": false
+        }
+      },
+      "6": {
+        "davis": {
+          "davisVisualization": {
+            "isAvailable": true
+          },
+          "enabled": false
+        },
+        "query": "fetch logs\n| filter log.source == \"att-bgw320\" and isNotNull(bgw.fw.reason)\n| summarize blocks = count(), by:{bgw.fw.reason}\n| sort blocks desc\n| limit 10",
+        "title": "BGW WAN Blocks by Reason",
+        "type": "data",
+        "visualization": "categoricalBarChart",
+        "visualizationSettings": {
+          "autoSelectVisualization": false
+        }
+      }
+    },
+    "variables": [],
+    "version": 21
+  }
+}

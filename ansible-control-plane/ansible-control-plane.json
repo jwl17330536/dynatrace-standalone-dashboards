@@ -1,0 +1,275 @@
+{
+  "name": "Ansible Control Plane",
+  "type": "dashboard",
+  "owner": "<YOUR_DYNATRACE_USER_ID>",
+  "isPrivate": true,
+  "description": "ansible20 \u2014 OTLP control-plane logs: git/playbook activity, FAILED/ERROR rates, freshness.",
+  "version": 1,
+  "modificationInfo": {
+    "createdBy": "",
+    "createdTime": "",
+    "lastModifiedBy": "",
+    "lastModifiedTime": ""
+  },
+  "content": {
+    "annotations": [],
+    "layouts": {
+      "0": {
+        "h": 3,
+        "w": 24,
+        "x": 0,
+        "y": 0
+      },
+      "1": {
+        "h": 4,
+        "w": 6,
+        "x": 0,
+        "y": 3
+      },
+      "2": {
+        "h": 4,
+        "w": 6,
+        "x": 6,
+        "y": 3
+      },
+      "3": {
+        "h": 4,
+        "w": 6,
+        "x": 12,
+        "y": 3
+      },
+      "4": {
+        "h": 4,
+        "w": 6,
+        "x": 18,
+        "y": 3
+      },
+      "5": {
+        "h": 8,
+        "w": 12,
+        "x": 0,
+        "y": 7
+      },
+      "6": {
+        "h": 8,
+        "w": 12,
+        "x": 12,
+        "y": 7
+      },
+      "7": {
+        "h": 10,
+        "w": 24,
+        "x": 0,
+        "y": 15
+      },
+      "8": {
+        "h": 10,
+        "w": 24,
+        "x": 0,
+        "y": 25
+      }
+    },
+    "settings": {
+      "defaultTimeframe": {
+        "enabled": true,
+        "value": {
+          "from": "now()-24h",
+          "to": "now()"
+        }
+      }
+    },
+    "tiles": {
+      "0": {
+        "content": "# Ansible Control Plane\n\nHost **ansible20** (Pi, OTLP-only) \u2014 Ansible Console / git ops.\n\n**Ingest:** otelcol-agent-logs \u2192 otel-gateway (utility29 HAProxy) \u2192 dt02/dt03.\n\n**Automation:** OTLP edge silence detector (includes ansible20) \u00b7 FAILED spike detector.",
+        "title": "",
+        "type": "markdown"
+      },
+      "1": {
+        "davis": {
+          "davisVisualization": {
+            "isAvailable": true
+          },
+          "enabled": false
+        },
+        "query": "fetch logs\n| filter host.name == \"ansible20\"\n| summarize lines = count()",
+        "querySettings": {
+          "defaultSamplingRatio": 10,
+          "defaultScanLimitGbytes": 500,
+          "enableSampling": false,
+          "maxResultMegaBytes": 10,
+          "maxResultRecords": 1000
+        },
+        "title": "Log lines",
+        "type": "data",
+        "visualization": "singleValue",
+        "visualizationSettings": {
+          "singleValue": {
+            "recordField": "lines"
+          }
+        }
+      },
+      "2": {
+        "davis": {
+          "davisVisualization": {
+            "isAvailable": true
+          },
+          "enabled": false
+        },
+        "query": "fetch logs\n| filter host.name == \"ansible20\"\n| summarize last_seen = max(timestamp)\n| fieldsAdd freshness_min = toDouble((now() - last_seen) / 60000000000)\n| fields freshness_min",
+        "querySettings": {
+          "defaultSamplingRatio": 10,
+          "defaultScanLimitGbytes": 500,
+          "enableSampling": false,
+          "maxResultMegaBytes": 10,
+          "maxResultRecords": 1000
+        },
+        "title": "Freshness (min)",
+        "type": "data",
+        "visualization": "singleValue",
+        "visualizationSettings": {
+          "singleValue": {
+            "recordField": "freshness_min"
+          }
+        }
+      },
+      "3": {
+        "davis": {
+          "davisVisualization": {
+            "isAvailable": true
+          },
+          "enabled": false
+        },
+        "query": "fetch logs\n| filter host.name == \"ansible20\"\n| filter contains(content, \"FAILED\") or contains(lower(content), \"fatal\") or contains(content, \"ERROR!\")\n| summarize fails = count()",
+        "querySettings": {
+          "defaultSamplingRatio": 10,
+          "defaultScanLimitGbytes": 500,
+          "enableSampling": false,
+          "maxResultMegaBytes": 10,
+          "maxResultRecords": 1000
+        },
+        "title": "FAILED / FATAL / ERROR!",
+        "type": "data",
+        "visualization": "singleValue",
+        "visualizationSettings": {
+          "singleValue": {
+            "recordField": "fails"
+          }
+        }
+      },
+      "4": {
+        "davis": {
+          "davisVisualization": {
+            "isAvailable": true
+          },
+          "enabled": false
+        },
+        "query": "fetch logs\n| filter host.name == \"ansible20\"\n| filter contains(content, \"FETCH_HEAD\") or contains(content, \"From github.com\") or contains(lower(content), \"git\")\n| summarize hits = count()",
+        "querySettings": {
+          "defaultSamplingRatio": 10,
+          "defaultScanLimitGbytes": 500,
+          "enableSampling": false,
+          "maxResultMegaBytes": 10,
+          "maxResultRecords": 1000
+        },
+        "title": "Git / FETCH activity",
+        "type": "data",
+        "visualization": "singleValue",
+        "visualizationSettings": {
+          "singleValue": {
+            "recordField": "hits"
+          }
+        }
+      },
+      "5": {
+        "davis": {
+          "davisVisualization": {
+            "isAvailable": true
+          },
+          "enabled": false
+        },
+        "query": "fetch logs\n| filter host.name == \"ansible20\"\n| makeTimeseries lines=count(), interval:5m",
+        "querySettings": {
+          "defaultSamplingRatio": 10,
+          "defaultScanLimitGbytes": 2000,
+          "enableSampling": false,
+          "maxResultMegaBytes": 10,
+          "maxResultRecords": 5000
+        },
+        "title": "Log volume",
+        "type": "data",
+        "visualization": "lineChart",
+        "visualizationSettings": {
+          "lineChart": {}
+        }
+      },
+      "6": {
+        "davis": {
+          "davisVisualization": {
+            "isAvailable": true
+          },
+          "enabled": false
+        },
+        "query": "fetch logs\n| filter host.name == \"ansible20\"\n| filter contains(content, \"FAILED\") or contains(lower(content), \"fatal\") or contains(content, \"ERROR!\")\n| makeTimeseries fails=count(), interval:5m",
+        "querySettings": {
+          "defaultSamplingRatio": 10,
+          "defaultScanLimitGbytes": 2000,
+          "enableSampling": false,
+          "maxResultMegaBytes": 10,
+          "maxResultRecords": 5000
+        },
+        "title": "FAILED / FATAL / ERROR! over time",
+        "type": "data",
+        "visualization": "lineChart",
+        "visualizationSettings": {
+          "lineChart": {}
+        }
+      },
+      "7": {
+        "davis": {
+          "davisVisualization": {
+            "isAvailable": true
+          },
+          "enabled": false
+        },
+        "query": "fetch logs\n| filter host.name == \"ansible20\"\n| filter contains(content, \"FAILED\") or contains(lower(content), \"fatal\") or contains(content, \"ERROR!\")\n| fields timestamp, content\n| sort timestamp desc\n| limit 40",
+        "querySettings": {
+          "defaultSamplingRatio": 10,
+          "defaultScanLimitGbytes": 2000,
+          "enableSampling": false,
+          "maxResultMegaBytes": 10,
+          "maxResultRecords": 5000
+        },
+        "title": "Recent FAILED / ERROR samples",
+        "type": "data",
+        "visualization": "table",
+        "visualizationSettings": {
+          "table": {}
+        }
+      },
+      "8": {
+        "davis": {
+          "davisVisualization": {
+            "isAvailable": true
+          },
+          "enabled": false
+        },
+        "query": "fetch logs\n| filter host.name == \"ansible20\"\n| fields timestamp, content\n| sort timestamp desc\n| limit 40",
+        "querySettings": {
+          "defaultSamplingRatio": 10,
+          "defaultScanLimitGbytes": 2000,
+          "enableSampling": false,
+          "maxResultMegaBytes": 10,
+          "maxResultRecords": 5000
+        },
+        "title": "Recent ansible20 logs",
+        "type": "data",
+        "visualization": "table",
+        "visualizationSettings": {
+          "table": {}
+        }
+      }
+    },
+    "variables": [],
+    "version": 21
+  }
+}

@@ -1,0 +1,716 @@
+{
+  "name": "DNS v4",
+  "type": "dashboard",
+  "owner": "<YOUR_DYNATRACE_USER_ID>",
+  "isPrivate": true,
+  "description": "Full internal DNS \u2014 BIND (ns0/ns1/utility01/utility02) and dnsdist (nslb/nslb-pi).",
+  "version": 1,
+  "modificationInfo": {
+    "createdBy": "",
+    "createdTime": "",
+    "lastModifiedBy": "",
+    "lastModifiedTime": ""
+  },
+  "content": {
+    "annotations": [],
+    "importedWithCode": false,
+    "layouts": {
+      "0": {
+        "h": 7,
+        "w": 8,
+        "x": 16,
+        "y": 5
+      },
+      "1": {
+        "h": 9,
+        "w": 16,
+        "x": 0,
+        "y": 3
+      },
+      "10": {
+        "h": 2,
+        "w": 12,
+        "x": 0,
+        "y": 47
+      },
+      "11": {
+        "h": 3,
+        "w": 16,
+        "x": 0,
+        "y": 0
+      },
+      "12": {
+        "h": 7,
+        "w": 24,
+        "x": 0,
+        "y": 51
+      },
+      "13": {
+        "h": 4,
+        "w": 12,
+        "x": 12,
+        "y": 47
+      },
+      "14": {
+        "h": 5,
+        "w": 8,
+        "x": 16,
+        "y": 0
+      },
+      "15": {
+        "h": 7,
+        "w": 16,
+        "x": 0,
+        "y": 26
+      },
+      "16": {
+        "h": 7,
+        "w": 16,
+        "x": 0,
+        "y": 33
+      },
+      "17": {
+        "h": 7,
+        "w": 16,
+        "x": 0,
+        "y": 40
+      },
+      "2": {
+        "h": 7,
+        "w": 8,
+        "x": 16,
+        "y": 12
+      },
+      "3": {
+        "h": 6,
+        "w": 12,
+        "x": 0,
+        "y": 58
+      },
+      "4": {
+        "h": 7,
+        "w": 8,
+        "x": 16,
+        "y": 40
+      },
+      "5": {
+        "h": 7,
+        "w": 8,
+        "x": 16,
+        "y": 33
+      },
+      "6": {
+        "h": 7,
+        "w": 16,
+        "x": 0,
+        "y": 12
+      },
+      "7": {
+        "h": 7,
+        "w": 8,
+        "x": 16,
+        "y": 19
+      },
+      "8": {
+        "h": 7,
+        "w": 8,
+        "x": 16,
+        "y": 26
+      },
+      "9": {
+        "h": 7,
+        "w": 16,
+        "x": 0,
+        "y": 19
+      }
+    },
+    "settings": {},
+    "tiles": {
+      "0": {
+        "davis": {
+          "davisVisualization": {
+            "isAvailable": true
+          },
+          "enabled": false
+        },
+        "query": "fetch logs, from: now()-24h\n| filter (\n    dt.process.name == \"named\"\n    or contains(content, \"queries: info: client\")\n  )\n| filter host.name == \"ns0\" or host.name == \"ns1\" or host.name == \"utility01\" or host.name == \"utility02\"\n| summarize cnt = count(), by:{host.name}",
+        "querySettings": {
+          "defaultSamplingRatio": 10,
+          "defaultScanLimitGbytes": 500,
+          "enableSampling": false,
+          "maxResultMegaBytes": 100,
+          "maxResultRecords": 1000
+        },
+        "timeframe": {
+          "tileTimeframe": {
+            "from": "now()-30m",
+            "to": "now()"
+          },
+          "tileTimeframeEnabled": true
+        },
+        "title": "DNS Host Usage",
+        "type": "data",
+        "visualization": "categoricalBarChart",
+        "visualizationSettings": {
+          "autoSelectVisualization": false,
+          "chartSettings": {
+            "categoricalBarChartSettings": {
+              "isCategoryLabelVisible": false,
+              "isValueLabelVisible": false
+            },
+            "legend": {
+              "hidden": true
+            }
+          }
+        }
+      },
+      "1": {
+        "davis": {
+          "davisVisualization": {
+            "isAvailable": true
+          },
+          "enabled": false
+        },
+        "query": "fetch logs, from: now()-24h\n| filter (\n    dt.process.name == \"named\"\n    or contains(content, \"queries: info: client\")\n  )\n| filter host.name == \"ns0\" or host.name == \"ns1\" or host.name == \"utility01\" or host.name == \"utility02\"\n| parse content, \"LD 'client @' LD ' ' IPADDR:fromHost '#' LD ' (' LD:queriedFor '): query: ' LD:queryName ' IN '\"\n| fields timestamp, host.name, fromHost, queriedFor, queryName\n| sort timestamp desc\n| limit 100",
+        "querySettings": {
+          "defaultSamplingRatio": 10,
+          "defaultScanLimitGbytes": 500,
+          "enableSampling": false,
+          "maxResultMegaBytes": 100,
+          "maxResultRecords": 1000
+        },
+        "timeframe": {
+          "tileTimeframe": {
+            "from": "now()-30m",
+            "to": "now()"
+          },
+          "tileTimeframeEnabled": false
+        },
+        "title": "Latest Queries",
+        "type": "data",
+        "visualization": "table",
+        "visualizationSettings": {
+          "autoSelectVisualization": false,
+          "table": {
+            "columnOrder": [
+              "[\"timestamp\"]",
+              "[\"host.name\"]",
+              "[\"fromHost\"]",
+              "[\"queriedFor\"]",
+              "[\"queryName\"]"
+            ],
+            "linewrapEnabled": true
+          }
+        }
+      },
+      "10": {
+        "content": "### dnsdist frontends\nnslb VM reports as `nslb.lindleyhome.com` in Dynatrace (OneAgent). nslb-pi uses OTel.",
+        "type": "markdown"
+      },
+      "11": {
+        "content": "## DNS v4 \u2014 full stack\nClients \u2192 **dnsdist** VIPs `nslb` (.120) / `nslb-pi` (.121) \u2192 BIND backends `ns0`, `ns1`, `utility01`, `utility02`.\nLoad balancer is **dnsdist** (not HAProxy). VMs use **OneAgent**; Pis use **OTel**.",
+        "type": "markdown"
+      },
+      "12": {
+        "davis": {
+          "davisVisualization": {
+            "isAvailable": true
+          },
+          "enabled": false
+        },
+        "query": "fetch logs, from: now()-24h\n| filter contains(content, \"dnsdist\") and contains(content, \"Timeout\")\n| filter host.name == \"nslb.lindleyhome.com\" or host.name == \"nslb-pi\"\n| summarize issues = count(), by:{host.name, content}\n| sort issues desc\n| limit 20",
+        "querySettings": {
+          "defaultSamplingRatio": 10,
+          "defaultScanLimitGbytes": 500,
+          "enableSampling": false,
+          "maxResultMegaBytes": 100,
+          "maxResultRecords": 1000
+        },
+        "title": "dnsdist Health Check Issues",
+        "type": "data",
+        "visualization": "table",
+        "visualizationSettings": {
+          "autoSelectVisualization": false,
+          "table": {
+            "columnTypeOverrides": [
+              {
+                "disableRemoval": true,
+                "fields": [
+                  "content"
+                ],
+                "id": 1788313041492,
+                "value": "log-content"
+              }
+            ],
+            "columnWidths": {
+              "[\"content\"]": 1404.99,
+              "[\"host.name\"]": 113.6
+            },
+            "linewrapEnabled": true
+          }
+        }
+      },
+      "13": {
+        "davis": {
+          "davisVisualization": {
+            "isAvailable": true
+          },
+          "enabled": false
+        },
+        "query": "fetch logs, from: now()-24h\n| filter contains(content, \"dnsdist\")\n| filter host.name == \"nslb.lindleyhome.com\" or host.name == \"nslb-pi\"\n| summarize cnt = count(), by:{host.name}",
+        "querySettings": {
+          "defaultSamplingRatio": 10,
+          "defaultScanLimitGbytes": 500,
+          "enableSampling": false,
+          "maxResultMegaBytes": 100,
+          "maxResultRecords": 1000
+        },
+        "title": "dnsdist Log Volume by Host",
+        "type": "data",
+        "visualization": "categoricalBarChart",
+        "visualizationSettings": {
+          "autoSelectVisualization": false,
+          "chartSettings": {
+            "legend": {
+              "hidden": true
+            }
+          }
+        }
+      },
+      "14": {
+        "davis": {
+          "davisVisualization": {
+            "isAvailable": true
+          },
+          "enabled": false
+        },
+        "query": "fetch logs, from: now()-7d\n| filter (\n    dt.process.name == \"named\"\n    or contains(content, \"queries: info: client\")\n  )\n| filter host.name == \"ns0\" or host.name == \"ns1\" or host.name == \"utility01\" or host.name == \"utility02\"\n| summarize last_ts = max(timestamp), by:{host.name}\n| fieldsAdd freshness_min = (now() - last_ts) / 1m\n| fields host.name, freshness_min\n| sort freshness_min asc",
+        "querySettings": {
+          "defaultSamplingRatio": 10,
+          "defaultScanLimitGbytes": 500,
+          "enableSampling": false,
+          "maxResultMegaBytes": 100,
+          "maxResultRecords": 1000
+        },
+        "title": "BIND Log Freshness (minutes)",
+        "type": "data",
+        "visualization": "categoricalBarChart",
+        "visualizationSettings": {
+          "autoSelectVisualization": false,
+          "chartSettings": {
+            "categoricalBarChartSettings": {
+              "isCategoryLabelVisible": false,
+              "isValueLabelVisible": false
+            },
+            "legend": {
+              "hidden": true
+            }
+          }
+        }
+      },
+      "15": {
+        "davis": {
+          "davisVisualization": {
+            "isAvailable": true
+          },
+          "enabled": false
+        },
+        "query": "fetch logs, from: now()-24h\n| filter (\n    dt.process.name == \"named\"\n    or contains(content, \"queries: info: client\")\n  )\n| filter host.name == \"ns1\"\n| parse content, \"LD 'client @' LD ' ' IPADDR:fromHost '#' LD ' (' LD:queriedFor '): query: ' LD:queryName ' IN '\"\n| filterOut ipIsLoopback(fromHost)\n| summarize cnt = count(), by:{queriedFor}\n| sort cnt desc\n| limit 15",
+        "querySettings": {
+          "defaultSamplingRatio": 10,
+          "defaultScanLimitGbytes": 500,
+          "enableSampling": false,
+          "maxResultMegaBytes": 100,
+          "maxResultRecords": 1000
+        },
+        "timeframe": {
+          "tileTimeframe": {
+            "from": "now()-30m",
+            "to": "now()"
+          },
+          "tileTimeframeEnabled": false
+        },
+        "title": "ns1 Top Queried Names",
+        "type": "data",
+        "visualization": "treemap",
+        "visualizationSettings": {
+          "autoSelectVisualization": false,
+          "legend": {
+            "showLegend": false
+          }
+        }
+      },
+      "16": {
+        "davis": {
+          "davisVisualization": {
+            "isAvailable": true
+          },
+          "enabled": false
+        },
+        "query": "fetch logs, from: now()-24h\n| filter (\n    dt.process.name == \"named\"\n    or contains(content, \"queries: info: client\")\n  )\n| filter host.name == \"utility01\"\n| parse content, \"LD 'client @' LD ' ' IPADDR:fromHost '#' LD ' (' LD:queriedFor '): query: ' LD:queryName ' IN '\"\n| filterOut ipIsLoopback(fromHost)\n| summarize cnt = count(), by:{queriedFor}\n| sort cnt desc\n| limit 15",
+        "querySettings": {
+          "defaultSamplingRatio": 10,
+          "defaultScanLimitGbytes": 500,
+          "enableSampling": false,
+          "maxResultMegaBytes": 100,
+          "maxResultRecords": 1000
+        },
+        "timeframe": {
+          "tileTimeframe": {
+            "from": "now()-30m",
+            "to": "now()"
+          },
+          "tileTimeframeEnabled": false
+        },
+        "title": "utility01 Top Queried Names",
+        "type": "data",
+        "visualization": "treemap",
+        "visualizationSettings": {
+          "autoSelectVisualization": false,
+          "legend": {
+            "showLegend": false
+          }
+        }
+      },
+      "17": {
+        "davis": {
+          "davisVisualization": {
+            "isAvailable": true
+          },
+          "enabled": false
+        },
+        "query": "fetch logs, from: now()-24h\n| filter (\n    dt.process.name == \"named\"\n    or contains(content, \"queries: info: client\")\n  )\n| filter host.name == \"utility02\"\n| parse content, \"LD 'client @' LD ' ' IPADDR:fromHost '#' LD ' (' LD:queriedFor '): query: ' LD:queryName ' IN '\"\n| filterOut ipIsLoopback(fromHost)\n| summarize cnt = count(), by:{queriedFor}\n| sort cnt desc\n| limit 15",
+        "querySettings": {
+          "defaultSamplingRatio": 10,
+          "defaultScanLimitGbytes": 500,
+          "enableSampling": false,
+          "maxResultMegaBytes": 100,
+          "maxResultRecords": 1000
+        },
+        "timeframe": {
+          "tileTimeframe": {
+            "from": "now()-30m",
+            "to": "now()"
+          },
+          "tileTimeframeEnabled": false
+        },
+        "title": "utility02 Top Queried Names",
+        "type": "data",
+        "visualization": "treemap",
+        "visualizationSettings": {
+          "autoSelectVisualization": false,
+          "legend": {
+            "showLegend": false
+          }
+        }
+      },
+      "2": {
+        "davis": {
+          "davisVisualization": {
+            "isAvailable": true
+          },
+          "enabled": false
+        },
+        "query": "fetch logs, from: now()-24h\n| filter (\n    dt.process.name == \"named\"\n    or contains(content, \"queries: info: client\")\n  )\n| filter host.name == \"ns0\" or host.name == \"ns1\" or host.name == \"utility01\" or host.name == \"utility02\"\n| parse content, \"LD 'client @' LD ' ' IPADDR:fromHost '#' LD ' (' LD:queriedFor '): query: ' LD:queryName ' IN '\"\n| summarize cnt = count(), by:{fromHost}\n| sort cnt desc\n| limit 15",
+        "querySettings": {
+          "defaultSamplingRatio": 10,
+          "defaultScanLimitGbytes": 500,
+          "enableSampling": false,
+          "maxResultMegaBytes": 100,
+          "maxResultRecords": 1000
+        },
+        "timeframe": {
+          "tileTimeframe": {
+            "from": "now()-30m",
+            "to": "now()"
+          },
+          "tileTimeframeEnabled": false
+        },
+        "title": "Top DNS Clients (all BIND)",
+        "type": "data",
+        "visualization": "categoricalBarChart",
+        "visualizationSettings": {
+          "autoSelectVisualization": false,
+          "chartSettings": {
+            "categoricalBarChartSettings": {
+              "categoryAxisLabel": "fromHost,count()",
+              "isValueLabelVisible": false
+            },
+            "legend": {
+              "hidden": true
+            }
+          }
+        }
+      },
+      "3": {
+        "davis": {
+          "davisVisualization": {
+            "isAvailable": true
+          },
+          "enabled": false
+        },
+        "query": "fetch logs, from: now()-24h\n| filter (\n    dt.process.name == \"named\"\n    or contains(content, \"queries: info: client\")\n  )\n| filter host.name == \"utility01\"\n| parse content, \"LD 'client @' LD ' ' IPADDR:fromHost '#' LD ' (' LD:queriedFor '): query: ' LD:queryName ' IN '\"\n| filter ipIsLoopback(fromHost)\n| summarize cnt = count(), by:{queriedFor}\n| sort cnt desc\n| limit 15",
+        "querySettings": {
+          "defaultSamplingRatio": 10,
+          "defaultScanLimitGbytes": 500,
+          "enableSampling": false,
+          "maxResultMegaBytes": 100,
+          "maxResultRecords": 1000
+        },
+        "timeframe": {
+          "tileTimeframe": {
+            "from": "now()-30m",
+            "to": "now()"
+          },
+          "tileTimeframeEnabled": false
+        },
+        "title": "utility01 Localhost Queries",
+        "type": "data",
+        "visualization": "donutChart",
+        "visualizationSettings": {
+          "autoSelectVisualization": false,
+          "chartSettings": {
+            "categoricalBarChartSettings": {
+              "categoryAxisLabel": "fromHost,count()"
+            },
+            "circleChartSettings": {
+              "groupingThresholdType": "relative",
+              "showTotalValue": true,
+              "valueType": "relative"
+            },
+            "legend": {
+              "hidden": true
+            }
+          }
+        }
+      },
+      "4": {
+        "davis": {
+          "davisVisualization": {
+            "isAvailable": true
+          },
+          "enabled": false
+        },
+        "query": "fetch logs, from: now()-24h\n| filter (\n    dt.process.name == \"named\"\n    or contains(content, \"queries: info: client\")\n  )\n| filter host.name == \"utility02\"\n| parse content, \"LD 'client @' LD ' ' IPADDR:fromHost '#' LD ' (' LD:queriedFor '): query: ' LD:queryName ' IN '\"\n| filterOut ipIsLoopback(fromHost)\n| summarize cnt = count(), by:{fromHost}\n| sort cnt desc\n| limit 15",
+        "querySettings": {
+          "defaultSamplingRatio": 10,
+          "defaultScanLimitGbytes": 500,
+          "enableSampling": false,
+          "maxResultMegaBytes": 100,
+          "maxResultRecords": 1000
+        },
+        "timeframe": {
+          "tileTimeframe": {
+            "from": "now()-30m",
+            "to": "now()"
+          },
+          "tileTimeframeEnabled": false
+        },
+        "title": "utility02 Top Clients",
+        "type": "data",
+        "visualization": "categoricalBarChart",
+        "visualizationSettings": {
+          "autoSelectVisualization": false,
+          "chartSettings": {
+            "categoricalBarChartSettings": {
+              "categoryAxisLabel": "fromHost,count()",
+              "isValueLabelVisible": false
+            },
+            "legend": {
+              "hidden": true
+            }
+          }
+        }
+      },
+      "5": {
+        "davis": {
+          "davisVisualization": {
+            "isAvailable": true
+          },
+          "enabled": false
+        },
+        "query": "fetch logs, from: now()-24h\n| filter (\n    dt.process.name == \"named\"\n    or contains(content, \"queries: info: client\")\n  )\n| filter host.name == \"utility01\"\n| parse content, \"LD 'client @' LD ' ' IPADDR:fromHost '#' LD ' (' LD:queriedFor '): query: ' LD:queryName ' IN '\"\n| filterOut ipIsLoopback(fromHost)\n| summarize cnt = count(), by:{fromHost}\n| sort cnt desc\n| limit 15",
+        "querySettings": {
+          "defaultSamplingRatio": 10,
+          "defaultScanLimitGbytes": 500,
+          "enableSampling": false,
+          "maxResultMegaBytes": 100,
+          "maxResultRecords": 1000
+        },
+        "timeframe": {
+          "tileTimeframe": {
+            "from": "now()-30m",
+            "to": "now()"
+          },
+          "tileTimeframeEnabled": false
+        },
+        "title": "utility01 Top Clients",
+        "type": "data",
+        "visualization": "categoricalBarChart",
+        "visualizationSettings": {
+          "autoSelectVisualization": false,
+          "chartSettings": {
+            "categoricalBarChartSettings": {
+              "categoryAxisLabel": "fromHost,count()",
+              "isValueLabelVisible": false
+            },
+            "legend": {
+              "hidden": true,
+              "position": "right"
+            },
+            "truncationMode": "start"
+          }
+        }
+      },
+      "6": {
+        "davis": {
+          "davisVisualization": {
+            "isAvailable": true
+          },
+          "enabled": false
+        },
+        "query": "fetch logs, from: now()-24h\n| filter (\n    dt.process.name == \"named\"\n    or contains(content, \"queries: info: client\")\n  )\n| filter host.name == \"ns0\" or host.name == \"ns1\" or host.name == \"utility01\" or host.name == \"utility02\"\n| parse content, \"LD 'client @' LD ' ' IPADDR:fromHost '#' LD ' (' LD:queriedFor '): query: ' LD:queryName ' IN '\"\n| filterOut ipIsLoopback(fromHost)\n| summarize cnt = count(), by:{queriedFor}\n| sort cnt desc\n| limit 20",
+        "querySettings": {
+          "defaultSamplingRatio": 10,
+          "defaultScanLimitGbytes": 500,
+          "enableSampling": false,
+          "maxResultMegaBytes": 100,
+          "maxResultRecords": 1000
+        },
+        "timeframe": {
+          "tileTimeframe": {
+            "from": "now()-30m",
+            "to": "now()"
+          },
+          "tileTimeframeEnabled": false
+        },
+        "title": "Top Queried Names (all BIND)",
+        "type": "data",
+        "visualization": "treemap",
+        "visualizationSettings": {
+          "autoSelectVisualization": false,
+          "legend": {
+            "showLegend": false
+          },
+          "unitsOverrides": [
+            {
+              "added": 1757596802495,
+              "baseUnit": "none",
+              "cascade": null,
+              "decimals": 2,
+              "delimiter": false,
+              "displayUnit": null,
+              "identifier": "count()",
+              "suffix": "",
+              "unitCategory": "unspecified"
+            }
+          ]
+        }
+      },
+      "7": {
+        "davis": {
+          "davisVisualization": {
+            "isAvailable": true
+          },
+          "enabled": false
+        },
+        "query": "fetch logs, from: now()-24h\n| filter (\n    dt.process.name == \"named\"\n    or contains(content, \"queries: info: client\")\n  )\n| filter host.name == \"ns0\"\n| parse content, \"LD 'client @' LD ' ' IPADDR:fromHost '#' LD ' (' LD:queriedFor '): query: ' LD:queryName ' IN '\"\n| filterOut ipIsLoopback(fromHost)\n| summarize cnt = count(), by:{fromHost}\n| sort cnt desc\n| limit 15",
+        "querySettings": {
+          "defaultSamplingRatio": 10,
+          "defaultScanLimitGbytes": 500,
+          "enableSampling": false,
+          "maxResultMegaBytes": 100,
+          "maxResultRecords": 1000
+        },
+        "timeframe": {
+          "tileTimeframe": {
+            "from": "now()-30m",
+            "to": "now()"
+          },
+          "tileTimeframeEnabled": false
+        },
+        "title": "ns0 Top Clients",
+        "type": "data",
+        "visualization": "categoricalBarChart",
+        "visualizationSettings": {
+          "autoSelectVisualization": false,
+          "chartSettings": {
+            "legend": {
+              "hidden": true
+            },
+            "truncationMode": "middle"
+          }
+        }
+      },
+      "8": {
+        "davis": {
+          "davisVisualization": {
+            "isAvailable": true
+          },
+          "enabled": false
+        },
+        "query": "fetch logs, from: now()-24h\n| filter (\n    dt.process.name == \"named\"\n    or contains(content, \"queries: info: client\")\n  )\n| filter host.name == \"ns1\"\n| parse content, \"LD 'client @' LD ' ' IPADDR:fromHost '#' LD ' (' LD:queriedFor '): query: ' LD:queryName ' IN '\"\n| filterOut ipIsLoopback(fromHost)\n| summarize cnt = count(), by:{fromHost}\n| sort cnt desc\n| limit 15",
+        "querySettings": {
+          "defaultSamplingRatio": 10,
+          "defaultScanLimitGbytes": 500,
+          "enableSampling": false,
+          "maxResultMegaBytes": 100,
+          "maxResultRecords": 1000
+        },
+        "timeframe": {
+          "tileTimeframe": {
+            "from": "now()-30m",
+            "to": "now()"
+          },
+          "tileTimeframeEnabled": false
+        },
+        "title": "ns1 Top Clients",
+        "type": "data",
+        "visualization": "categoricalBarChart",
+        "visualizationSettings": {
+          "autoSelectVisualization": false,
+          "chartSettings": {
+            "legend": {
+              "hidden": true
+            },
+            "truncationMode": "middle"
+          }
+        }
+      },
+      "9": {
+        "davis": {
+          "davisVisualization": {
+            "isAvailable": true
+          },
+          "enabled": false
+        },
+        "query": "fetch logs, from: now()-24h\n| filter (\n    dt.process.name == \"named\"\n    or contains(content, \"queries: info: client\")\n  )\n| filter host.name == \"ns0\"\n| parse content, \"LD 'client @' LD ' ' IPADDR:fromHost '#' LD ' (' LD:queriedFor '): query: ' LD:queryName ' IN '\"\n| filterOut ipIsLoopback(fromHost)\n| summarize cnt = count(), by:{queriedFor}\n| sort cnt desc\n| limit 15",
+        "querySettings": {
+          "defaultSamplingRatio": 10,
+          "defaultScanLimitGbytes": 500,
+          "enableSampling": false,
+          "maxResultMegaBytes": 100,
+          "maxResultRecords": 1000
+        },
+        "timeframe": {
+          "tileTimeframe": {
+            "from": "now()-30m",
+            "to": "now()"
+          },
+          "tileTimeframeEnabled": false
+        },
+        "title": "ns0 Top Queried Names",
+        "type": "data",
+        "visualization": "treemap",
+        "visualizationSettings": {
+          "autoSelectVisualization": false,
+          "legend": {
+            "showLegend": false
+          }
+        }
+      }
+    },
+    "variables": [],
+    "version": 21
+  }
+}

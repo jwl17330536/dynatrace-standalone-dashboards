@@ -1,0 +1,272 @@
+{
+  "name": "Netflow Diagnosis",
+  "type": "dashboard",
+  "owner": "<YOUR_DYNATRACE_USER_ID>",
+  "isPrivate": true,
+  "description": "Is something wrong? Data quality, enrichment gaps, unknown direction hotspots, and unresolved DNS.",
+  "version": 2,
+  "modificationInfo": {
+    "createdBy": "",
+    "createdTime": "",
+    "lastModifiedBy": "",
+    "lastModifiedTime": ""
+  },
+  "content": {
+    "annotations": [],
+    "importedWithCode": false,
+    "layouts": {
+      "0": {
+        "h": 2,
+        "w": 24,
+        "x": 0,
+        "y": 0
+      },
+      "1": {
+        "h": 3,
+        "w": 6,
+        "x": 0,
+        "y": 2
+      },
+      "2": {
+        "h": 3,
+        "w": 6,
+        "x": 6,
+        "y": 2
+      },
+      "3": {
+        "h": 3,
+        "w": 6,
+        "x": 12,
+        "y": 2
+      },
+      "4": {
+        "h": 3,
+        "w": 6,
+        "x": 18,
+        "y": 2
+      },
+      "5": {
+        "h": 7,
+        "w": 24,
+        "x": 0,
+        "y": 5
+      },
+      "6": {
+        "h": 8,
+        "w": 12,
+        "x": 0,
+        "y": 12
+      },
+      "7": {
+        "h": 8,
+        "w": 12,
+        "x": 12,
+        "y": 12
+      },
+      "8": {
+        "h": 8,
+        "w": 24,
+        "x": 0,
+        "y": 20
+      },
+      "9": {
+        "h": 8,
+        "w": 12,
+        "x": 0,
+        "y": 28
+      },
+      "10": {
+        "h": 8,
+        "w": 12,
+        "x": 12,
+        "y": 28
+      },
+      "11": {
+        "h": 8,
+        "w": 24,
+        "x": 0,
+        "y": 36
+      }
+    },
+    "settings": {
+      "defaultTimeframe": {
+        "enabled": true,
+        "value": {
+          "from": "now()-2h",
+          "to": "now()"
+        }
+      }
+    },
+    "tiles": {
+      "0": {
+        "content": "# Netflow Diagnosis\nIs something wrong? Track enrichment gaps, unknown direction %, DNS resolution failures, and suspicious talkers.\n**Use case:** \"Why is so much traffic showing as unknown direction? Which public IPs are not yet enriched? What is this mystery IP doing?\"",
+        "type": "markdown"
+      },
+      "1": {
+        "davis": {
+          "davisVisualization": {
+            "isAvailable": true
+          },
+          "enabled": false
+        },
+        "query": "fetch logs\n| filter dt.openpipeline.source == \"extension:custom:netflow-observability\" and coalesce(content, \"\") != \"collector_diagnostics\"\n| summarize total = count(), unknown_direction = countIf(coalesce(`netflow.flow.direction`, \"unknown\") == \"unknown\")\n| fieldsAdd unknown_direction_pct = if(total == 0, then: 0.0, else: round(100.0 * unknown_direction / total, decimals: 2))",
+        "title": "Unknown Direction %",
+        "type": "data",
+        "visualization": "singleValue",
+        "visualizationSettings": {
+          "singleValue": {
+            "label": "%",
+            "recordField": "unknown_direction_pct"
+          }
+        }
+      },
+      "2": {
+        "davis": {
+          "davisVisualization": {
+            "isAvailable": true
+          },
+          "enabled": false
+        },
+        "query": "fetch logs\n| filter dt.openpipeline.source == \"extension:custom:netflow-observability\" and coalesce(content, \"\") != \"collector_diagnostics\"\n| fieldsAdd src_ip = coalesce(`netflow.source.ip`, \"0.0.0.0\")\n| fieldsAdd dst_ip = coalesce(`netflow.destination.ip`, \"0.0.0.0\")\n| fieldsAdd src_unresolved = coalesce(netflow.source.dns.lookup.status, \"unknown\") == \"unresolved\" and isIp(src_ip) and ipIsPublic(toIp(src_ip))\n| fieldsAdd dst_unresolved = coalesce(netflow.destination.dns.lookup.status, \"unknown\") == \"unresolved\" and isIp(dst_ip) and ipIsPublic(toIp(dst_ip))\n| summarize total = count(), unresolved = countIf(src_unresolved or dst_unresolved)\n| fieldsAdd unresolved_pct = if(total == 0, then: 0.0, else: round(100.0 * unresolved / total, decimals: 2))",
+        "title": "Unresolved DNS %",
+        "type": "data",
+        "visualization": "singleValue",
+        "visualizationSettings": {
+          "singleValue": {
+            "label": "%",
+            "recordField": "unresolved_pct"
+          }
+        }
+      },
+      "3": {
+        "davis": {
+          "davisVisualization": {
+            "isAvailable": true
+          },
+          "enabled": false
+        },
+        "query": "fetch logs\n| filter dt.openpipeline.source == \"extension:custom:netflow-observability\" and coalesce(content, \"\") != \"collector_diagnostics\"\n| fieldsAdd has_public_src = isIp(coalesce(`netflow.source.ip`, \"0.0.0.0\")) and ipIsPublic(toIp(coalesce(`netflow.source.ip`, \"0.0.0.0\")))\n| fieldsAdd has_public_dst = isIp(coalesce(`netflow.destination.ip`, \"0.0.0.0\")) and ipIsPublic(toIp(coalesce(`netflow.destination.ip`, \"0.0.0.0\")))\n| filter has_public_src or has_public_dst\n| summarize total_public = count(), enriched = countIf(isNotNull(`netflow.destination.provider`) or isNotNull(`netflow.source.provider`))\n| fieldsAdd unenriched_pct = if(total_public == 0, then: 0.0, else: round(100.0 * (total_public - enriched) / total_public, decimals: 1))",
+        "title": "Unenriched Public IPs %",
+        "type": "data",
+        "visualization": "singleValue",
+        "visualizationSettings": {
+          "singleValue": {
+            "label": "%",
+            "recordField": "unenriched_pct"
+          }
+        }
+      },
+      "4": {
+        "davis": {
+          "davisVisualization": {
+            "isAvailable": true
+          },
+          "enabled": false
+        },
+        "query": "fetch logs\n| filter dt.openpipeline.source == \"extension:custom:netflow-observability\" and coalesce(content, \"\") != \"collector_diagnostics\"\n| summarize total = count(), low_conf = countIf(coalesce(`netflow.flow.direction.confidence`, \"low\") == \"low\")\n| fieldsAdd low_conf_pct = if(total == 0, then: 0.0, else: round(100.0 * low_conf / total, decimals: 2))",
+        "title": "Low Confidence Direction %",
+        "type": "data",
+        "visualization": "singleValue",
+        "visualizationSettings": {
+          "singleValue": {
+            "label": "%",
+            "recordField": "low_conf_pct"
+          }
+        }
+      },
+      "5": {
+        "davis": {
+          "davisVisualization": {
+            "isAvailable": true
+          },
+          "enabled": false
+        },
+        "query": "fetch logs\n| filter dt.openpipeline.source == \"extension:custom:netflow-observability\" and coalesce(content, \"\") != \"collector_diagnostics\"\n| fieldsAdd src_ip = coalesce(`netflow.source.ip`, \"0.0.0.0\")\n| fieldsAdd dst_ip = coalesce(`netflow.destination.ip`, \"0.0.0.0\")\n| fieldsAdd src_unresolved = coalesce(netflow.source.dns.lookup.status, \"unknown\") == \"unresolved\" and isIp(src_ip) and ipIsPublic(toIp(src_ip))\n| fieldsAdd dst_unresolved = coalesce(netflow.destination.dns.lookup.status, \"unknown\") == \"unresolved\" and isIp(dst_ip) and ipIsPublic(toIp(dst_ip))\n| makeTimeseries\n    total_records = count(),\n    unknown_direction = countIf(coalesce(`netflow.flow.direction`, \"unknown\") == \"unknown\"),\n    unresolved_dns = countIf(src_unresolved or dst_unresolved),\n  interval: 5m",
+        "title": "Flow Volume, Unknown Direction & Unresolved DNS Over Time",
+        "type": "data",
+        "visualization": "lineChart",
+        "visualizationSettings": {}
+      },
+      "6": {
+        "davis": {
+          "davisVisualization": {
+            "isAvailable": true
+          },
+          "enabled": false
+        },
+        "query": "fetch logs\n| filter dt.openpipeline.source == \"extension:custom:netflow-observability\" and coalesce(content, \"\") != \"collector_diagnostics\"\n| filter coalesce(`netflow.flow.direction`, \"unknown\") == \"unknown\"\n| fieldsAdd source_identity = if(isNotNull(`netflow.source.hostname`), then: `netflow.source.hostname`, else: concat(coalesce(`netflow.source.ip`, \"?\"), \" (unresolved)\"))\n| fieldsAdd destination_identity = if(isNotNull(`netflow.destination.hostname`), then: `netflow.destination.hostname`, else: concat(coalesce(`netflow.destination.ip`, \"?\"), \" (unresolved)\"))\n| summarize\n    records = count(),\n    bytes = sum(toLong(coalesce(`netflow.flow.io.bytes`, 0))),\n    by: {source_identity, destination_identity, protocol = coalesce(`netflow.network.transport`, \"unknown\")}\n| fieldsAdd gb = round(bytes / 1073741824.0, decimals: 3)\n| sort bytes desc\n| limit 25",
+        "title": "Unknown Direction Hotspots",
+        "type": "data",
+        "visualization": "table",
+        "visualizationSettings": {}
+      },
+      "7": {
+        "davis": {
+          "davisVisualization": {
+            "isAvailable": true
+          },
+          "enabled": false
+        },
+        "query": "fetch logs\n| filter dt.openpipeline.source == \"extension:custom:netflow-observability\" and coalesce(content, \"\") != \"collector_diagnostics\"\n| fieldsAdd dst_ip = coalesce(`netflow.destination.ip`, \"0.0.0.0\")\n| filter isIp(dst_ip) and ipIsPublic(toIp(dst_ip)) and isNull(`netflow.destination.provider`)\n| summarize\n    bytes = sum(toLong(coalesce(`netflow.flow.io.bytes`, 0))),\n    flow_count = count(),\n    by: {\n      dst_ip,\n      direction = coalesce(`netflow.flow.direction`, \"unknown\"),\n      protocol = coalesce(`netflow.network.transport`, \"unknown\")\n    }\n| fieldsAdd gb = round(bytes / 1073741824.0, decimals: 3)\n| sort bytes desc\n| limit 25",
+        "title": "Top Unenriched Public IPs (Enrichment Gaps)",
+        "type": "data",
+        "visualization": "table",
+        "visualizationSettings": {}
+      },
+      "8": {
+        "davis": {
+          "davisVisualization": {
+            "isAvailable": true
+          },
+          "enabled": false
+        },
+        "query": "fetch logs\n| filter dt.openpipeline.source == \"extension:custom:netflow-observability\" and coalesce(content, \"\") != \"collector_diagnostics\"\n| filter coalesce(`netflow.flow.direction`, \"unknown\") == \"inbound\" or coalesce(`netflow.flow.direction`, \"unknown\") == \"outbound\" or coalesce(`netflow.flow.direction.confidence`, \"low\") == \"low\"\n| fieldsAdd source_identity = if(isNotNull(`netflow.source.hostname`), then: `netflow.source.hostname`, else: coalesce(`netflow.source.ip`, \"unknown\"))\n| fieldsAdd destination_identity = if(isNotNull(`netflow.destination.hostname`), then: `netflow.destination.hostname`, else: coalesce(`netflow.destination.ip`, \"unknown\"))\n| summarize\n    records = count(),\n    bytes = sum(toLong(coalesce(`netflow.flow.io.bytes`, 0))),\n    packets = sum(toLong(coalesce(`netflow.flow.io.packets`, 0))),\n    by: {\n      direction = coalesce(`netflow.flow.direction`, \"unknown\"),\n      source_identity,\n      destination_identity,\n      protocol = coalesce(`netflow.network.transport`, \"unknown\"),\n      dst_provider = coalesce(`netflow.destination.provider`, \"unenriched\"),\n      dst_country = coalesce(`netflow.destination.country`, \"\")\n    }\n| fieldsAdd gb = round(bytes / 1073741824.0, decimals: 3)\n| sort bytes desc\n| limit 50",
+        "title": "Suspicious Talkers (Inbound / Outbound / Low Confidence)",
+        "type": "data",
+        "visualization": "table",
+        "visualizationSettings": {}
+      },
+      "9": {
+        "davis": {
+          "davisVisualization": {
+            "isAvailable": true
+          },
+          "enabled": false
+        },
+        "query": "fetch logs\n| filter dt.openpipeline.source == \"extension:custom:netflow-observability\" and coalesce(content, \"\") != \"collector_diagnostics\"\n| fieldsAdd src_ip = coalesce(`netflow.source.ip`, \"0.0.0.0\")\n| filter isIp(src_ip) and ipIsPublic(toIp(src_ip)) and coalesce(netflow.source.dns.lookup.status, \"unknown\") == \"unresolved\"\n| fieldsAdd source_identity = if(isNotNull(`netflow.source.hostname`), then: `netflow.source.hostname`, else: concat(src_ip, \" (unresolved)\"))\n| summarize\n    records = count(),\n    bytes = sum(toLong(coalesce(`netflow.flow.io.bytes`, 0))),\n    by: {direction = coalesce(`netflow.flow.direction`, \"unknown\"), source_identity}\n| fieldsAdd gb = round(bytes / 1073741824.0, decimals: 3)\n| sort bytes desc\n| limit 25",
+        "title": "Unresolved DNS Hotspots \u2014 Sources",
+        "type": "data",
+        "visualization": "table",
+        "visualizationSettings": {}
+      },
+      "10": {
+        "davis": {
+          "davisVisualization": {
+            "isAvailable": true
+          },
+          "enabled": false
+        },
+        "query": "fetch logs\n| filter dt.openpipeline.source == \"extension:custom:netflow-observability\" and coalesce(content, \"\") != \"collector_diagnostics\"\n| fieldsAdd dst_ip = coalesce(`netflow.destination.ip`, \"0.0.0.0\")\n| filter isIp(dst_ip) and ipIsPublic(toIp(dst_ip)) and coalesce(netflow.destination.dns.lookup.status, \"unknown\") == \"unresolved\"\n| fieldsAdd destination_identity = if(isNotNull(`netflow.destination.hostname`), then: `netflow.destination.hostname`, else: concat(dst_ip, \" (unresolved)\"))\n| summarize\n    records = count(),\n    bytes = sum(toLong(coalesce(`netflow.flow.io.bytes`, 0))),\n    by: {direction = coalesce(`netflow.flow.direction`, \"unknown\"), destination_identity}\n| fieldsAdd gb = round(bytes / 1073741824.0, decimals: 3)\n| sort bytes desc\n| limit 25",
+        "title": "Unresolved DNS Hotspots \u2014 Destinations",
+        "type": "data",
+        "visualization": "table",
+        "visualizationSettings": {}
+      },
+      "11": {
+        "davis": {
+          "davisVisualization": {
+            "isAvailable": true
+          },
+          "enabled": false
+        },
+        "query": "fetch logs\n| filter dt.openpipeline.source == \"extension:custom:netflow-observability\" and coalesce(content, \"\") != \"collector_diagnostics\"\n| fieldsAdd src_ip = coalesce(`netflow.source.ip`, \"0.0.0.0\")\n| fieldsAdd dst_ip = coalesce(`netflow.destination.ip`, \"0.0.0.0\")\n| fieldsAdd src_unresolved = coalesce(netflow.source.dns.lookup.status, \"unknown\") == \"unresolved\" and isIp(src_ip) and ipIsPublic(toIp(src_ip))\n| fieldsAdd dst_unresolved = coalesce(netflow.destination.dns.lookup.status, \"unknown\") == \"unresolved\" and isIp(dst_ip) and ipIsPublic(toIp(dst_ip))\n| filter src_unresolved or dst_unresolved\n| makeTimeseries unresolved_records = count(), by: {direction = coalesce(`netflow.flow.direction`, \"unknown\")}, interval: 5m",
+        "title": "Unresolved DNS by Direction Over Time",
+        "type": "data",
+        "visualization": "lineChart",
+        "visualizationSettings": {}
+      }
+    },
+    "variables": [],
+    "version": 21
+  }
+}

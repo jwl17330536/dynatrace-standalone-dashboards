@@ -1,0 +1,627 @@
+{
+  "name": "Dynatrace Assist \u2014 Operator Utilization & Cost",
+  "type": "dashboard",
+  "owner": "<YOUR_DYNATRACE_USER_ID>",
+  "isPrivate": true,
+  "description": " | skill filter: chat (env)",
+  "version": 3,
+  "modificationInfo": {
+    "createdBy": "",
+    "createdTime": "",
+    "lastModifiedBy": "",
+    "lastModifiedTime": ""
+  },
+  "content": {
+    "annotations": [],
+    "importedWithCode": false,
+    "layouts": {
+      "1": {
+        "h": 4,
+        "w": 20,
+        "x": 0,
+        "y": 0
+      },
+      "10": {
+        "h": 8,
+        "w": 10,
+        "x": 0,
+        "y": 51
+      },
+      "11": {
+        "h": 8,
+        "w": 10,
+        "x": 10,
+        "y": 51
+      },
+      "12": {
+        "h": 3,
+        "w": 20,
+        "x": 0,
+        "y": 59
+      },
+      "14": {
+        "h": 8,
+        "w": 5,
+        "x": 0,
+        "y": 62
+      },
+      "15": {
+        "h": 8,
+        "w": 15,
+        "x": 5,
+        "y": 62
+      },
+      "16": {
+        "h": 1,
+        "w": 20,
+        "x": 0,
+        "y": 70
+      },
+      "17": {
+        "h": 10,
+        "w": 20,
+        "x": 0,
+        "y": 73
+      },
+      "18": {
+        "h": 3,
+        "w": 20,
+        "x": 0,
+        "y": 96
+      },
+      "19": {
+        "h": 12,
+        "w": 20,
+        "x": 0,
+        "y": 99
+      },
+      "2": {
+        "h": 4,
+        "w": 5,
+        "x": 0,
+        "y": 4
+      },
+      "20": {
+        "h": 3,
+        "w": 20,
+        "x": 0,
+        "y": 83
+      },
+      "21": {
+        "h": 10,
+        "w": 20,
+        "x": 0,
+        "y": 86
+      },
+      "22": {
+        "h": 2,
+        "w": 20,
+        "x": 0,
+        "y": 71
+      },
+      "23": {
+        "h": 1,
+        "w": 20,
+        "x": 0,
+        "y": 8
+      },
+      "24": {
+        "h": 2,
+        "w": 20,
+        "x": 0,
+        "y": 9
+      },
+      "25": {
+        "h": 8,
+        "w": 10,
+        "x": 0,
+        "y": 11
+      },
+      "26": {
+        "h": 8,
+        "w": 10,
+        "x": 10,
+        "y": 11
+      },
+      "29": {
+        "h": 2,
+        "w": 20,
+        "x": 0,
+        "y": 19
+      },
+      "3": {
+        "h": 4,
+        "w": 5,
+        "x": 5,
+        "y": 4
+      },
+      "30": {
+        "h": 8,
+        "w": 20,
+        "x": 0,
+        "y": 21
+      },
+      "4": {
+        "h": 4,
+        "w": 5,
+        "x": 10,
+        "y": 4
+      },
+      "5": {
+        "h": 4,
+        "w": 5,
+        "x": 15,
+        "y": 4
+      },
+      "6": {
+        "h": 3,
+        "w": 20,
+        "x": 0,
+        "y": 29
+      },
+      "7": {
+        "h": 7,
+        "w": 20,
+        "x": 0,
+        "y": 32
+      },
+      "8": {
+        "h": 9,
+        "w": 20,
+        "x": 0,
+        "y": 39
+      },
+      "9": {
+        "h": 3,
+        "w": 20,
+        "x": 0,
+        "y": 48
+      }
+    },
+    "settings": {},
+    "tiles": {
+      "1": {
+        "content": "## Dynatrace Assist \u2014 Operator Utilization & Cost\nMonitor usage of Dynatrace Assist in **operator mode** \u2014 the conversational AI agent that plans and executes DQL queries on your behalf. Only operator skill sessions are included; other skills and external MCP clients are excluded.\n\n**Data sources:** `GENAI_EVENT` records every prompt and AI response. `QUERY_EXECUTION_EVENT` (client: `dt.mcp.gateway`) records every DQL query Assist executes, including bytes scanned and billed. Zero-scan calls (metrics, topology lookups) are excluded from cost tiles.\n",
+        "type": "markdown"
+      },
+      "10": {
+        "davis": {
+          "davisVisualization": {
+            "isAvailable": true
+          }
+        },
+        "query": "fetch dt.system.events\n| filter event.kind == \"GENAI_EVENT\" and event.type == \"GenAI Skill Invocation\"\n| filter skill == \"chat\"\n| filter in(lower(coalesce(user.email, user_email)), array($UserFilter))\n| summarize queries = count(), by: {user = lower(coalesce(user.email, user_email))}\n| sort queries desc\n| limit 20",
+        "querySettings": {
+          "defaultSamplingRatio": 10,
+          "defaultScanLimitGbytes": 500,
+          "enableSampling": false,
+          "maxResultMegaBytes": 1,
+          "maxResultRecords": 1000
+        },
+        "title": "Top Users by Prompts Sent",
+        "type": "data",
+        "visualization": "categoricalBarChart",
+        "visualizationSettings": {}
+      },
+      "11": {
+        "davis": {
+          "davisVisualization": {
+            "isAvailable": true
+          }
+        },
+        "query": "fetch dt.system.events\n| filter event.kind == \"QUERY_EXECUTION_EVENT\" and client.internal_service_context == \"dt.mcp.gateway\"\n| filter scanned_bytes > 0\n| filter not (table == \"events\" and (contains(query_string, \"dt.davis.problems\", caseSensitive: false) or contains(query_string, \"dt.davis.events\", caseSensitive: false)))\n| filter in(lower(coalesce(user.email, user_email)), array($UserFilter))\n| fieldsAdd user_key = lower(coalesce(user.email, user_email))\n| lookup [fetch dt.system.events | filter event.kind == \"GENAI_EVENT\" and skill == \"chat\" | summarize op_count = count(), by: {user = lower(coalesce(user.email, user_email))}], sourceField: user_key, lookupField: user\n| filter isNotNull(lookup.op_count)\n| summarize bytes_gb = sum(scanned_bytes) / 1000000000, by: {user = lower(coalesce(user.email, user_email))}\n| sort bytes_gb desc\n| limit 20",
+        "querySettings": {
+          "defaultSamplingRatio": 10,
+          "defaultScanLimitGbytes": 500,
+          "enableSampling": false,
+          "maxResultMegaBytes": 1,
+          "maxResultRecords": 1000
+        },
+        "title": "Top Users by Billed Bytes (GB)",
+        "type": "data",
+        "visualization": "categoricalBarChart",
+        "visualizationSettings": {}
+      },
+      "12": {
+        "content": "### Cost Attribution & Breakdown\n- **Bytes by data type (center):** Where scanning cost comes from. Logs dominate because they are verbose; metrics and topology are free and not shown here.\n- **User cost table (right):** Per-user breakdown split by log \u00b7 span \u00b7 event bytes. Use this for internal cost allocation or to identify who would benefit most from query guidance.",
+        "type": "markdown"
+      },
+      "14": {
+        "davis": {
+          "davisVisualization": {
+            "isAvailable": true
+          }
+        },
+        "query": "fetch dt.system.events\n| filter event.kind == \"QUERY_EXECUTION_EVENT\" and client.internal_service_context == \"dt.mcp.gateway\"\n| filter scanned_bytes > 0\n| filter not (table == \"events\" and (contains(query_string, \"dt.davis.problems\", caseSensitive: false) or contains(query_string, \"dt.davis.events\", caseSensitive: false)))\n| filter in(lower(coalesce(user.email, user_email)), array($UserFilter))\n| fieldsAdd user_key = lower(coalesce(user.email, user_email))\n| lookup [fetch dt.system.events | filter event.kind == \"GENAI_EVENT\" and skill == \"chat\" | summarize op_count = count(), by: {user = lower(coalesce(user.email, user_email))}], sourceField: user_key, lookupField: user\n| filter isNotNull(lookup.op_count)\n| summarize bytes_gb = sum(scanned_bytes) / 1000000000, by: {data_type = table}\n| sort bytes_gb desc",
+        "querySettings": {
+          "defaultSamplingRatio": 10,
+          "defaultScanLimitGbytes": 500,
+          "enableSampling": false,
+          "maxResultMegaBytes": 1,
+          "maxResultRecords": 1000
+        },
+        "title": "Billed Bytes by Data Type",
+        "type": "data",
+        "visualization": "donutChart",
+        "visualizationSettings": {}
+      },
+      "15": {
+        "davis": {
+          "davisVisualization": {
+            "isAvailable": true
+          }
+        },
+        "query": "fetch dt.system.events\n| filter event.kind == \"QUERY_EXECUTION_EVENT\" and client.internal_service_context == \"dt.mcp.gateway\"\n| filter scanned_bytes > 0\n| filter not (table == \"events\" and (contains(query_string, \"dt.davis.problems\", caseSensitive: false) or contains(query_string, \"dt.davis.events\", caseSensitive: false)))\n| filter in(lower(coalesce(user.email, user_email)), array($UserFilter))\n| fieldsAdd user_key = lower(coalesce(user.email, user_email))\n| lookup [fetch dt.system.events | filter event.kind == \"GENAI_EVENT\" and skill == \"chat\" | summarize op_count = count(), by: {user = lower(coalesce(user.email, user_email))}], sourceField: user_key, lookupField: user\n| filter isNotNull(lookup.op_count)\n| fieldsAdd log_bytes = if(table == \"logs\", scanned_bytes, else: 0), span_bytes = if(table == \"spans\", scanned_bytes, else: 0), event_bytes = if(table == \"events\", scanned_bytes, else: 0)\n| summarize total_queries = countDistinct(query_id), total_bytes_gb = sum(scanned_bytes) / 1000000000, log_bytes_gb = sum(log_bytes) / 1000000000, span_bytes_gb = sum(span_bytes) / 1000000000, event_bytes_gb = sum(event_bytes) / 1000000000, by: {user = lower(coalesce(user.email, user_email))}\n| sort total_bytes_gb desc\n| limit 30",
+        "querySettings": {
+          "defaultSamplingRatio": 10,
+          "defaultScanLimitGbytes": 500,
+          "enableSampling": false,
+          "maxResultMegaBytes": 1,
+          "maxResultRecords": 1000
+        },
+        "title": "User Cost & Activity Summary",
+        "type": "data",
+        "visualization": "table",
+        "visualizationSettings": {
+          "table": {
+            "sortBy": [
+              {
+                "columnId": "[\"total_bytes_gb\"]",
+                "direction": "descending"
+              }
+            ]
+          },
+          "unitsOverrides": [
+            {
+              "added": 1782302921448,
+              "baseUnit": "gigabyte",
+              "cascade": null,
+              "decimals": null,
+              "delimiter": false,
+              "displayUnit": null,
+              "identifier": "total_bytes_gb",
+              "suffix": "",
+              "unitCategory": "data"
+            }
+          ]
+        }
+      },
+      "16": {
+        "content": "### Conversation Summary",
+        "type": "markdown"
+      },
+      "17": {
+        "davis": {
+          "davisVisualization": {
+            "isAvailable": true
+          }
+        },
+        "query": "fetch dt.system.events\n| filter event.kind == \"GENAI_EVENT\" and event.type == \"GenAI Skill Invocation\" and skill == \"chat\"\n| filter in(lower(coalesce(user.email, user_email)), array($UserFilter))\n| lookup [\n    fetch dt.system.events\n    | filter event.kind == \"GENAI_EVENT\" and event.type == \"GenAI Skill Invocation\" and skill == \"chat\"\n    | filter isNotNull(topic) and topic != \"\"\n    | sort timestamp asc\n    | summarize first_topic = takeFirst(topic), by: {conversation_id}\n  ], sourceField: conversation_id, lookupField: conversation_id\n| summarize turns = count(), topic = takeFirst(lookup.first_topic), user = takeFirst(lower(coalesce(user.email, user_email))), first_prompt = takeFirst(user_input), started = min(timestamp), by: {conversation_id}\n| sort started desc\n| limit 100",
+        "querySettings": {
+          "defaultSamplingRatio": 10,
+          "defaultScanLimitGbytes": 500,
+          "enableSampling": false,
+          "maxResultMegaBytes": 1,
+          "maxResultRecords": 1000
+        },
+        "title": "Conversation Sessions (Operator Skill)",
+        "type": "data",
+        "visualization": "table",
+        "visualizationSettings": {
+          "table": {
+            "columnWidths": {
+              "[\"first_prompt\"]": 984
+            }
+          }
+        }
+      },
+      "18": {
+        "content": "Full conversation log for Assist operator sessions \u2014 every prompt and AI response in chronological order, newest first. Use this to understand what users are asking and how Assist responded. Filter by user above to focus on a specific person.",
+        "type": "markdown"
+      },
+      "19": {
+        "davis": {
+          "davisVisualization": {
+            "isAvailable": true
+          }
+        },
+        "query": "fetch dt.system.events\n| filter event.kind == \"GENAI_EVENT\" and event.type == \"GenAI Skill Invocation\" and skill == \"chat\"\n| filter isNotNull(user_input)\n| filter in(lower(coalesce(user.email, user_email)), array($UserFilter))\n| lookup [\n    fetch dt.system.events\n    | filter event.kind == \"GENAI_EVENT\" and event.type == \"GenAI Skill Invocation\" and skill == \"chat\"\n    | filter isNotNull(topic) and topic != \"\"\n    | sort timestamp asc\n    | summarize first_topic = takeFirst(topic), by: {conversation_id}\n  ], sourceField: conversation_id, lookupField: conversation_id\n| fieldsAdd effective_topic = coalesce(topic, lookup.first_topic)\n| fields timestamp, user = lower(coalesce(user.email, user_email)), skill, topic = effective_topic, user_input, response\n| sort timestamp desc\n| limit 100",
+        "querySettings": {
+          "defaultSamplingRatio": 10,
+          "defaultScanLimitGbytes": 500,
+          "enableSampling": false,
+          "maxResultMegaBytes": 1,
+          "maxResultRecords": 1000
+        },
+        "title": "Recent Conversations (Operator Skill)",
+        "type": "data",
+        "visualization": "table",
+        "visualizationSettings": {
+          "table": {
+            "rowDensity": "comfortable"
+          }
+        }
+      },
+      "2": {
+        "davis": {
+          "davisVisualization": {
+            "isAvailable": true
+          }
+        },
+        "query": "fetch dt.system.events\n| filter event.kind == \"GENAI_EVENT\" and event.type == \"GenAI Skill Invocation\"\n| filter skill == \"chat\"\n| filter in(lower(coalesce(user.email, user_email)), array($UserFilter))\n| summarize total = count()",
+        "querySettings": {
+          "defaultSamplingRatio": 10,
+          "defaultScanLimitGbytes": 500,
+          "enableSampling": false,
+          "maxResultMegaBytes": 1,
+          "maxResultRecords": 1000
+        },
+        "title": "Total Prompts Sent",
+        "type": "data",
+        "visualization": "singleValue",
+        "visualizationSettings": {
+          "singleValue": {
+            "label": "Prompts Sent"
+          }
+        }
+      },
+      "20": {
+        "content": "### Top DQL Queries by Billed Bytes\nIndividual queries executed by Assist sorted by data scanned. Use this to spot expensive patterns: unbounded time ranges, missing `scanLimitGBytes`, or repeated broad scans that could be narrowed with better prompting or DQL education.",
+        "type": "markdown"
+      },
+      "21": {
+        "davis": {
+          "davisVisualization": {
+            "isAvailable": true
+          }
+        },
+        "query": "fetch dt.system.events\n| filter event.kind == \"QUERY_EXECUTION_EVENT\" and client.internal_service_context == \"dt.mcp.gateway\"\n| filter scanned_bytes > 0\n| filter not (table == \"events\" and (contains(query_string, \"dt.davis.problems\", caseSensitive: false) or contains(query_string, \"dt.davis.events\", caseSensitive: false)))\n| filter in(lower(coalesce(user.email, user_email)), array($UserFilter))\n| fieldsAdd user_key = lower(coalesce(user.email, user_email))\n| lookup [fetch dt.system.events | filter event.kind == \"GENAI_EVENT\" and skill == \"chat\" | summarize op_count = count(), by: {user = lower(coalesce(user.email, user_email))}], sourceField: user_key, lookupField: user\n| filter isNotNull(lookup.op_count)\n| fieldsRename data_type = table\n| summarize billed_gb = toDouble(sum(scanned_bytes)) / 1000000000, user = takeFirst(lower(coalesce(user.email, user_email))), data_type = takeFirst(data_type), timestamp = min(timestamp), query_string = takeFirst(query_string), status = takeFirst(status), duration_ms = max(execution_duration_ms), by: {query_id}\n| sort billed_gb desc\n| limit 100",
+        "querySettings": {
+          "defaultSamplingRatio": 10,
+          "defaultScanLimitGbytes": 500,
+          "enableSampling": false,
+          "maxResultMegaBytes": 1,
+          "maxResultRecords": 1000
+        },
+        "title": "Costliest Queries Executed via Assist",
+        "type": "data",
+        "visualization": "table",
+        "visualizationSettings": {}
+      },
+      "22": {
+        "content": "Each row is a unique conversation with Assist, showing the opening question, how many back-and-forth turns it lasted, and the auto-classified topic where available. Long multi-turn conversations indicate high engagement \u2014 short ones may signal users who didn't get the answer they needed.",
+        "type": "markdown"
+      },
+      "23": {
+        "content": "### Cost Anomalies & Guardrail Overrides",
+        "type": "markdown"
+      },
+      "24": {
+        "content": "Flags usage outliers using two complementary views: **Scan Limit Overrides (left)** \u2014 users who explicitly set `scanLimitGBytes`, including `-1` (unlimited, removes all cost protection). **Query Cost Scatter (right)** \u2014 every user plotted by query volume (X) vs. avg GB/query (Y). Bottom-right = efficient power users (many cheap queries). Top-right = true outliers (many expensive queries). The table below ranks all users by total billed GB and shows how many times the population average they are.",
+        "type": "markdown"
+      },
+      "25": {
+        "davis": {
+          "davisVisualization": {
+            "isAvailable": true
+          }
+        },
+        "query": "fetch dt.system.events, from: now() - 30d\n| filter event.kind == \"QUERY_EXECUTION_EVENT\" and client.internal_service_context == \"dt.mcp.gateway\"\n| filter contains(query_string, \"scanLimitGBytes\", caseSensitive: false)\n| filter scanned_bytes > 0\n| filter not (table == \"events\" and (contains(query_string, \"dt.davis.problems\", caseSensitive: false) or contains(query_string, \"dt.davis.events\", caseSensitive: false)))\n| filter in(lower(coalesce(user.email, user_email)), array($UserFilter))\n| fieldsAdd user_key = lower(coalesce(user.email, user_email))\n| lookup [fetch dt.system.events, from: now() - 30d | filter event.kind == \"GENAI_EVENT\" and skill == \"chat\" | summarize op_count = count(), by: {user = lower(coalesce(user.email, user_email))}], sourceField: user_key, lookupField: user\n| filter isNotNull(lookup.op_count)\n| fieldsAdd has_unlimited = contains(lower(query_string), \"scanlimitgbytes:-1\") or contains(lower(query_string), \"scanlimitgbytes: -1\")\n| summarize override_queries = countDistinct(query_id), unlimited_queries = countDistinct(if(has_unlimited == true, query_id, else: null)), total_gb = toDouble(sum(scanned_bytes)) / 1000000000, by: {user = lower(coalesce(user.email, user_email))}\n| sort total_gb desc\n| limit 50",
+        "querySettings": {
+          "defaultSamplingRatio": 10,
+          "defaultScanLimitGbytes": 500,
+          "enableSampling": false,
+          "maxResultMegaBytes": 1,
+          "maxResultRecords": 1000
+        },
+        "title": "Scan Limit Overrides (users modifying scanLimitGBytes)",
+        "type": "data",
+        "visualization": "table",
+        "visualizationSettings": {
+          "coloring": {
+            "colorRules": [
+              {
+                "color": "var(--dt-colors-charts-loglevel-error-default, #cd3741)",
+                "colorMode": "single-color",
+                "comparator": ">",
+                "field": "unlimited_queries",
+                "metadata": {
+                  "applyTo": "row"
+                },
+                "type": "long",
+                "value": 0
+              }
+            ]
+          }
+        }
+      },
+      "26": {
+        "davis": {
+          "davisVisualization": {
+            "isAvailable": true
+          }
+        },
+        "description": "\u2199 few queries \u00b7 low cost = light users   \u2198 many queries \u00b7 low cost = efficient power users \u2713   \u2196 few queries \u00b7 high cost = one-off expensive (investigate)   \u2197 many queries \u00b7 high cost = systematic overuse \u26a0\ufe0f",
+        "query": "fetch dt.system.events\n| filter event.kind == \"QUERY_EXECUTION_EVENT\" and client.internal_service_context == \"dt.mcp.gateway\"\n| filter scanned_bytes > 0\n| filter not (table == \"events\" and (contains(query_string, \"dt.davis.problems\", caseSensitive: false) or contains(query_string, \"dt.davis.events\", caseSensitive: false)))\n| filter in(lower(coalesce(user.email, user_email)), array($UserFilter))\n| fieldsAdd user_key = lower(coalesce(user.email, user_email))\n| lookup [fetch dt.system.events | filter event.kind == \"GENAI_EVENT\" and skill == \"chat\" | summarize op_count = count(), by: {user = lower(coalesce(user.email, user_email))}], sourceField: user_key, lookupField: user\n| filter isNotNull(lookup.op_count)\n| summarize total_bytes = sum(scanned_bytes), query_count = countDistinct(query_id), by: {user = lower(coalesce(user.email, user_email))}\n| fieldsAdd avg_gb_per_query = toDouble(total_bytes) / 1000000000 / query_count\n| fields user, query_count, avg_gb_per_query",
+        "querySettings": {
+          "defaultSamplingRatio": 10,
+          "defaultScanLimitGbytes": 500,
+          "enableSampling": false,
+          "maxResultMegaBytes": 1,
+          "maxResultRecords": 1000
+        },
+        "title": "Query Cost Scatter: Volume vs. Avg GB per Query",
+        "type": "data",
+        "visualization": "scatterplot",
+        "visualizationSettings": {}
+      },
+      "29": {
+        "content": "### Query Cost Outlier Ranking",
+        "type": "markdown"
+      },
+      "3": {
+        "davis": {
+          "davisVisualization": {
+            "isAvailable": true
+          }
+        },
+        "query": "fetch dt.system.events\n| filter event.kind == \"QUERY_EXECUTION_EVENT\" and client.internal_service_context == \"dt.mcp.gateway\"\n| filter scanned_bytes > 0\n| filter not (table == \"events\" and (contains(query_string, \"dt.davis.problems\", caseSensitive: false) or contains(query_string, \"dt.davis.events\", caseSensitive: false)))\n| filter in(lower(coalesce(user.email, user_email)), array($UserFilter))\n| fieldsAdd user_key = lower(coalesce(user.email, user_email))\n| lookup [fetch dt.system.events | filter event.kind == \"GENAI_EVENT\" and skill == \"chat\" | summarize op_count = count(), by: {user = lower(coalesce(user.email, user_email))}], sourceField: user_key, lookupField: user\n| filter isNotNull(lookup.op_count)\n| summarize total = countDistinct(query_id)",
+        "querySettings": {
+          "defaultSamplingRatio": 10,
+          "defaultScanLimitGbytes": 500,
+          "enableSampling": false,
+          "maxResultMegaBytes": 1,
+          "maxResultRecords": 1000
+        },
+        "title": "Billed DQL Queries via Assist",
+        "type": "data",
+        "visualization": "singleValue",
+        "visualizationSettings": {
+          "singleValue": {
+            "label": "Distinct queries scanning data"
+          }
+        }
+      },
+      "30": {
+        "davis": {
+          "davisVisualization": {
+            "isAvailable": true
+          }
+        },
+        "query": "fetch dt.system.events\n| filter event.kind == \"QUERY_EXECUTION_EVENT\" and client.internal_service_context == \"dt.mcp.gateway\"\n| filter scanned_bytes > 0\n| filter not (table == \"events\" and (contains(query_string, \"dt.davis.problems\", caseSensitive: false) or contains(query_string, \"dt.davis.events\", caseSensitive: false)))\n| filter in(lower(coalesce(user.email, user_email)), array($UserFilter))\n| fieldsAdd user_key = lower(coalesce(user.email, user_email))\n| lookup [fetch dt.system.events | filter event.kind == \"GENAI_EVENT\" and skill == \"chat\" | summarize op_count = count(), by: {user = lower(coalesce(user.email, user_email))}], sourceField: user_key, lookupField: user\n| filter isNotNull(lookup.op_count)\n| summarize total_bytes = sum(scanned_bytes), query_count = countDistinct(query_id), by: {user = lower(coalesce(user.email, user_email))}\n| fieldsAdd total_gb = toDouble(total_bytes) / 1000000000, avg_gb_per_query = toDouble(total_bytes) / 1000000000 / query_count, _key = \"all\"\n| lookup [\n    fetch dt.system.events\n    | filter event.kind == \"QUERY_EXECUTION_EVENT\" and client.internal_service_context == \"dt.mcp.gateway\"\n    | filter scanned_bytes > 0\n| filter not (table == \"events\" and (contains(query_string, \"dt.davis.problems\", caseSensitive: false) or contains(query_string, \"dt.davis.events\", caseSensitive: false)))\n    | fieldsAdd user_key = lower(coalesce(user.email, user_email))\n    | lookup [fetch dt.system.events | filter event.kind == \"GENAI_EVENT\" and skill == \"chat\" | summarize op_count = count(), by: {user = lower(coalesce(user.email, user_email))}], sourceField: user_key, lookupField: user\n    | filter isNotNull(lookup.op_count)\n    | summarize total_bytes_per_user = sum(scanned_bytes), by: {user = lower(coalesce(user.email, user_email))}\n    | summarize mean_gb = avg(toDouble(total_bytes_per_user) / 1000000000)\n    | fieldsAdd _key = \"all\"\n  ], sourceField: _key, lookupField: _key\n| fieldsAdd times_over_avg = round(total_gb / lookup.mean_gb, decimals: 1)\n| fields user, query_count, total_gb, avg_gb_per_query, times_over_avg\n| sort total_gb desc\n| limit 20",
+        "querySettings": {
+          "defaultSamplingRatio": 10,
+          "defaultScanLimitGbytes": 500,
+          "enableSampling": false,
+          "maxResultMegaBytes": 1,
+          "maxResultRecords": 1000
+        },
+        "title": "Users by Total Billed GB \u2014 Times Over Average",
+        "type": "data",
+        "visualization": "table",
+        "visualizationSettings": {
+          "table": {
+            "sortBy": [
+              {
+                "columnId": "[\"times_over_avg\"]",
+                "direction": "descending"
+              }
+            ]
+          }
+        }
+      },
+      "4": {
+        "davis": {
+          "davisVisualization": {
+            "isAvailable": true
+          }
+        },
+        "query": "fetch dt.system.events\n| filter event.kind == \"GENAI_EVENT\" and event.type == \"GenAI Skill Invocation\"\n| filter skill == \"chat\"\n| filter in(lower(coalesce(user.email, user_email)), array($UserFilter))\n| summarize unique_users = countDistinct(lower(coalesce(user.email, user_email)))",
+        "querySettings": {
+          "defaultSamplingRatio": 10,
+          "defaultScanLimitGbytes": 500,
+          "enableSampling": false,
+          "maxResultMegaBytes": 1,
+          "maxResultRecords": 1000
+        },
+        "title": "Active Users",
+        "type": "data",
+        "visualization": "singleValue",
+        "visualizationSettings": {
+          "singleValue": {
+            "label": "Unique Users"
+          }
+        }
+      },
+      "5": {
+        "davis": {
+          "davisVisualization": {
+            "isAvailable": true
+          }
+        },
+        "query": "fetch dt.system.events\n| filter event.kind == \"QUERY_EXECUTION_EVENT\" and client.internal_service_context == \"dt.mcp.gateway\"\n| filter scanned_bytes > 0\n| filter not (table == \"events\" and (contains(query_string, \"dt.davis.problems\", caseSensitive: false) or contains(query_string, \"dt.davis.events\", caseSensitive: false)))\n| filter in(lower(coalesce(user.email, user_email)), array($UserFilter))\n| fieldsAdd user_key = lower(coalesce(user.email, user_email))\n| lookup [fetch dt.system.events | filter event.kind == \"GENAI_EVENT\" and skill == \"chat\" | summarize op_count = count(), by: {user = lower(coalesce(user.email, user_email))}], sourceField: user_key, lookupField: user\n| filter isNotNull(lookup.op_count)\n| summarize total_billed_gb = sum(scanned_bytes) / 1000000000",
+        "querySettings": {
+          "defaultSamplingRatio": 10,
+          "defaultScanLimitGbytes": 500,
+          "enableSampling": false,
+          "maxResultMegaBytes": 1,
+          "maxResultRecords": 1000
+        },
+        "title": "Total Billed Bytes (GB)",
+        "type": "data",
+        "visualization": "singleValue",
+        "visualizationSettings": {
+          "singleValue": {
+            "label": "GB Billed (logs \u00b7 spans \u00b7 events)"
+          }
+        }
+      },
+      "6": {
+        "content": "### Usage Trends\n- **Prompts & unique users (left):** Daily Assist activity. Prompts = total interactions; unique users = distinct people active that day. Rising prompts with flat unique users means the same people are engaging more; rising unique users means adoption is spreading.\n- **Billed bytes (right):** Cost trend by data source. Log scanning typically dominates. A sudden spike usually means a user ran an unbounded query without a time range or scan limit.",
+        "type": "markdown"
+      },
+      "7": {
+        "davis": {
+          "davisVisualization": {
+            "isAvailable": true
+          }
+        },
+        "query": "fetch dt.system.events\n| filter event.kind == \"GENAI_EVENT\" and event.type == \"GenAI Skill Invocation\" and skill == \"chat\"\n| filter in(lower(coalesce(user.email, user_email)), array($UserFilter))\n| makeTimeseries prompts = count(), unique_users = countDistinct(lower(coalesce(user.email, user_email)))",
+        "querySettings": {
+          "defaultSamplingRatio": 10,
+          "defaultScanLimitGbytes": 500,
+          "enableSampling": false,
+          "maxResultMegaBytes": 1,
+          "maxResultRecords": 1000
+        },
+        "title": "Prompts & Unique Users Per Day",
+        "type": "data",
+        "visualization": "lineChart",
+        "visualizationSettings": {
+          "autoSelectVisualization": false
+        }
+      },
+      "8": {
+        "davis": {
+          "davisVisualization": {
+            "isAvailable": true
+          }
+        },
+        "query": "fetch dt.system.events\n| filter event.kind == \"QUERY_EXECUTION_EVENT\" and client.internal_service_context == \"dt.mcp.gateway\"\n| filter scanned_bytes > 0\n| filter not (table == \"events\" and (contains(query_string, \"dt.davis.problems\", caseSensitive: false) or contains(query_string, \"dt.davis.events\", caseSensitive: false)))\n| filter in(lower(coalesce(user.email, user_email)), array($UserFilter))\n| fieldsAdd user_key = lower(coalesce(user.email, user_email))\n| lookup [fetch dt.system.events | filter event.kind == \"GENAI_EVENT\" and skill == \"chat\" | summarize op_count = count(), by: {user = lower(coalesce(user.email, user_email))}], sourceField: user_key, lookupField: user\n| filter isNotNull(lookup.op_count)\n| fieldsRename data_type = table\n| makeTimeseries bytes = sum(scanned_bytes), by: {data_type}",
+        "querySettings": {
+          "defaultSamplingRatio": 10,
+          "defaultScanLimitGbytes": 500,
+          "enableSampling": false,
+          "maxResultMegaBytes": 1,
+          "maxResultRecords": 1000
+        },
+        "title": "Billed Bytes Over Time by Data Type",
+        "type": "data",
+        "visualization": "barChart",
+        "visualizationSettings": {
+          "autoSelectVisualization": false
+        }
+      },
+      "9": {
+        "content": "### Most Active Users\n- **By prompts (left):** Engagement ranking \u2014 high counts reflect productive or exploratory users. Compare with the bytes chart: a user with many prompts but low bytes is asking frequent cheap questions; a user with few prompts but high bytes is running broad, expensive scans.\n- **By billed bytes (right):** Cost attribution \u2014 the primary view for quota planning and chargeback conversations.",
+        "type": "markdown"
+      }
+    },
+    "variables": [
+      {
+        "defaultValue": [
+          "3420b2ac-f1cf-4b24-b62d-61ba1ba8ed05*"
+        ],
+        "editable": true,
+        "input": "fetch dt.system.events\n| filter event.kind == \"GENAI_EVENT\" and event.type == \"GenAI Skill Invocation\" and skill == \"operator\"\n| summarize n = count(), by: {user = lower(coalesce(user.email, user_email))}\n| fields user\n| sort user asc",
+        "key": "UserFilter",
+        "multiple": true,
+        "name": "UserFilter",
+        "type": "query",
+        "version": 3,
+        "visible": true
+      }
+    ],
+    "version": 21
+  }
+}

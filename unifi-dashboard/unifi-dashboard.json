@@ -1,0 +1,509 @@
+{
+  "name": "UniFi Dashboard v3",
+  "type": "dashboard",
+  "owner": "<YOUR_DYNATRACE_USER_ID>",
+  "isPrivate": true,
+  "description": "UniFi WiFi and WAN via CEF syslog \u2014 ingest health, 30d WAN lookback.",
+  "version": 1,
+  "modificationInfo": {
+    "createdBy": "",
+    "createdTime": "",
+    "lastModifiedBy": "",
+    "lastModifiedTime": ""
+  },
+  "content": {
+    "annotations": [],
+    "importedWithCode": false,
+    "layouts": {
+      "0": {
+        "h": 2,
+        "w": 24,
+        "x": 0,
+        "y": 0
+      },
+      "1": {
+        "h": 3,
+        "w": 6,
+        "x": 0,
+        "y": 5
+      },
+      "10": {
+        "h": 3,
+        "w": 6,
+        "x": 0,
+        "y": 2
+      },
+      "11": {
+        "h": 3,
+        "w": 8,
+        "x": 8,
+        "y": 30
+      },
+      "12": {
+        "h": 3,
+        "w": 8,
+        "x": 16,
+        "y": 30
+      },
+      "13": {
+        "h": 7,
+        "w": 24,
+        "x": 0,
+        "y": 33
+      },
+      "14": {
+        "h": 5,
+        "w": 12,
+        "x": 0,
+        "y": 40
+      },
+      "15": {
+        "h": 5,
+        "w": 12,
+        "x": 12,
+        "y": 40
+      },
+      "2": {
+        "h": 3,
+        "w": 6,
+        "x": 6,
+        "y": 2
+      },
+      "3": {
+        "h": 5,
+        "w": 12,
+        "x": 0,
+        "y": 8
+      },
+      "4": {
+        "h": 7,
+        "w": 12,
+        "x": 12,
+        "y": 9
+      },
+      "5": {
+        "h": 7,
+        "w": 12,
+        "x": 12,
+        "y": 2
+      },
+      "6": {
+        "h": 7,
+        "w": 12,
+        "x": 0,
+        "y": 13
+      },
+      "7": {
+        "h": 7,
+        "w": 12,
+        "x": 12,
+        "y": 16
+      },
+      "8": {
+        "h": 7,
+        "w": 12,
+        "x": 0,
+        "y": 20
+      },
+      "9": {
+        "h": 7,
+        "w": 12,
+        "x": 12,
+        "y": 23
+      }
+    },
+    "settings": {
+      "defaultTimeframe": {
+        "enabled": true,
+        "value": {
+          "from": "now()-24h",
+          "to": "now()"
+        }
+      }
+    },
+    "tiles": {
+      "0": {
+        "content": "## UniFi Dashboard v3\n[v2 dashboard](https://oei3894h.sprint.apps.dynatracelabs.com/ui/apps/dynatrace.dashboards/dashboard/3ce1fe97-046a-48a8-9c47-74ec31514829) \u00b7 Syslog `syslog-172.16.1.1.log` \u00b7 CEF `CEF: 0|Ubiquiti`\n**WiFi CEF is live.** WAN Down/Restored tiles use a 30d lookback so a quiet week is not mistaken for a broken integration. DNAT / content-filter still need UDM Security/Firewall syslog categories.",
+        "type": "markdown"
+      },
+      "1": {
+        "davis": {
+          "davisVisualization": {
+            "isAvailable": true
+          },
+          "enabled": false
+        },
+        "query": "fetch logs\n| filter matchesPhrase(content, \"CEF: 0|Ubiquiti\")\n| parse content, \"LD \\\"UNIFIclientMac=\\\" LD:client_mac \\\" \\\"\" \n| summarize clients = countDistinct(client_mac)",
+        "querySettings": {
+          "defaultSamplingRatio": 10,
+          "defaultScanLimitGbytes": 500,
+          "enableSampling": false,
+          "maxResultMegaBytes": 1,
+          "maxResultRecords": 1000
+        },
+        "title": "Active Clients",
+        "type": "data",
+        "visualization": "singleValue",
+        "visualizationSettings": {
+          "autoSelectVisualization": false,
+          "singleValue": {
+            "label": "Active Clients",
+            "recordField": "clients"
+          }
+        }
+      },
+      "10": {
+        "davis": {
+          "davisVisualization": {
+            "isAvailable": true
+          },
+          "enabled": false
+        },
+        "query": "fetch logs, from: now()-30d\n| filter isNotNull(unifi.cef.event) and unifi.cef.event == \"Internet Restored\"\n| sort timestamp desc\n| limit 1\n| fields wan = unifi.wan.name",
+        "querySettings": {
+          "defaultSamplingRatio": 10,
+          "defaultScanLimitGbytes": 500,
+          "enableSampling": false,
+          "maxResultMegaBytes": 1,
+          "maxResultRecords": 1000
+        },
+        "title": "Active WAN",
+        "type": "data",
+        "visualization": "singleValue",
+        "visualizationSettings": {
+          "autoSelectVisualization": false,
+          "singleValue": {
+            "label": "Active WAN",
+            "recordField": "wan"
+          }
+        }
+      },
+      "11": {
+        "davis": {
+          "davisVisualization": {
+            "isAvailable": true
+          },
+          "enabled": false
+        },
+        "query": "fetch logs, from: now()-30d\n| filter isNotNull(unifi.cef.event) and unifi.cef.event == \"Internet Restored\"\n| sort timestamp desc\n| limit 1\n| fields isp = unifi.wan.isp",
+        "querySettings": {
+          "defaultSamplingRatio": 10,
+          "defaultScanLimitGbytes": 500,
+          "enableSampling": false,
+          "maxResultMegaBytes": 1,
+          "maxResultRecords": 1000
+        },
+        "title": "Active ISP",
+        "type": "data",
+        "visualization": "singleValue",
+        "visualizationSettings": {
+          "autoSelectVisualization": false,
+          "singleValue": {
+            "label": "ISP",
+            "recordField": "isp"
+          }
+        }
+      },
+      "12": {
+        "davis": {
+          "davisVisualization": {
+            "isAvailable": true
+          },
+          "enabled": false
+        },
+        "query": "fetch logs, from: now()-30d\n| filter isNotNull(unifi.cef.event) and unifi.cef.event == \"Internet Down\" or unifi.cef.event == \"Internet Restored\"\n| summarize events = count()",
+        "querySettings": {
+          "defaultSamplingRatio": 10,
+          "defaultScanLimitGbytes": 500,
+          "enableSampling": false,
+          "maxResultMegaBytes": 1,
+          "maxResultRecords": 1000
+        },
+        "title": "WAN Events (7d)",
+        "type": "data",
+        "visualization": "singleValue",
+        "visualizationSettings": {
+          "autoSelectVisualization": false,
+          "singleValue": {
+            "label": "Events",
+            "recordField": "events"
+          }
+        }
+      },
+      "13": {
+        "davis": {
+          "davisVisualization": {
+            "isAvailable": true
+          },
+          "enabled": false
+        },
+        "query": "fetch logs, from: now()-30d\n| filter isNotNull(unifi.cef.event) and unifi.cef.event == \"Internet Down\" or unifi.cef.event == \"Internet Restored\"\n| makeTimeseries events = count(), by:{wan = unifi.wan.name, event = unifi.cef.event}, interval:1h",
+        "querySettings": {
+          "defaultSamplingRatio": 10,
+          "defaultScanLimitGbytes": 500,
+          "enableSampling": false,
+          "maxResultMegaBytes": 1,
+          "maxResultRecords": 1000
+        },
+        "title": "Internet Down / Restored by WAN",
+        "type": "data",
+        "visualization": "lineChart",
+        "visualizationSettings": {
+          "autoSelectVisualization": false,
+          "chartSettings": {
+            "legend": {
+              "position": "bottom"
+            }
+          }
+        }
+      },
+      "14": {
+        "davis": {
+          "davisVisualization": {
+            "isAvailable": true
+          },
+          "enabled": false
+        },
+        "query": "fetch logs, from: now()-24h\n| filter matchesValue(log.file.name, \"syslog-172.16.1.1.log\")\n| fieldsAdd kind = if(matchesPhrase(content, \"CEF: 0|Ubiquiti\"), then: \"CEF\", else: \"other\")\n| summarize cnt = count(), last_ts = max(timestamp), by:{kind}\n| fieldsAdd freshness_min = (now() - last_ts) / 1m\n| fields kind, cnt, freshness_min\n| sort cnt desc",
+        "querySettings": {
+          "defaultSamplingRatio": 10,
+          "defaultScanLimitGbytes": 500,
+          "enableSampling": false,
+          "maxResultMegaBytes": 100,
+          "maxResultRecords": 1000
+        },
+        "title": "Syslog Ingest Health (24h)",
+        "type": "data",
+        "visualization": "table",
+        "visualizationSettings": {
+          "autoSelectVisualization": false,
+          "table": {
+            "linewrapEnabled": true
+          }
+        }
+      },
+      "15": {
+        "davis": {
+          "davisVisualization": {
+            "isAvailable": true
+          },
+          "enabled": false
+        },
+        "query": "fetch logs, from: now()-30d\n| filter isNotNull(unifi.cef.event) and unifi.cef.event == \"Internet Down\" or unifi.cef.event == \"Internet Restored\"\n| summarize last_ts = max(timestamp)\n| fieldsAdd age_days = (now() - last_ts) / 1d\n| fields age_days",
+        "querySettings": {
+          "defaultSamplingRatio": 10,
+          "defaultScanLimitGbytes": 500,
+          "enableSampling": false,
+          "maxResultMegaBytes": 100,
+          "maxResultRecords": 1000
+        },
+        "title": "Last WAN Down/Restored age (days)",
+        "type": "data",
+        "visualization": "singleValue",
+        "visualizationSettings": {
+          "autoSelectVisualization": false,
+          "singleValue": {
+            "label": "Days since last WAN event",
+            "recordField": "age_days"
+          }
+        }
+      },
+      "2": {
+        "davis": {
+          "davisVisualization": {
+            "isAvailable": true
+          },
+          "enabled": false
+        },
+        "query": "fetch logs\n| filter matchesPhrase(content, \"CEF: 0|Ubiquiti\")\n| parse content, \"LD \\\"|\\\" LD:v LD \\\"|\\\" LD:p LD \\\"|\\\" LD:ver LD \\\"|\\\" LD:id LD \\\"|\\\" LD:event LD \\\"|\\\" LD:sev\"\n| filter startsWith(event, \"Internet\")\n| summarize events = count()",
+        "querySettings": {
+          "defaultSamplingRatio": 10,
+          "defaultScanLimitGbytes": 500,
+          "enableSampling": false,
+          "maxResultMegaBytes": 1,
+          "maxResultRecords": 1000
+        },
+        "title": "WAN Internet Events (24h)",
+        "type": "data",
+        "visualization": "singleValue",
+        "visualizationSettings": {
+          "autoSelectVisualization": false,
+          "singleValue": {
+            "label": "Internet Events",
+            "recordField": "events"
+          }
+        }
+      },
+      "3": {
+        "davis": {
+          "davisVisualization": {
+            "isAvailable": true
+          },
+          "enabled": false
+        },
+        "query": "fetch logs\n| filter matchesPhrase(content, \"CEF: 0|Ubiquiti\")\n| parse content, \"LD \\\"UNIFIclientMac=\\\" LD:client_mac \\\" \\\"\" \n| makeTimeseries clients = countDistinct(client_mac), interval:5m",
+        "querySettings": {
+          "defaultSamplingRatio": 10,
+          "defaultScanLimitGbytes": 500,
+          "enableSampling": false,
+          "maxResultMegaBytes": 1,
+          "maxResultRecords": 1000
+        },
+        "title": "Active Clients Trend",
+        "type": "data",
+        "visualization": "lineChart",
+        "visualizationSettings": {
+          "autoSelectVisualization": false,
+          "chartSettings": {
+            "legend": {
+              "hidden": true,
+              "position": "bottom"
+            }
+          }
+        }
+      },
+      "4": {
+        "davis": {
+          "davisVisualization": {
+            "isAvailable": true
+          },
+          "enabled": false
+        },
+        "query": "fetch logs\n| filter matchesPhrase(content, \"CEF: 0|Ubiquiti\") and contains(content, \"WiFi Client Connected\")\n| parse content, \"LD \\\"UNIFIconnectedToDeviceName=\\\" LD:ap \\\" UNIFI\\\"\" \n| parse content, \"LD \\\"UNIFIWiFiRssi=\\\" INT:rssi \\\" \\\"\" \n| summarize events = count(), avg_rssi = avg(rssi), by:{ap}\n| fieldsAdd satisfaction = if(avg_rssi >= -65, then: 100, else: if(avg_rssi >= -75, then: 80, else: if(avg_rssi >= -80, then: 60, else: 40)))\n| sort satisfaction asc",
+        "querySettings": {
+          "defaultSamplingRatio": 10,
+          "defaultScanLimitGbytes": 500,
+          "enableSampling": false,
+          "maxResultMegaBytes": 1,
+          "maxResultRecords": 1000
+        },
+        "title": "AP Satisfaction by AP",
+        "type": "data",
+        "visualization": "categoricalBarChart",
+        "visualizationSettings": {
+          "autoSelectVisualization": false
+        }
+      },
+      "5": {
+        "davis": {
+          "davisVisualization": {
+            "isAvailable": true
+          },
+          "enabled": false
+        },
+        "query": "fetch logs\n| filter matchesPhrase(content, \"CEF: 0|Ubiquiti\") and contains(content, \"WiFi Client Connected\")\n| parse content, \"LD \\\"UNIFIconnectedToDeviceName=\\\" LD:ap \\\" UNIFI\\\"\" \n| summarize load = count(), by:{ap}\n| sort load desc\n| limit 10",
+        "querySettings": {
+          "defaultSamplingRatio": 10,
+          "defaultScanLimitGbytes": 500,
+          "enableSampling": false,
+          "maxResultMegaBytes": 1,
+          "maxResultRecords": 1000
+        },
+        "title": "Top APs by Client Connects",
+        "type": "data",
+        "visualization": "categoricalBarChart",
+        "visualizationSettings": {
+          "autoSelectVisualization": false
+        }
+      },
+      "6": {
+        "davis": {
+          "davisVisualization": {
+            "isAvailable": true
+          },
+          "enabled": false
+        },
+        "query": "fetch logs\n| filter matchesPhrase(content, \"CEF: 0|Ubiquiti\")\n| parse content, \"LD \\\"|\\\" LD:v LD \\\"|\\\" LD:p LD \\\"|\\\" LD:ver LD \\\"|\\\" LD:id LD \\\"|\\\" LD:event LD \\\"|\\\" LD:sev\"\n| makeTimeseries events = count(), by:{event}, interval:5m",
+        "querySettings": {
+          "defaultSamplingRatio": 10,
+          "defaultScanLimitGbytes": 500,
+          "enableSampling": false,
+          "maxResultMegaBytes": 1,
+          "maxResultRecords": 1000
+        },
+        "title": "WiFi Event Rate",
+        "type": "data",
+        "visualization": "lineChart",
+        "visualizationSettings": {
+          "autoSelectVisualization": false,
+          "chartSettings": {
+            "legend": {
+              "position": "bottom"
+            }
+          }
+        }
+      },
+      "7": {
+        "davis": {
+          "davisVisualization": {
+            "isAvailable": true
+          },
+          "enabled": false
+        },
+        "query": "fetch logs\n| filter matchesPhrase(content, \"CEF: 0|Ubiquiti\") and contains(content, \"WiFi Client Connected\")\n| parse content, \"LD \\\"UNIFIconnectedToDeviceName=\\\" LD:ap \\\" UNIFI\\\"\" \n| summarize connects = count(), by:{ap}\n| sort connects desc\n| limit 10",
+        "querySettings": {
+          "defaultSamplingRatio": 10,
+          "defaultScanLimitGbytes": 500,
+          "enableSampling": false,
+          "maxResultMegaBytes": 1,
+          "maxResultRecords": 1000
+        },
+        "title": "Top APs by Connects",
+        "type": "data",
+        "visualization": "categoricalBarChart",
+        "visualizationSettings": {
+          "autoSelectVisualization": false
+        }
+      },
+      "8": {
+        "davis": {
+          "davisVisualization": {
+            "isAvailable": true
+          },
+          "enabled": false
+        },
+        "query": "fetch logs\n| filter matchesPhrase(content, \"CEF: 0|Ubiquiti\")\n| parse content, \"LD \\\"UNIFIclientHostname=\\\" LD:hostname \\\" UNIFI\\\"\" \n| parse content, \"LD \\\"UNIFIclientIp=\\\" IPADDR:client_ip \\\" \\\"\" \n| parse content, \"LD \\\"UNIFIWiFiRssi=\\\" INT:rssi \\\" \\\"\" \n| filter isNotNull(rssi) and rssi < -80\n| summarize weak_events = count(), by:{client = coalesce(hostname, toString(client_ip))}\n| sort weak_events desc\n| limit 10",
+        "querySettings": {
+          "defaultSamplingRatio": 10,
+          "defaultScanLimitGbytes": 500,
+          "enableSampling": false,
+          "maxResultMegaBytes": 1,
+          "maxResultRecords": 1000
+        },
+        "title": "Weak RSSI Clients (< -80 dBm)",
+        "type": "data",
+        "visualization": "categoricalBarChart",
+        "visualizationSettings": {
+          "autoSelectVisualization": false
+        }
+      },
+      "9": {
+        "davis": {
+          "davisVisualization": {
+            "isAvailable": true
+          },
+          "enabled": false
+        },
+        "query": "fetch logs, from: now()-30d\n| filter isNotNull(unifi.cef.event) and unifi.cef.event == \"Internet Down\" or unifi.cef.event == \"Internet Restored\"\n| fields timestamp, unifi.cef.event, unifi.wan.name, unifi.wan.isp\n| sort timestamp desc\n| limit 50",
+        "querySettings": {
+          "defaultSamplingRatio": 10,
+          "defaultScanLimitGbytes": 500,
+          "enableSampling": false,
+          "maxResultMegaBytes": 1,
+          "maxResultRecords": 1000
+        },
+        "title": "Internet Down / Restored Timeline",
+        "type": "data",
+        "visualization": "table",
+        "visualizationSettings": {
+          "autoSelectVisualization": false,
+          "table": {
+            "linewrapEnabled": true
+          }
+        }
+      }
+    },
+    "variables": [],
+    "version": 21
+  }
+}

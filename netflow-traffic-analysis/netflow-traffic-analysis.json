@@ -1,0 +1,455 @@
+{
+  "name": "Netflow Traffic Analysis",
+  "type": "dashboard",
+  "owner": "<YOUR_DYNATRACE_USER_ID>",
+  "isPrivate": true,
+  "description": "Traffic analysis \u2014 direction, provider, protocol breakdowns, top talkers, ports, countries, and conversations.",
+  "version": 12,
+  "modificationInfo": {
+    "createdBy": "",
+    "createdTime": "",
+    "lastModifiedBy": "",
+    "lastModifiedTime": ""
+  },
+  "content": {
+    "annotations": [],
+    "importedWithCode": false,
+    "layouts": {
+      "0": {
+        "h": 2,
+        "w": 24,
+        "x": 0,
+        "y": 0
+      },
+      "1": {
+        "h": 3,
+        "w": 5,
+        "x": 0,
+        "y": 2
+      },
+      "10": {
+        "h": 7,
+        "w": 8,
+        "x": 8,
+        "y": 19
+      },
+      "11": {
+        "h": 7,
+        "w": 8,
+        "x": 16,
+        "y": 19
+      },
+      "12": {
+        "h": 8,
+        "w": 12,
+        "x": 0,
+        "y": 26
+      },
+      "13": {
+        "h": 8,
+        "w": 12,
+        "x": 12,
+        "y": 26
+      },
+      "14": {
+        "h": 9,
+        "w": 24,
+        "x": 0,
+        "y": 34
+      },
+      "2": {
+        "h": 3,
+        "w": 5,
+        "x": 5,
+        "y": 2
+      },
+      "3": {
+        "h": 3,
+        "w": 5,
+        "x": 10,
+        "y": 2
+      },
+      "4": {
+        "h": 3,
+        "w": 4,
+        "x": 15,
+        "y": 2
+      },
+      "5": {
+        "h": 3,
+        "w": 5,
+        "x": 19,
+        "y": 2
+      },
+      "6": {
+        "h": 7,
+        "w": 24,
+        "x": 0,
+        "y": 5
+      },
+      "7": {
+        "h": 7,
+        "w": 12,
+        "x": 0,
+        "y": 12
+      },
+      "8": {
+        "h": 7,
+        "w": 12,
+        "x": 12,
+        "y": 12
+      },
+      "9": {
+        "h": 7,
+        "w": 8,
+        "x": 0,
+        "y": 19
+      }
+    },
+    "settings": {
+      "defaultTimeframe": {
+        "enabled": true,
+        "value": {
+          "from": "now()-24h",
+          "to": "now()"
+        }
+      }
+    },
+    "tiles": {
+      "0": {
+        "content": "# Netflow Traffic Analysis\nWhat is my network doing right now? Direction breakdown, provider/ASN enrichment, protocol mix, and top talkers at a glance.\n**Use case:** \"How much traffic is inbound vs outbound? Which cloud providers am I talking to most? Who are my top talkers?\"",
+        "type": "markdown"
+      },
+      "1": {
+        "davis": {
+          "davisVisualization": {
+            "isAvailable": true
+          },
+          "enabled": false
+        },
+        "query": "fetch logs\n| filter dt.openpipeline.source == \"extension:custom:netflow-observability\" and coalesce(content, \"\") != \"collector_diagnostics\"\n| summarize total_bytes = sum(toLong(coalesce(`netflow.flow.io.bytes`, 0)))\n| fieldsAdd total_gb = round(total_bytes / 1073741824.0, decimals: 2)",
+        "querySettings": {
+          "defaultSamplingRatio": 10,
+          "defaultScanLimitGbytes": 500,
+          "enableSampling": false,
+          "maxResultMegaBytes": 100,
+          "maxResultRecords": 1000
+        },
+        "title": "Total Traffic",
+        "type": "data",
+        "visualization": "singleValue",
+        "visualizationSettings": {
+          "autoSelectVisualization": false,
+          "singleValue": {
+            "label": " GB",
+            "recordField": "total_gb"
+          }
+        }
+      },
+      "10": {
+        "davis": {
+          "davisVisualization": {
+            "isAvailable": true
+          },
+          "enabled": false
+        },
+        "query": "fetch logs\n| filter dt.openpipeline.source == \"extension:custom:netflow-observability\" and coalesce(content, \"\") != \"collector_diagnostics\"\n| summarize bytes = sum(toLong(coalesce(`netflow.flow.io.bytes`, 0))), by: {protocol = coalesce(`netflow.network.transport`, \"unknown\")}\n| sort bytes desc",
+        "querySettings": {
+          "defaultSamplingRatio": 10,
+          "defaultScanLimitGbytes": 500,
+          "enableSampling": false,
+          "maxResultMegaBytes": 100,
+          "maxResultRecords": 1000
+        },
+        "title": "Protocol Distribution",
+        "type": "data",
+        "visualization": "pieChart",
+        "visualizationSettings": {
+          "autoSelectVisualization": false
+        }
+      },
+      "11": {
+        "davis": {
+          "davisVisualization": {
+            "isAvailable": true
+          },
+          "enabled": false
+        },
+        "query": "fetch logs\n| filter dt.openpipeline.source == \"extension:custom:netflow-observability\" and coalesce(content, \"\") != \"collector_diagnostics\"\n| summarize bytes = sum(toLong(coalesce(`netflow.flow.io.bytes`, 0))), by: {provider = coalesce(`netflow.destination.provider`, `netflow.source.provider`, \"unenriched\")}\n| filter provider != \"private\"\n| sort bytes desc\n| limit 15",
+        "querySettings": {
+          "defaultSamplingRatio": 10,
+          "defaultScanLimitGbytes": 500,
+          "enableSampling": false,
+          "maxResultMegaBytes": 100,
+          "maxResultRecords": 1000
+        },
+        "title": "Top Providers by Traffic",
+        "type": "data",
+        "visualization": "categoricalBarChart",
+        "visualizationSettings": {
+          "autoSelectVisualization": false
+        }
+      },
+      "12": {
+        "davis": {
+          "davisVisualization": {
+            "isAvailable": true
+          },
+          "enabled": false
+        },
+        "query": "fetch logs\n| filter dt.openpipeline.source == \"extension:custom:netflow-observability\" and coalesce(content, \"\") != \"collector_diagnostics\"\n| summarize bytes = sum(toLong(coalesce(`netflow.flow.io.bytes`, 0))), flow_count = count(), by: {port = coalesce(`netflow.destination.port`, \"unknown\")}\n| sort bytes desc\n| limit 10",
+        "querySettings": {
+          "defaultSamplingRatio": 10,
+          "defaultScanLimitGbytes": 500,
+          "enableSampling": false,
+          "maxResultMegaBytes": 100,
+          "maxResultRecords": 1000
+        },
+        "title": "Top 10 Ports",
+        "type": "data",
+        "visualization": "categoricalBarChart",
+        "visualizationSettings": {
+          "autoSelectVisualization": false
+        }
+      },
+      "13": {
+        "davis": {
+          "davisVisualization": {
+            "isAvailable": true
+          },
+          "enabled": false
+        },
+        "query": "fetch logs\n| filter dt.openpipeline.source == \"extension:custom:netflow-observability\" and coalesce(content, \"\") != \"collector_diagnostics\"\n| summarize bytes = sum(toLong(coalesce(`netflow.flow.io.bytes`, 0))), flow_count = count(), by: {country = coalesce(`netflow.destination.country`, \"unknown\")}\n| sort bytes desc\n| limit 10",
+        "querySettings": {
+          "defaultSamplingRatio": 10,
+          "defaultScanLimitGbytes": 500,
+          "enableSampling": false,
+          "maxResultMegaBytes": 100,
+          "maxResultRecords": 1000
+        },
+        "title": "Top Countries by Traffic",
+        "type": "data",
+        "visualization": "categoricalBarChart",
+        "visualizationSettings": {
+          "autoSelectVisualization": false
+        }
+      },
+      "14": {
+        "davis": {
+          "davisVisualization": {
+            "isAvailable": true
+          },
+          "enabled": false
+        },
+        "query": "fetch logs\n| filter dt.openpipeline.source == \"extension:custom:netflow-observability\" and coalesce(content, \"\") != \"collector_diagnostics\"\n| fieldsAdd src_name = if(isNotNull(`netflow.source.hostname`), then: `netflow.source.hostname`, else: `netflow.source.ip`)\n| fieldsAdd dst_name = if(isNotNull(`netflow.destination.hostname`), then: `netflow.destination.hostname`, else: `netflow.destination.ip`)\n| fieldsAdd conversation = concat(src_name, \" \u2192 \", dst_name, \" [\", coalesce(`netflow.network.transport`, \"?\"), \"/\", coalesce(`netflow.flow.direction`, \"?\"), \"]\")\n| summarize bytes = sum(toLong(coalesce(`netflow.flow.io.bytes`, 0))), flows = count(), by: {conversation, provider = coalesce(`netflow.destination.provider`, \"private\"), country = coalesce(`netflow.destination.country`, \"\")}\n| sort bytes desc\n| limit 50",
+        "querySettings": {
+          "defaultSamplingRatio": 10,
+          "defaultScanLimitGbytes": 500,
+          "enableSampling": false,
+          "maxResultMegaBytes": 100,
+          "maxResultRecords": 1000
+        },
+        "title": "Top 50 Conversations (Source \u2192 Destination with Enrichment)",
+        "type": "data",
+        "visualization": "treemap",
+        "visualizationSettings": {
+          "autoSelectVisualization": false,
+          "legend": {
+            "showLegend": false
+          }
+        }
+      },
+      "2": {
+        "davis": {
+          "davisVisualization": {
+            "isAvailable": true
+          },
+          "enabled": false
+        },
+        "query": "fetch logs\n| filter dt.openpipeline.source == \"extension:custom:netflow-observability\" and coalesce(content, \"\") != \"collector_diagnostics\"\n| summarize flow_count = count()",
+        "querySettings": {
+          "defaultSamplingRatio": 10,
+          "defaultScanLimitGbytes": 500,
+          "enableSampling": false,
+          "maxResultMegaBytes": 100,
+          "maxResultRecords": 1000
+        },
+        "title": "Total Flows",
+        "type": "data",
+        "visualization": "singleValue",
+        "visualizationSettings": {
+          "autoSelectVisualization": false,
+          "singleValue": {
+            "recordField": "flow_count"
+          }
+        }
+      },
+      "3": {
+        "davis": {
+          "davisVisualization": {
+            "isAvailable": true
+          },
+          "enabled": false
+        },
+        "query": "fetch logs\n| filter dt.openpipeline.source == \"extension:custom:netflow-observability\" and coalesce(content, \"\") != \"collector_diagnostics\"\n| summarize unique_hosts = countDistinct(coalesce(`netflow.source.ip`, `netflow.destination.ip`))",
+        "querySettings": {
+          "defaultSamplingRatio": 10,
+          "defaultScanLimitGbytes": 500,
+          "enableSampling": false,
+          "maxResultMegaBytes": 100,
+          "maxResultRecords": 1000
+        },
+        "title": "Unique Hosts Seen",
+        "type": "data",
+        "visualization": "singleValue",
+        "visualizationSettings": {
+          "autoSelectVisualization": false,
+          "singleValue": {
+            "recordField": "unique_hosts"
+          }
+        }
+      },
+      "4": {
+        "davis": {
+          "davisVisualization": {
+            "isAvailable": true
+          },
+          "enabled": false
+        },
+        "query": "fetch logs\n| filter dt.openpipeline.source == \"extension:custom:netflow-observability\" and coalesce(content, \"\") != \"collector_diagnostics\"\n| summarize unique_svcs = countDistinct(coalesce(`netflow.destination.port`, \"\"))",
+        "querySettings": {
+          "defaultSamplingRatio": 10,
+          "defaultScanLimitGbytes": 500,
+          "enableSampling": false,
+          "maxResultMegaBytes": 100,
+          "maxResultRecords": 1000
+        },
+        "title": "Unique Services",
+        "type": "data",
+        "visualization": "singleValue",
+        "visualizationSettings": {
+          "autoSelectVisualization": false,
+          "singleValue": {
+            "recordField": "unique_svcs"
+          }
+        }
+      },
+      "5": {
+        "davis": {
+          "davisVisualization": {
+            "isAvailable": true
+          },
+          "enabled": false
+        },
+        "query": "fetch logs\n| filter dt.openpipeline.source == \"extension:custom:netflow-observability\" and coalesce(content, \"\") != \"collector_diagnostics\"\n| summarize total = count(), unknown_direction = countIf(coalesce(`netflow.flow.direction`, \"unknown\") == \"unknown\")\n| fieldsAdd unknown_pct = if(total == 0, then: 0.0, else: round(100.0 * unknown_direction / total, decimals: 1))",
+        "querySettings": {
+          "defaultSamplingRatio": 10,
+          "defaultScanLimitGbytes": 500,
+          "enableSampling": false,
+          "maxResultMegaBytes": 100,
+          "maxResultRecords": 1000
+        },
+        "title": "Unknown Direction %",
+        "type": "data",
+        "visualization": "singleValue",
+        "visualizationSettings": {
+          "autoSelectVisualization": false,
+          "singleValue": {
+            "label": "%",
+            "recordField": "unknown_pct"
+          }
+        }
+      },
+      "6": {
+        "davis": {
+          "davisVisualization": {
+            "isAvailable": true
+          },
+          "enabled": false
+        },
+        "query": "fetch logs\n| filter dt.openpipeline.source == \"extension:custom:netflow-observability\" and coalesce(content, \"\") != \"collector_diagnostics\"\n| makeTimeseries bytes = sum(toLong(coalesce(`netflow.flow.io.bytes`, 0))), by: {direction = coalesce(`netflow.flow.direction`, \"unknown\")}, interval: 5m",
+        "querySettings": {
+          "defaultSamplingRatio": 10,
+          "defaultScanLimitGbytes": 500,
+          "enableSampling": false,
+          "maxResultMegaBytes": 100,
+          "maxResultRecords": 1000
+        },
+        "title": "Traffic by Direction Over Time",
+        "type": "data",
+        "visualization": "areaChart",
+        "visualizationSettings": {
+          "autoSelectVisualization": false
+        }
+      },
+      "7": {
+        "davis": {
+          "davisVisualization": {
+            "isAvailable": true
+          },
+          "enabled": false
+        },
+        "query": "fetch logs\n| filter dt.openpipeline.source == \"extension:custom:netflow-observability\" and coalesce(content, \"\") != \"collector_diagnostics\"\n| filter isNotNull(`netflow.destination.provider`) and `netflow.destination.provider` != \"private\"\n| makeTimeseries bytes = sum(toLong(coalesce(`netflow.flow.io.bytes`, 0))), by: {provider = `netflow.destination.provider`}, interval: 5m",
+        "querySettings": {
+          "defaultSamplingRatio": 10,
+          "defaultScanLimitGbytes": 500,
+          "enableSampling": false,
+          "maxResultMegaBytes": 100,
+          "maxResultRecords": 1000
+        },
+        "title": "Traffic by Provider Over Time (Enrichment)",
+        "type": "data",
+        "visualization": "areaChart",
+        "visualizationSettings": {
+          "autoSelectVisualization": false
+        }
+      },
+      "8": {
+        "davis": {
+          "davisVisualization": {
+            "isAvailable": true
+          },
+          "enabled": false
+        },
+        "query": "fetch logs\n| filter dt.openpipeline.source == \"extension:custom:netflow-observability\" and coalesce(content, \"\") != \"collector_diagnostics\"\n| makeTimeseries bytes = sum(toLong(coalesce(`netflow.flow.io.bytes`, 0))), by: {protocol = coalesce(`netflow.network.transport`, \"unknown\")}, interval: 5m",
+        "querySettings": {
+          "defaultSamplingRatio": 10,
+          "defaultScanLimitGbytes": 500,
+          "enableSampling": false,
+          "maxResultMegaBytes": 100,
+          "maxResultRecords": 1000
+        },
+        "title": "Traffic by Protocol Over Time",
+        "type": "data",
+        "visualization": "areaChart",
+        "visualizationSettings": {
+          "autoSelectVisualization": false
+        }
+      },
+      "9": {
+        "davis": {
+          "davisVisualization": {
+            "isAvailable": true
+          },
+          "enabled": false
+        },
+        "query": "fetch logs\n| filter dt.openpipeline.source == \"extension:custom:netflow-observability\" and coalesce(content, \"\") != \"collector_diagnostics\"\n| summarize bytes = sum(toLong(coalesce(`netflow.flow.io.bytes`, 0))), by: {direction = coalesce(`netflow.flow.direction`, \"unknown\")}\n| sort bytes desc",
+        "querySettings": {
+          "defaultSamplingRatio": 10,
+          "defaultScanLimitGbytes": 500,
+          "enableSampling": false,
+          "maxResultMegaBytes": 100,
+          "maxResultRecords": 1000
+        },
+        "title": "Direction Distribution",
+        "type": "data",
+        "visualization": "donutChart",
+        "visualizationSettings": {
+          "autoSelectVisualization": false
+        }
+      }
+    },
+    "variables": [],
+    "version": 21
+  }
+}

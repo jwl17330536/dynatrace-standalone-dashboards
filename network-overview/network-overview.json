@@ -1,0 +1,712 @@
+{
+  "name": "Network Overview v3",
+  "type": "dashboard",
+  "owner": "<YOUR_DYNATRACE_USER_ID>",
+  "isPrivate": true,
+  "description": "Unified home network health \u2014 BGW, UniFi WAN failover, netflow, DNS, ingest freshness.",
+  "version": 14,
+  "modificationInfo": {
+    "createdBy": "",
+    "createdTime": "",
+    "lastModifiedBy": "",
+    "lastModifiedTime": ""
+  },
+  "content": {
+    "version": 21,
+    "variables": [],
+    "tiles": {
+      "0": {
+        "type": "markdown",
+        "content": "## Network Overview v3\nUnified home network pulse \u2014 BGW WAN edge, UniFi WAN failover, netflow, DNS, and open problems.\n**WAN:** Primary = AT&T (WAN1/eth8), Secondary = Brightspeed (WAN2/eth7). Calix ONT has no direct telemetry \u2014 monitor via UDM WAN2 CEF events."
+      },
+      "1": {
+        "title": "BGW Broadband",
+        "type": "data",
+        "query": "fetch logs, from: now()-7d\n| filter log.source == \"att-bgw320\" and contains(content, \"Broadband Connection=\")\n| parse content, \"LD:prefix 'Broadband Connection=' LD:status\"\n| sort timestamp desc\n| limit 1\n| fields status",
+        "visualization": "singleValue",
+        "visualizationSettings": {
+          "autoSelectVisualization": false,
+          "coloring": {
+            "colorRules": [
+              {
+                "color": "var(--dt-colors-charts-loglevel-emergency-default, #ae132d)",
+                "colorMode": "single-color",
+                "comparator": "!=",
+                "field": "status",
+                "type": "string",
+                "value": "Up"
+              }
+            ]
+          },
+          "singleValue": {
+            "label": "Status",
+            "recordField": "status"
+          }
+        },
+        "querySettings": {
+          "defaultSamplingRatio": 10,
+          "defaultScanLimitGbytes": 500,
+          "enableSampling": false,
+          "maxResultMegaBytes": 100,
+          "maxResultRecords": 1000
+        },
+        "davis": {
+          "enabled": false,
+          "davisVisualization": {
+            "isAvailable": true
+          }
+        }
+      },
+      "2": {
+        "title": "UniFi Clients",
+        "type": "data",
+        "query": "fetch logs\n| filter matchesPhrase(content, \"CEF: 0|Ubiquiti\")\n| parse content, \"LD \\\"UNIFIclientMac=\\\" LD:client_mac \\\" \\\"\" \n| summarize clients = countDistinct(client_mac)",
+        "visualization": "singleValue",
+        "visualizationSettings": {
+          "autoSelectVisualization": false,
+          "singleValue": {
+            "label": "Active clients",
+            "recordField": "clients"
+          }
+        },
+        "querySettings": {
+          "defaultSamplingRatio": 10,
+          "defaultScanLimitGbytes": 500,
+          "enableSampling": false,
+          "maxResultMegaBytes": 1,
+          "maxResultRecords": 1000
+        },
+        "davis": {
+          "enabled": false,
+          "davisVisualization": {
+            "isAvailable": true
+          }
+        }
+      },
+      "3": {
+        "title": "Netflow Flow Count",
+        "type": "data",
+        "query": "fetch logs\n| filter dt.openpipeline.source == \"extension:custom:netflow-observability\" and coalesce(content, \"\") != \"collector_diagnostics\"\n| summarize flow_count = count()",
+        "visualization": "singleValue",
+        "visualizationSettings": {
+          "autoSelectVisualization": false,
+          "singleValue": {
+            "label": "Flows (24h)",
+            "recordField": "flow_count"
+          }
+        },
+        "querySettings": {
+          "defaultSamplingRatio": 10,
+          "defaultScanLimitGbytes": 500,
+          "enableSampling": false,
+          "maxResultMegaBytes": 1,
+          "maxResultRecords": 1000
+        },
+        "davis": {
+          "enabled": false,
+          "davisVisualization": {
+            "isAvailable": true
+          }
+        }
+      },
+      "4": {
+        "title": "DNS Unresolved %",
+        "type": "data",
+        "query": "fetch logs\n| filter dt.openpipeline.source == \"extension:custom:netflow-observability\" and coalesce(content, \"\") != \"collector_diagnostics\"\n| fieldsAdd src_ip = coalesce(`netflow.source.ip`, \"0.0.0.0\")\n| fieldsAdd dst_ip = coalesce(`netflow.destination.ip`, \"0.0.0.0\")\n| fieldsAdd src_unresolved = coalesce(netflow.source.dns.lookup.status, \"unknown\") == \"unresolved\" and isIp(src_ip) and ipIsPublic(toIp(src_ip))\n| fieldsAdd dst_unresolved = coalesce(netflow.destination.dns.lookup.status, \"unknown\") == \"unresolved\" and isIp(dst_ip) and ipIsPublic(toIp(dst_ip))\n| summarize total = count(), unresolved = countIf(src_unresolved or dst_unresolved)\n| fieldsAdd unresolved_pct = if(total == 0, then: 0.0, else: round(100.0 * unresolved / total, decimals: 1))",
+        "visualization": "singleValue",
+        "visualizationSettings": {
+          "autoSelectVisualization": false,
+          "singleValue": {
+            "label": "%",
+            "recordField": "unresolved_pct"
+          }
+        },
+        "querySettings": {
+          "defaultSamplingRatio": 10,
+          "defaultScanLimitGbytes": 500,
+          "enableSampling": false,
+          "maxResultMegaBytes": 1,
+          "maxResultRecords": 1000
+        },
+        "davis": {
+          "enabled": false,
+          "davisVisualization": {
+            "isAvailable": true
+          }
+        }
+      },
+      "5": {
+        "title": "Open Problems",
+        "type": "data",
+        "query": "fetch dt.davis.problems, from:now()-7d\n| filter status == \"OPEN\"\n| filter contains(title, \"BGW\") or contains(title, \"AT&T\") or contains(title, \"UniFi\") or contains(title, \"netflow\") or contains(title, \"DNS\") or contains(title, \"Firewall\") or contains(title, \"WAN\")\n| summarize open_count = count()",
+        "visualization": "singleValue",
+        "visualizationSettings": {
+          "autoSelectVisualization": false,
+          "coloring": {
+            "colorRules": [
+              {
+                "color": "var(--dt-colors-charts-apdex-excellent-default, #2a7453)",
+                "colorMode": "single-color",
+                "comparator": "\u2264",
+                "field": "open_count",
+                "type": "long",
+                "value": 0
+              },
+              {
+                "color": "var(--dt-colors-charts-loglevel-emergency-default, #ae132d)",
+                "colorMode": "single-color",
+                "comparator": "\u2265",
+                "field": "open_count",
+                "type": "long",
+                "value": 1
+              }
+            ]
+          },
+          "singleValue": {
+            "label": "Open",
+            "recordField": "open_count"
+          }
+        },
+        "querySettings": {
+          "defaultSamplingRatio": 10,
+          "defaultScanLimitGbytes": 500,
+          "enableSampling": false,
+          "maxResultMegaBytes": 1,
+          "maxResultRecords": 1000
+        },
+        "davis": {
+          "enabled": false,
+          "davisVisualization": {
+            "isAvailable": true
+          }
+        }
+      },
+      "6": {
+        "type": "markdown",
+        "content": "## Problem indicators"
+      },
+      "7": {
+        "title": "BGW Firewall Spike (blocks / 5m)",
+        "type": "data",
+        "query": "fetch logs\n| filter log.source == \"att-bgw320\" and isNotNull(bgw.fw.dst)\n| makeTimeseries blocks = count(), interval:5m",
+        "visualization": "lineChart",
+        "visualizationSettings": {
+          "autoSelectVisualization": false,
+          "chartSettings": {
+            "legend": {
+              "hidden": true,
+              "position": "bottom"
+            }
+          }
+        },
+        "querySettings": {
+          "defaultSamplingRatio": 10,
+          "defaultScanLimitGbytes": 500,
+          "enableSampling": false,
+          "maxResultMegaBytes": 1,
+          "maxResultRecords": 1000
+        },
+        "davis": {
+          "enabled": false,
+          "davisVisualization": {
+            "isAvailable": true
+          }
+        }
+      },
+      "8": {
+        "title": "UniFi WAN Events",
+        "type": "data",
+        "query": "fetch logs, from: now()-7d\n| filter isNotNull(unifi.cef.event) and unifi.cef.event == \"Internet Down\" or unifi.cef.event == \"Internet Restored\"\n| makeTimeseries events = count(), by:{event = unifi.cef.event}, interval:15m",
+        "visualization": "lineChart",
+        "visualizationSettings": {
+          "autoSelectVisualization": false,
+          "chartSettings": {
+            "legend": {
+              "hidden": true,
+              "position": "bottom"
+            }
+          }
+        },
+        "querySettings": {
+          "defaultSamplingRatio": 10,
+          "defaultScanLimitGbytes": 500,
+          "enableSampling": false,
+          "maxResultMegaBytes": 100,
+          "maxResultRecords": 1000
+        },
+        "davis": {
+          "enabled": false,
+          "davisVisualization": {
+            "isAvailable": true
+          }
+        }
+      },
+      "9": {
+        "title": "Netflow Unknown Direction %",
+        "type": "data",
+        "query": "fetch logs\n| filter dt.openpipeline.source == \"extension:custom:netflow-observability\" and coalesce(content, \"\") != \"collector_diagnostics\"\n| summarize total = count(), unknown = countIf(coalesce(`netflow.flow.direction`, \"unknown\") == \"unknown\")\n| fieldsAdd unknown_pct = if(total == 0, then: 0.0, else: round(100.0 * unknown / total, decimals: 1))",
+        "visualization": "singleValue",
+        "visualizationSettings": {
+          "autoSelectVisualization": false,
+          "singleValue": {
+            "label": "%",
+            "recordField": "unknown_pct"
+          }
+        },
+        "querySettings": {
+          "defaultSamplingRatio": 10,
+          "defaultScanLimitGbytes": 500,
+          "enableSampling": false,
+          "maxResultMegaBytes": 1,
+          "maxResultRecords": 1000
+        },
+        "davis": {
+          "enabled": false,
+          "davisVisualization": {
+            "isAvailable": true
+          }
+        }
+      },
+      "10": {
+        "type": "markdown",
+        "content": "## Usage patterns"
+      },
+      "11": {
+        "title": "Top Talkers (Netflow)",
+        "type": "data",
+        "query": "fetch logs\n| filter dt.openpipeline.source == \"extension:custom:netflow-observability\" and coalesce(content, \"\") != \"collector_diagnostics\"\n| fieldsAdd source_identity = if(isNotNull(`netflow.source.hostname`), then: `netflow.source.hostname`, else: coalesce(`netflow.source.ip`, \"unknown\"))\n| fieldsAdd destination_identity = if(isNotNull(`netflow.destination.hostname`), then: `netflow.destination.hostname`, else: coalesce(`netflow.destination.ip`, \"unknown\"))\n| fieldsAdd talker = concat(source_identity, \" \u2192 \", destination_identity)\n| summarize bytes = sum(toLong(coalesce(`netflow.flow.io.bytes`, 0))), by: {talker}\n| sort bytes desc\n| limit 15",
+        "visualization": "pieChart",
+        "visualizationSettings": {
+          "autoSelectVisualization": false
+        },
+        "querySettings": {
+          "defaultSamplingRatio": 10,
+          "defaultScanLimitGbytes": 500,
+          "enableSampling": false,
+          "maxResultMegaBytes": 1,
+          "maxResultRecords": 1000
+        },
+        "davis": {
+          "enabled": false,
+          "davisVisualization": {
+            "isAvailable": true
+          }
+        }
+      },
+      "12": {
+        "title": "BGW Top Blocked Destinations",
+        "type": "data",
+        "query": "fetch logs\n| filter log.source == \"att-bgw320\" and isNotNull(bgw.fw.dst)\n| summarize cnt = count(), by:{bgw.fw.dst}\n| sort cnt desc\n| limit 10",
+        "visualization": "categoricalBarChart",
+        "visualizationSettings": {
+          "autoSelectVisualization": false
+        },
+        "querySettings": {
+          "defaultSamplingRatio": 10,
+          "defaultScanLimitGbytes": 500,
+          "enableSampling": false,
+          "maxResultMegaBytes": 1,
+          "maxResultRecords": 1000
+        },
+        "davis": {
+          "enabled": false,
+          "davisVisualization": {
+            "isAvailable": true
+          }
+        }
+      },
+      "13": {
+        "title": "Protocol Mix (Netflow)",
+        "type": "data",
+        "query": "fetch logs\n| filter dt.openpipeline.source == \"extension:custom:netflow-observability\" and coalesce(content, \"\") != \"collector_diagnostics\"\n| summarize bytes = sum(toLong(coalesce(`netflow.flow.io.bytes`, 0))), by: {protocol = coalesce(`netflow.network.transport`, \"unknown\")}\n| sort bytes desc",
+        "visualization": "donutChart",
+        "visualizationSettings": {
+          "autoSelectVisualization": false
+        },
+        "querySettings": {
+          "defaultSamplingRatio": 10,
+          "defaultScanLimitGbytes": 500,
+          "enableSampling": false,
+          "maxResultMegaBytes": 1,
+          "maxResultRecords": 1000
+        },
+        "davis": {
+          "enabled": false,
+          "davisVisualization": {
+            "isAvailable": true
+          }
+        }
+      },
+      "14": {
+        "type": "markdown",
+        "content": "## Deep dives"
+      },
+      "16": {
+        "title": "Active WAN",
+        "type": "data",
+        "query": "fetch logs, from: now()-30d\n| filter isNotNull(unifi.cef.event) and unifi.cef.event == \"Internet Restored\"\n| sort timestamp desc\n| limit 1\n| fields wan = unifi.wan.name",
+        "visualization": "singleValue",
+        "visualizationSettings": {
+          "autoSelectVisualization": false,
+          "singleValue": {
+            "label": "WAN",
+            "recordField": "wan"
+          }
+        },
+        "querySettings": {
+          "defaultSamplingRatio": 10,
+          "defaultScanLimitGbytes": 500,
+          "enableSampling": false,
+          "maxResultMegaBytes": 100,
+          "maxResultRecords": 1000
+        },
+        "davis": {
+          "enabled": false,
+          "davisVisualization": {
+            "isAvailable": true
+          }
+        }
+      },
+      "17": {
+        "title": "Active ISP",
+        "type": "data",
+        "query": "fetch logs, from: now()-30d\n| filter isNotNull(unifi.cef.event) and unifi.cef.event == \"Internet Restored\"\n| sort timestamp desc\n| limit 1\n| fields isp = unifi.wan.isp",
+        "visualization": "singleValue",
+        "visualizationSettings": {
+          "autoSelectVisualization": false,
+          "singleValue": {
+            "label": "ISP",
+            "labelMode": "none",
+            "recordField": "isp"
+          }
+        },
+        "querySettings": {
+          "defaultSamplingRatio": 10,
+          "defaultScanLimitGbytes": 500,
+          "enableSampling": false,
+          "maxResultMegaBytes": 100,
+          "maxResultRecords": 1000
+        },
+        "davis": {
+          "enabled": false,
+          "davisVisualization": {
+            "isAvailable": true
+          }
+        }
+      },
+      "18": {
+        "title": "Internet Down / Restored Timeline",
+        "type": "data",
+        "query": "fetch logs, from: now()-30d\n| filter isNotNull(unifi.cef.event) and unifi.cef.event == \"Internet Down\" or unifi.cef.event == \"Internet Restored\"\n| fields timestamp, unifi.cef.event, unifi.wan.name, unifi.wan.isp\n| sort timestamp desc\n| limit 50",
+        "visualization": "table",
+        "visualizationSettings": {
+          "autoSelectVisualization": false,
+          "table": {
+            "columnWidths": {
+              "[\"unifi.wan.isp\"]": 1213
+            },
+            "linewrapEnabled": true
+          }
+        },
+        "querySettings": {
+          "defaultSamplingRatio": 10,
+          "defaultScanLimitGbytes": 500,
+          "enableSampling": false,
+          "maxResultMegaBytes": 100,
+          "maxResultRecords": 1000
+        },
+        "davis": {
+          "enabled": false,
+          "davisVisualization": {
+            "isAvailable": true
+          }
+        }
+      },
+      "19": {
+        "type": "markdown",
+        "content": "**Network Overview**\n\n[Network Overview v3](https://oei3894h.sprint.apps.dynatracelabs.com/ui/apps/dynatrace.dashboards/dashboard/ea910f15-8c41-47dc-a0fc-6c72d7215685#from=now()-24h&to=now())"
+      },
+      "20": {
+        "type": "markdown",
+        "content": "**AT&T BGW320**\n\n[BGW / WAN Edge v4](https://oei3894h.sprint.apps.dynatracelabs.com/ui/apps/dynatrace.dashboards/dashboard/5746eecb-b388-4648-999d-31eecdb0c4e0#from=now()-24h&to=now())"
+      },
+      "21": {
+        "type": "markdown",
+        "content": "**UniFi**\n\n[UniFi Dashboard v3](https://oei3894h.sprint.apps.dynatracelabs.com/ui/apps/dynatrace.dashboards/dashboard/1cdf6d71-b9af-4454-ab7b-c6d27134d678#from=now()-24h&to=now())"
+      },
+      "22": {
+        "type": "markdown",
+        "content": "**Edge Firewall**\n\n[Firewall v3](https://oei3894h.sprint.apps.dynatracelabs.com/ui/apps/dynatrace.dashboards/dashboard/69f08256-8454-4551-89f4-e844cc585e7e#from=now()-24h&to=now())"
+      },
+      "23": {
+        "type": "markdown",
+        "content": "**DNS**\n\n[DNS v4](https://oei3894h.sprint.apps.dynatracelabs.com/ui/apps/dynatrace.dashboards/dashboard/a1bd17b7-04b4-485d-9289-0afe39d58b2b#from=now()-24h&to=now())"
+      },
+      "24": {
+        "type": "markdown",
+        "content": "**Netflow Ops Health**\n\n[Netflow Data Quality & Health v2](https://oei3894h.sprint.apps.dynatracelabs.com/ui/apps/dynatrace.dashboards/dashboard/b2e38ccd-5056-4e04-ba1f-79263ec2825b#from=now()-24h&to=now())"
+      },
+      "25": {
+        "type": "markdown",
+        "content": "**Netflow Analysis**\n\n[Netflow Traffic & Intelligence v1](https://oei3894h.sprint.apps.dynatracelabs.com/ui/apps/dynatrace.dashboards/dashboard/16cf83d0-cc18-409f-98da-36c87b7af323#from=now()-24h&to=now())"
+      },
+      "26": {
+        "type": "markdown",
+        "content": "**Netflow Traffic**\n\n[Netflow Traffic Overview](https://oei3894h.sprint.apps.dynatracelabs.com/ui/apps/dynatrace.dashboards/dashboard/8c11ecc5-5188-42da-b914-dd085cd594cc#from=now()-24h&to=now())"
+      },
+      "27": {
+        "type": "markdown",
+        "content": "**Netflow Diagnosis**\n\n[Netflow Diagnosis](https://oei3894h.sprint.apps.dynatracelabs.com/ui/apps/dynatrace.dashboards/dashboard/3f8df620-0646-4c21-ad7f-e02016d0a11d#from=now()-24h&to=now())"
+      },
+      "28": {
+        "type": "markdown",
+        "content": "---"
+      },
+      "29": {
+        "title": "BGW poller freshness (min)",
+        "type": "data",
+        "query": "fetch logs, from: now()-7d\n| filter log.source == \"att-bgw320\"\n| summarize last_ts = max(timestamp)\n| fieldsAdd freshness_min = (now() - last_ts) / 1m\n| fields freshness_min",
+        "visualization": "singleValue",
+        "visualizationSettings": {
+          "autoSelectVisualization": false,
+          "singleValue": {
+            "label": "BGW minutes",
+            "recordField": "freshness_min"
+          }
+        },
+        "querySettings": {
+          "defaultSamplingRatio": 10,
+          "defaultScanLimitGbytes": 500,
+          "enableSampling": false,
+          "maxResultMegaBytes": 100,
+          "maxResultRecords": 1000
+        },
+        "davis": {
+          "enabled": false,
+          "davisVisualization": {
+            "isAvailable": true
+          }
+        }
+      },
+      "30": {
+        "title": "UniFi CEF freshness (min)",
+        "type": "data",
+        "query": "fetch logs, from: now()-7d\n| filter isNotNull(unifi.cef.event)\n| summarize last_ts = max(timestamp)\n| fieldsAdd freshness_min = (now() - last_ts) / 1m\n| fields freshness_min",
+        "visualization": "singleValue",
+        "visualizationSettings": {
+          "autoSelectVisualization": false,
+          "singleValue": {
+            "label": "UniFi minutes",
+            "recordField": "freshness_min"
+          }
+        },
+        "querySettings": {
+          "defaultSamplingRatio": 10,
+          "defaultScanLimitGbytes": 500,
+          "enableSampling": false,
+          "maxResultMegaBytes": 100,
+          "maxResultRecords": 1000
+        },
+        "davis": {
+          "enabled": false,
+          "davisVisualization": {
+            "isAvailable": true
+          }
+        }
+      }
+    },
+    "layouts": {
+      "0": {
+        "x": 0,
+        "y": 0,
+        "w": 13,
+        "h": 3
+      },
+      "1": {
+        "x": 4,
+        "y": 5,
+        "w": 4,
+        "h": 3
+      },
+      "2": {
+        "x": 8,
+        "y": 5,
+        "w": 4,
+        "h": 3
+      },
+      "3": {
+        "x": 0,
+        "y": 8,
+        "w": 4,
+        "h": 3
+      },
+      "4": {
+        "x": 8,
+        "y": 8,
+        "w": 4,
+        "h": 3
+      },
+      "5": {
+        "x": 15,
+        "y": 0,
+        "w": 6,
+        "h": 3
+      },
+      "6": {
+        "x": 0,
+        "y": 15,
+        "w": 14,
+        "h": 1
+      },
+      "7": {
+        "x": 0,
+        "y": 16,
+        "w": 7,
+        "h": 8
+      },
+      "8": {
+        "x": 7,
+        "y": 16,
+        "w": 7,
+        "h": 8
+      },
+      "9": {
+        "x": 4,
+        "y": 8,
+        "w": 4,
+        "h": 3
+      },
+      "10": {
+        "x": 16,
+        "y": 15,
+        "w": 8,
+        "h": 1
+      },
+      "11": {
+        "x": 16,
+        "y": 16,
+        "w": 8,
+        "h": 8
+      },
+      "12": {
+        "x": 0,
+        "y": 24,
+        "w": 14,
+        "h": 10
+      },
+      "13": {
+        "x": 16,
+        "y": 26,
+        "w": 8,
+        "h": 8
+      },
+      "14": {
+        "x": 13,
+        "y": 5,
+        "w": 11,
+        "h": 1
+      },
+      "16": {
+        "x": 0,
+        "y": 5,
+        "w": 4,
+        "h": 3
+      },
+      "17": {
+        "x": 0,
+        "y": 3,
+        "w": 24,
+        "h": 2
+      },
+      "18": {
+        "x": 0,
+        "y": 34,
+        "w": 24,
+        "h": 5
+      },
+      "19": {
+        "x": 0,
+        "y": 39,
+        "w": 3,
+        "h": 2
+      },
+      "20": {
+        "x": 13,
+        "y": 6,
+        "w": 3,
+        "h": 2
+      },
+      "21": {
+        "x": 19,
+        "y": 6,
+        "w": 3,
+        "h": 2
+      },
+      "22": {
+        "x": 16,
+        "y": 6,
+        "w": 3,
+        "h": 2
+      },
+      "23": {
+        "x": 22,
+        "y": 6,
+        "w": 2,
+        "h": 2
+      },
+      "24": {
+        "x": 19,
+        "y": 24,
+        "w": 5,
+        "h": 2
+      },
+      "25": {
+        "x": 16,
+        "y": 8,
+        "w": 8,
+        "h": 3
+      },
+      "26": {
+        "x": 13,
+        "y": 8,
+        "w": 3,
+        "h": 3
+      },
+      "27": {
+        "x": 16,
+        "y": 24,
+        "w": 3,
+        "h": 2
+      },
+      "28": {
+        "x": 0,
+        "y": 14,
+        "w": 24,
+        "h": 1
+      },
+      "29": {
+        "x": 0,
+        "y": 11,
+        "w": 6,
+        "h": 3
+      },
+      "30": {
+        "x": 6,
+        "y": 11,
+        "w": 6,
+        "h": 3
+      }
+    },
+    "importedWithCode": false,
+    "settings": {
+      "defaultTimeframe": {
+        "value": {
+          "from": "now()-24h",
+          "to": "now()"
+        },
+        "enabled": true
+      }
+    },
+    "annotations": []
+  }
+}

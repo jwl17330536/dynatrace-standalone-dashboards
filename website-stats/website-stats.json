@@ -1,0 +1,114 @@
+{
+  "name": "Website Stats",
+  "type": "dashboard",
+  "owner": "<YOUR_DYNATRACE_USER_ID>",
+  "isPrivate": false,
+  "version": 17,
+  "modificationInfo": {
+    "createdBy": "",
+    "createdTime": "",
+    "lastModifiedBy": "",
+    "lastModifiedTime": ""
+  },
+  "content": {
+    "version": 21,
+    "variables": [],
+    "tiles": {
+      "0": {
+        "title": "Raw Logs",
+        "type": "data",
+        "query": "fetch logs\n| filter dt.entity.host == \"HOST-E038C5D1DD4A6774\" AND matchesPhrase(log.source, \"*com_tracing*\")\n| parse content, \"\"\"DATA //IPADDR:ip ', ' STRING:host ', ' INT:status_code ', ' INT:response_time ', ' LD:user_agent \nIPADDR:ip LD \":\" STRING:site LD \":\" STRING:request LD \":\" STRING:status LD \"user_agent\" LD \":\" STRING:user_agent LD \"uri\" LD \":\" STRING:uri\"\"\"\n| fields site, ip, request, status, user_agent, uri, timestamp",
+        "visualization": "table",
+        "visualizationSettings": {
+          "table": {
+            "hideColumnsForLargeResults": true,
+            "columnTypeOverrides": [
+              {
+                "fields": [
+                  "content"
+                ],
+                "id": 1760538077866,
+                "value": "log-content"
+              }
+            ],
+            "columnWidths": {
+              "[\"uri\"]": 220,
+              "[\"timestamp\"]": 208.99,
+              "[\"user_agent\"]": 956.99,
+              "[\"request\"]": 156.99,
+              "[\"ip\"]": 148.99,
+              "[\"site\"]": 265.99
+            }
+          },
+          "autoSelectVisualization": false
+        },
+        "querySettings": {
+          "maxResultRecords": 1000,
+          "defaultScanLimitGbytes": 500,
+          "maxResultMegaBytes": 1,
+          "defaultSamplingRatio": 10,
+          "enableSampling": false
+        },
+        "davis": {
+          "enabled": false,
+          "davisVisualization": {
+            "isAvailable": true
+          }
+        },
+        "timeframe": {
+          "tileTimeframe": {
+            "from": "now()-2h",
+            "to": "now()"
+          },
+          "tileTimeframeEnabled": false
+        }
+      },
+      "1": {
+        "title": "",
+        "type": "data",
+        "query": "fetch logs\n| filter dt.entity.host == \"HOST-E038C5D1DD4A6774\" AND matchesPhrase(log.source, \"*com_tracing*\")\n| parse content, \"\"\"DATA //IPADDR:ip ', ' STRING:host ', ' INT:status_code ', ' INT:response_time ', ' LD:user_agent \nIPADDR:ip LD \":\" STRING:site LD \":\" STRING:request LD \":\" STRING:status LD \"user_agent\" LD \":\" STRING:user_agent LD \"uri\" LD \":\" STRING:uri\"\"\"\n| fields site, ip, request, status, user_agent, uri, timestamp\n| summarize Hits=count()",
+        "visualization": "singleValue",
+        "visualizationSettings": {
+          "autoSelectVisualization": false
+        },
+        "querySettings": {
+          "maxResultRecords": 1000,
+          "defaultScanLimitGbytes": 500,
+          "maxResultMegaBytes": 1,
+          "defaultSamplingRatio": 10,
+          "enableSampling": false
+        },
+        "davis": {
+          "enabled": false,
+          "davisVisualization": {
+            "isAvailable": true
+          }
+        },
+        "timeframe": {
+          "tileTimeframeEnabled": false,
+          "tileTimeframe": {
+            "from": "now()-2h",
+            "to": "now()"
+          }
+        }
+      }
+    },
+    "layouts": {
+      "0": {
+        "x": 0,
+        "y": 6,
+        "w": 24,
+        "h": 11
+      },
+      "1": {
+        "x": 0,
+        "y": 0,
+        "w": 8,
+        "h": 6
+      }
+    },
+    "importedWithCode": false,
+    "settings": {},
+    "annotations": []
+  }
+}

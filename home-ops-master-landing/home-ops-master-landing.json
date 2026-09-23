@@ -1,0 +1,608 @@
+{
+  "name": "Home Ops Master Landing v12",
+  "type": "dashboard",
+  "owner": "<YOUR_DYNATRACE_USER_ID>",
+  "isPrivate": true,
+  "description": "Home Ops hub v11 \u2014 Wave 2 topology boards (Ansible, HA stack, Proxmox, Commander v2, utility29 HAProxy); home-ops detectors.",
+  "version": 7,
+  "modificationInfo": {
+    "createdBy": "",
+    "createdTime": "",
+    "lastModifiedBy": "",
+    "lastModifiedTime": ""
+  },
+  "content": {
+    "annotations": [],
+    "importedWithCode": false,
+    "layouts": {
+      "0": {
+        "h": 5,
+        "w": 20,
+        "x": 0,
+        "y": 8
+      },
+      "1": {
+        "h": 2,
+        "w": 20,
+        "x": 0,
+        "y": 13
+      },
+      "2": {
+        "h": 2,
+        "w": 20,
+        "x": 0,
+        "y": 15
+      },
+      "3": {
+        "h": 6,
+        "w": 5,
+        "x": 0,
+        "y": 17
+      },
+      "4": {
+        "h": 6,
+        "w": 5,
+        "x": 5,
+        "y": 17
+      },
+      "5": {
+        "h": 6,
+        "w": 5,
+        "x": 10,
+        "y": 17
+      },
+      "6": {
+        "h": 6,
+        "w": 5,
+        "x": 15,
+        "y": 17
+      },
+      "7": {
+        "h": 6,
+        "w": 5,
+        "x": 0,
+        "y": 23
+      },
+      "8": {
+        "h": 6,
+        "w": 5,
+        "x": 5,
+        "y": 23
+      },
+      "9": {
+        "h": 6,
+        "w": 5,
+        "x": 10,
+        "y": 23
+      },
+      "10": {
+        "h": 6,
+        "w": 5,
+        "x": 15,
+        "y": 23
+      },
+      "11": {
+        "h": 6,
+        "w": 5,
+        "x": 0,
+        "y": 29
+      },
+      "12": {
+        "h": 2,
+        "w": 20,
+        "x": 0,
+        "y": 35
+      },
+      "13": {
+        "h": 6,
+        "w": 5,
+        "x": 0,
+        "y": 37
+      },
+      "14": {
+        "h": 6,
+        "w": 5,
+        "x": 5,
+        "y": 37
+      },
+      "15": {
+        "h": 6,
+        "w": 5,
+        "x": 10,
+        "y": 37
+      },
+      "16": {
+        "h": 6,
+        "w": 5,
+        "x": 15,
+        "y": 37
+      },
+      "17": {
+        "h": 6,
+        "w": 5,
+        "x": 0,
+        "y": 43
+      },
+      "18": {
+        "h": 6,
+        "w": 5,
+        "x": 5,
+        "y": 43
+      },
+      "19": {
+        "h": 6,
+        "w": 5,
+        "x": 10,
+        "y": 43
+      },
+      "20": {
+        "h": 6,
+        "w": 5,
+        "x": 15,
+        "y": 43
+      },
+      "21": {
+        "h": 6,
+        "w": 5,
+        "x": 0,
+        "y": 49
+      },
+      "22": {
+        "h": 6,
+        "w": 5,
+        "x": 5,
+        "y": 49
+      },
+      "23": {
+        "h": 2,
+        "w": 20,
+        "x": 0,
+        "y": 55
+      },
+      "24": {
+        "h": 6,
+        "w": 5,
+        "x": 0,
+        "y": 57
+      },
+      "25": {
+        "h": 6,
+        "w": 5,
+        "x": 5,
+        "y": 57
+      },
+      "26": {
+        "h": 6,
+        "w": 5,
+        "x": 10,
+        "y": 57
+      },
+      "27": {
+        "h": 6,
+        "w": 5,
+        "x": 15,
+        "y": 57
+      },
+      "28": {
+        "h": 6,
+        "w": 5,
+        "x": 0,
+        "y": 63
+      },
+      "29": {
+        "h": 6,
+        "w": 5,
+        "x": 5,
+        "y": 63
+      },
+      "30": {
+        "h": 6,
+        "w": 5,
+        "x": 10,
+        "y": 63
+      },
+      "31": {
+        "h": 6,
+        "w": 5,
+        "x": 15,
+        "y": 63
+      },
+      "32": {
+        "h": 1,
+        "w": 20,
+        "x": 0,
+        "y": 69
+      },
+      "33": {
+        "h": 6,
+        "w": 5,
+        "x": 0,
+        "y": 70
+      },
+      "34": {
+        "h": 6,
+        "w": 5,
+        "x": 5,
+        "y": 70
+      },
+      "35": {
+        "h": 1,
+        "w": 20,
+        "x": 0,
+        "y": 76
+      },
+      "36": {
+        "h": 6,
+        "w": 5,
+        "x": 0,
+        "y": 77
+      },
+      "health-apps": {
+        "h": 3,
+        "w": 24,
+        "x": 0,
+        "y": 5
+      },
+      "health-bgw": {
+        "h": 3,
+        "w": 4,
+        "x": 12,
+        "y": 2
+      },
+      "health-md": {
+        "h": 2,
+        "w": 24,
+        "x": 0,
+        "y": 0
+      },
+      "health-netflow": {
+        "h": 3,
+        "w": 4,
+        "x": 8,
+        "y": 2
+      },
+      "health-oa": {
+        "h": 3,
+        "w": 4,
+        "x": 0,
+        "y": 2
+      },
+      "health-otlp": {
+        "h": 3,
+        "w": 4,
+        "x": 4,
+        "y": 2
+      },
+      "health-problems": {
+        "h": 3,
+        "w": 4,
+        "x": 16,
+        "y": 2
+      },
+      "health-u29": {
+        "h": 3,
+        "w": 4,
+        "x": 20,
+        "y": 2
+      }
+    },
+    "settings": {
+      "defaultTimeframe": {
+        "enabled": true,
+        "value": {
+          "from": "now()-24h",
+          "to": "now()"
+        }
+      }
+    },
+    "tiles": {
+      "0": {
+        "content": "# Home Ops Master Landing v12\n\nTopology-aligned Home Ops index with a live **Architecture Health** strip (infra = 24h; sparse apps = 7d last-seen).\n\nStart with **[Network Overview v3](https://oei3894h.sprint.apps.dynatracelabs.com/ui/apps/dynatrace.dashboards/dashboard/ea910f15-8c41-47dc-a0fc-6c72d7215685#from=now()-24h&to=now())** or the **[Home Ops Launchpad](https://oei3894h.sprint.apps.dynatracelabs.com/ui/apps/dynatrace.launchpads/launchpad/da5398ee-1cea-45e3-b5d7-62e0f5c4b059)**.\n\n**Wave 2:** Ansible \u00b7 Home Automation Stack \u00b7 Proxmox \u00b7 Commander v2 \u00b7 utility29 HAProxy.\n\n**Still out of DT scope:** elk \u00b7 pig \u00b7 LibreNMS. **Backlog:** UPS Telegraf \u00b7 SNMP traps opt-in after dt02 :162 verify.\n\n**Status:** \u2705 works \u00b7 \u26a0\ufe0f partial \u00b7 \u274c broken. **Low-usage:** prefer 7d lookbacks / heartbeat synthetics over traffic silence.\n",
+        "title": "",
+        "type": "markdown"
+      },
+      "1": {
+        "content": "**Legend** \u2014 **Status:** \u2705 production-ready \u00b7 \u26a0\ufe0f partial / thin / shared / pending ingest \u00b7 \u274c broken \u00b7 **Origin:** Me / Shared \u00b7 **Automation:** poller, extension, workflow, OTLP, Davis detector.",
+        "title": "",
+        "type": "markdown"
+      },
+      "2": {
+        "content": "## Network\n\nEdge, DNS/LB, HAProxy front-end, netflow.",
+        "title": "",
+        "type": "markdown"
+      },
+      "3": {
+        "content": "### [Network Overview v3](https://oei3894h.sprint.apps.dynatracelabs.com/ui/apps/dynatrace.dashboards/dashboard/ea910f15-8c41-47dc-a0fc-6c72d7215685#from=now()-24h&to=now())\n\nUnified pulse \u2014 BGW, UniFi, netflow, DNS, WAN freshness.\n\n**Status:** \u2705\n\n**Origin:** Me\n\n**Automation:** BGW poller + UniFi syslog + netflow extension",
+        "title": "",
+        "type": "markdown"
+      },
+      "4": {
+        "content": "### [AT&T BGW320 / WAN Edge v4](https://oei3894h.sprint.apps.dynatracelabs.com/ui/apps/dynatrace.dashboards/dashboard/5746eecb-b388-4648-999d-31eecdb0c4e0#from=now()-24h&to=now())\n\nBGW KPIs + poller health. Rx Power may be quiet.\n\n**Status:** \u26a0\ufe0f\n\n**Origin:** Me\n\n**Automation:** bgw-poller.timer + BGW Davis detectors",
+        "title": "",
+        "type": "markdown"
+      },
+      "5": {
+        "content": "### [UniFi Dashboard v3](https://oei3894h.sprint.apps.dynatracelabs.com/ui/apps/dynatrace.dashboards/dashboard/1cdf6d71-b9af-4454-ab7b-c6d27134d678#from=now()-24h&to=now())\n\nCEF WiFi live; WAN longer lookback.\n\n**Status:** \u2705\n\n**Origin:** Me\n\n**Automation:** UniFi CEF syslog + UniFi/UDM detectors",
+        "title": "",
+        "type": "markdown"
+      },
+      "6": {
+        "content": "### [Firewall Dashboard v4](https://oei3894h.sprint.apps.dynatracelabs.com/ui/apps/dynatrace.dashboards/dashboard/100ca571-e286-4687-9f95-cb806ace5d03#from=now()-24h&to=now())\n\nDNAT + UDM deny; content-filter quiet.\n\n**Status:** \u26a0\ufe0f\n\n**Origin:** Me\n\n**Automation:** UDM syslog + DNAT + firewall detectors",
+        "title": "",
+        "type": "markdown"
+      },
+      "7": {
+        "content": "### [DNS v4](https://oei3894h.sprint.apps.dynatracelabs.com/ui/apps/dynatrace.dashboards/dashboard/a1bd17b7-04b4-485d-9289-0afe39d58b2b#from=now()-24h&to=now())\n\nBIND + dnsdist (ns0/ns1/utility*/nslb*).\n\n**Status:** \u2705\n\n**Origin:** Me\n\n**Automation:** OA/OTel logs + named silence detector",
+        "title": "",
+        "type": "markdown"
+      },
+      "8": {
+        "content": "### [NSLB / DNS Load Balancer](https://oei3894h.sprint.apps.dynatracelabs.com/ui/apps/dynatrace.dashboards/dashboard/d75779ec-a9a8-47b7-ba7e-61ac48375815#from=now()-24h&to=now())\n\nnslb + nslb-pi dnsdist health-check timeouts.\n\n**Status:** \u2705\n\n**Origin:** Me\n\n**Automation:** OTLP + OA; dnsdist timeout detector",
+        "title": "",
+        "type": "markdown"
+      },
+      "9": {
+        "content": "### [utility29 HAProxy (PVE / OTLP)](https://oei3894h.sprint.apps.dynatracelabs.com/ui/apps/dynatrace.dashboards/dashboard/37c7c4ba-d695-4473-a976-c8aa482fd61c#from=now()-24h&to=now())\n\nPVE + otel-gateway front-end. HAProxy filelog live (~80k/day). Detectors retuned 2026-09-23 (DOWN-only + 30m silence).\n\n**Status:** \u2705\n\n**Origin:** Me\n\n**Automation:** OTLP heartbeat; silence/backend detectors; ansible ingest pending",
+        "title": "",
+        "type": "markdown"
+      },
+      "10": {
+        "content": "### [Netflow Health & Quality](https://oei3894h.sprint.apps.dynatracelabs.com/ui/apps/dynatrace.dashboards/dashboard/b2e38ccd-5056-4e04-ba1f-79263ec2825b#from=now()-24h&to=now())\n\nDirection coverage, DNS resolution, enrichment gaps.\n\n**Status:** \u2705\n\n**Origin:** Me\n\n**Automation:** netflow-observability extension",
+        "title": "",
+        "type": "markdown"
+      },
+      "11": {
+        "content": "### [Netflow Traffic Analysis](https://oei3894h.sprint.apps.dynatracelabs.com/ui/apps/dynatrace.dashboards/dashboard/16cf83d0-cc18-409f-98da-36c87b7af323#from=now()-24h&to=now())\n\nDirection, provider, protocol, talkers.\n\n**Status:** \u2705\n\n**Origin:** Me\n\n**Automation:** netflow-observability extension",
+        "title": "",
+        "type": "markdown"
+      },
+      "12": {
+        "content": "## Platform & Observability\n\nCMDB, Proxmox, OTel, Ansible, compliance.",
+        "title": "",
+        "type": "markdown"
+      },
+      "13": {
+        "content": "### [Observability Health Dashboard v10](https://oei3894h.sprint.apps.dynatracelabs.com/ui/apps/dynatrace.dashboards/dashboard/3ebc884d-6a7f-409c-97ad-7f41c5cb438a#from=now()-24h&to=now())\n\nCMDB apps \u00d7 host dt.cost.product.\n\n**Status:** \u2705\n\n**Origin:** Me\n\n**Automation:** CMDB Sync WFs + host product tags",
+        "title": "",
+        "type": "markdown"
+      },
+      "14": {
+        "content": "### [Proxmox Cluster](https://oei3894h.sprint.apps.dynatracelabs.com/ui/apps/dynatrace.dashboards/dashboard/420a140f-3d83-4a3f-b8af-9e010cc559cf#from=now()-24h&to=now())\n\nnuc40\u201346 pveproxy + proxmox-api extension + host CPU.\n\n**Status:** \u2705\n\n**Origin:** Me\n\n**Automation:** Proxmox Cluster Sync WF + pveproxy silence detector",
+        "title": "",
+        "type": "markdown"
+      },
+      "15": {
+        "content": "### [Bindplane / OTel Ingest Health](https://oei3894h.sprint.apps.dynatracelabs.com/ui/apps/dynatrace.dashboards/dashboard/24f1a0f9-46b7-4ab4-8946-028bb1e6def6#from=now()-24h&to=now())\n\nobserviq collectors + OTLP by edge host.\n\n**Status:** \u2705\n\n**Origin:** Me\n\n**Automation:** observiq + OTLP silence/error detectors",
+        "title": "",
+        "type": "markdown"
+      },
+      "16": {
+        "content": "### [Ansible Control Plane](https://oei3894h.sprint.apps.dynatracelabs.com/ui/apps/dynatrace.dashboards/dashboard/e7f779e6-3c65-4131-8875-15242a14842e#from=now()-24h&to=now())\n\nansible20 OTLP \u2014 git/playbook activity, FAILED rates.\n\n**Status:** \u2705\n\n**Origin:** Me\n\n**Automation:** OTLP edge silence + FAILED spike detector",
+        "title": "",
+        "type": "markdown"
+      },
+      "17": {
+        "content": "### [Host Census + Signal Coverage v3](https://oei3894h.sprint.apps.dynatracelabs.com/ui/apps/dynatrace.dashboards/dashboard/9caf686c-b94c-4cf0-8548-93fa45c09f47#from=now()-24h&to=now())\n\nHost inventory and signal coverage.\n\n**Status:** \u2705\n\n**Origin:** Me\n\n**Automation:** Host Census Snapshot + Host Dropout WFs",
+        "title": "",
+        "type": "markdown"
+      },
+      "18": {
+        "content": "### [OneAgent Version Compliance](https://oei3894h.sprint.apps.dynatracelabs.com/ui/apps/dynatrace.dashboards/dashboard/25bfd447-cd7e-4e98-bc5c-92670b676a3f#from=now()-24h&to=now())\n\nOA versions vs baseline events.\n\n**Status:** \u2705\n\n**Origin:** Me\n\n**Automation:** Version Baseline Sync WF",
+        "title": "",
+        "type": "markdown"
+      },
+      "19": {
+        "content": "### [Rum Version Compliance v3](https://oei3894h.sprint.apps.dynatracelabs.com/ui/apps/dynatrace.dashboards/dashboard/111751cf-73fa-4435-acbb-86f8d7c95445#from=now()-24h&to=now())\n\nRUM classic JS compliance.\n\n**Status:** \u2705\n\n**Origin:** Me\n\n**Automation:** Version Baseline Sync WF",
+        "title": "",
+        "type": "markdown"
+      },
+      "20": {
+        "content": "### [Dynatrace Component Release Tracking v10](https://oei3894h.sprint.apps.dynatracelabs.com/ui/apps/dynatrace.dashboards/dashboard/20abcd0f-9f19-4545-9565-575bb7cd939d#from=now()-24h&to=now())\n\nMarkdown release cards.\n\n**Status:** \u2705\n\n**Origin:** Me\n\n**Automation:** Version Intelligence Sync WF",
+        "title": "",
+        "type": "markdown"
+      },
+      "21": {
+        "content": "### [Environment Overview - v1](https://oei3894h.sprint.apps.dynatracelabs.com/ui/apps/dynatrace.dashboards/dashboard/ddd5d16e-43de-45c3-99cd-98cc3fac57e5#from=now()-24h&to=now())\n\nEnvironment pulse \u2014 hosts, problems.\n\n**Status:** \u2705\n\n**Origin:** Me\n\n**Automation:** Platform telemetry",
+        "title": "",
+        "type": "markdown"
+      },
+      "22": {
+        "content": "### [Dynatrace Assist \u2014 Operator Utilization & Cost](https://oei3894h.sprint.apps.dynatracelabs.com/ui/apps/dynatrace.dashboards/dashboard/06452ea6-cef8-477f-9403-4b0575ed1906#from=now()-24h&to=now())\n\nGenAI Assist (skill=chat).\n\n**Status:** \u26a0\ufe0f\n\n**Origin:** Me\n\n**Automation:** Platform GenAI events",
+        "title": "",
+        "type": "markdown"
+      },
+      "23": {
+        "content": "## Home & Apps\n\nHA stack, kiosks, Ops Explorer, Commander, mail, Minecraft.",
+        "title": "",
+        "type": "markdown"
+      },
+      "24": {
+        "content": "### [HA Wall Kiosks](https://oei3894h.sprint.apps.dynatracelabs.com/ui/apps/dynatrace.dashboards/dashboard/46082379-e46e-46e9-a304-7706e309cbf6#from=now()-24h&to=now())\n\nWall kiosk Telegraf + remediator.\n\n**Status:** \u2705\n\n**Origin:** Me\n\n**Automation:** Telegraf OTLP + HA Kiosk detectors + HASS WF",
+        "title": "",
+        "type": "markdown"
+      },
+      "25": {
+        "content": "### [Home Automation Stack](https://oei3894h.sprint.apps.dynatracelabs.com/ui/apps/dynatrace.dashboards/dashboard/2d296722-2526-4999-ae33-7058034366fa#from=now()-24h&to=now())\n\nautomation host containers \u2014 HA, appdaemon, mosquitto, zwave, ha-mcp.\n\n**Status:** \u2705\n\n**Origin:** Me\n\n**Automation:** SRG-HomeAssistant + HASS Updater + container silence detectors",
+        "title": "",
+        "type": "markdown"
+      },
+      "26": {
+        "content": "### [Ops Explorer Observability](https://oei3894h.sprint.apps.dynatracelabs.com/ui/apps/dynatrace.dashboards/dashboard/0091f243-4911-4bae-bc3e-77e12ed4f8f8#from=now()-24h&to=now())\n\nOps Explorer RUM + spans.\n\n**Status:** \u2705\n\n**Origin:** Me\n\n**Automation:** RUM/spans + SRG-Ops-Explorer + mesh WF",
+        "title": "",
+        "type": "markdown"
+      },
+      "27": {
+        "content": "### [Home Commander v2](https://oei3894h.sprint.apps.dynatracelabs.com/ui/apps/dynatrace.dashboards/dashboard/5deaeba9-5654-44a4-83d9-f59faa37fbd3#from=now()-24h&to=now())\n\nFleet sync, CMDB, workflows, nginx RED, host resources.\n\n**Status:** \u2705\n\n**Origin:** Me\n\n**Automation:** OA + CMDB Sync WFs + EdgeConnect (dt01) + fleet-sync silence",
+        "title": "",
+        "type": "markdown"
+      },
+      "28": {
+        "content": "### [Website Stats](https://oei3894h.sprint.apps.dynatracelabs.com/ui/apps/dynatrace.dashboards/dashboard/339b5c73-d79f-459b-bd31-cf99b180d1ca#from=now()-24h&to=now())\n\nThin Powderkeg view \u2014 use 7d lookback (low usage).\n\n**Status:** \u26a0\ufe0f\n\n**Origin:** Me\n\n**Automation:** Host logs",
+        "title": "",
+        "type": "markdown"
+      },
+      "29": {
+        "content": "### [Mail Server](https://oei3894h.sprint.apps.dynatracelabs.com/ui/apps/dynatrace.dashboards/dashboard/6c158bee-8e7f-46b2-b71a-06fc22de41e1#from=now()-24h&to=now())\n\nmail.lindleyhome.com metrics + IMAP.\n\n**Status:** \u2705\n\n**Origin:** Me\n\n**Automation:** OneAgent host metrics + mail logs",
+        "title": "",
+        "type": "markdown"
+      },
+      "30": {
+        "content": "### [Minecraft](https://oei3894h.sprint.apps.dynatracelabs.com/ui/apps/dynatrace.dashboards/dashboard/d122bae9-ced0-41ab-bf6a-0928d03c4bd7#from=now()-24h&to=now())\n\nMinecraft/paper logs and users.\n\n**Status:** \u2705\n\n**Origin:** Me\n\n**Automation:** Process logs + Access Denied WF",
+        "title": "",
+        "type": "markdown"
+      },
+      "31": {
+        "content": "### [Log Analytics](https://oei3894h.sprint.apps.dynatracelabs.com/ui/apps/dynatrace.dashboards/dashboard/e2ff218b-0014-44f2-97a2-3910b59bc515#from=now()-24h&to=now())\n\nDynatrace Quick Start log template.\n\n**Status:** \u26a0\ufe0f\n\n**Origin:** Shared\n\n**Automation:** None (template)",
+        "title": "",
+        "type": "markdown"
+      },
+      "32": {
+        "content": "## Reference / Shared",
+        "title": "",
+        "type": "markdown"
+      },
+      "33": {
+        "content": "### [Root Cause Analytics](https://oei3894h.sprint.apps.dynatracelabs.com/ui/apps/dynatrace.dashboards/dashboard/e5bfb2ac-cfbf-4843-bc21-2b75a136a7e1#from=now()-24h&to=now())\n\nShared enterprise Davis RCA playbook.\n\n**Status:** \u26a0\ufe0f\n\n**Origin:** Shared\n\n**Automation:** None",
+        "title": "",
+        "type": "markdown"
+      },
+      "34": {
+        "content": "### [Audit Logs](https://oei3894h.sprint.apps.dynatracelabs.com/ui/apps/dynatrace.dashboards/dashboard/7bb98e96-a200-4aef-ba7e-a24b37dfd5ee#from=now()-24h&to=now())\n\nCommunity classic Audit API sample.\n\n**Status:** \u26a0\ufe0f\n\n**Origin:** Shared\n\n**Automation:** Classic Audit API",
+        "title": "",
+        "type": "markdown"
+      },
+      "35": {
+        "content": "## Launch",
+        "title": "",
+        "type": "markdown"
+      },
+      "36": {
+        "content": "### [Home Ops Launchpad](https://oei3894h.sprint.apps.dynatracelabs.com/ui/apps/dynatrace.launchpads/launchpad/da5398ee-1cea-45e3-b5d7-62e0f5c4b059)\n\nDynatrace Launcher entry point.\n\n**Status:** \u2705\n\n**Origin:** Me\n\n**Automation:** None",
+        "title": "",
+        "type": "markdown"
+      },
+      "health-apps": {
+        "davis": {
+          "davisVisualization": {
+            "isAvailable": true
+          },
+          "enabled": false
+        },
+        "query": "fetch user.events, from:now()-7d\n| filter in(frontend.name, {\"ansible-operations\", \"Home_Commander__7654\", \"homeassistant\", \"www.loadingthekeg.com\", \"mail.lindleyhome.com\"}) or in(dt.rum.application.id, {\"e7d68427632a5105\", \"940d86626ef483d2\", \"0b844840bbb813cd\"})\n| summarize events=count(), last=max(timestamp), by:{frontend.name, dt.rum.application.id}\n| fieldsAdd app = coalesce(frontend.name, dt.rum.application.id)\n| fields app, events, last\n| sort events desc",
+        "title": "Sparse apps last-seen (7d RUM)",
+        "type": "data",
+        "visualization": "table",
+        "visualizationSettings": {}
+      },
+      "health-bgw": {
+        "davis": {
+          "davisVisualization": {
+            "isAvailable": true
+          },
+          "enabled": false
+        },
+        "query": "fetch logs\n| filter log.source == \"att-bgw320\"\n| summarize last=max(timestamp)\n| fieldsAdd freshness_min = toDouble((toLong(now()) - toLong(last)) / 60000000000)\n| fields freshness_min",
+        "title": "BGW poller freshness (min)",
+        "type": "data",
+        "visualization": "singleValue",
+        "visualizationSettings": {
+          "singleValue": {
+            "label": "min ago"
+          }
+        }
+      },
+      "health-md": {
+        "content": "## Architecture Health\n\nContinuous pipelines (24h) + sparse-app last-seen (7d). Open Problems excludes offline-kiosk noise where detectors were retuned.",
+        "title": "",
+        "type": "markdown"
+      },
+      "health-netflow": {
+        "davis": {
+          "davisVisualization": {
+            "isAvailable": true
+          },
+          "enabled": false
+        },
+        "query": "fetch logs\n| filter log.source == \"netflow\"\n| summarize last=max(timestamp)\n| fieldsAdd freshness_min = toDouble((toLong(now()) - toLong(last)) / 60000000000)\n| fields freshness_min",
+        "title": "NetFlow freshness (min)",
+        "type": "data",
+        "visualization": "singleValue",
+        "visualizationSettings": {
+          "singleValue": {
+            "label": "min ago"
+          }
+        }
+      },
+      "health-oa": {
+        "davis": {
+          "davisVisualization": {
+            "isAvailable": true
+          },
+          "enabled": false
+        },
+        "query": "timeseries usage=avg(dt.host.cpu.usage), by:{dt.entity.host}\n| filter isNotNull(arrayAvg(usage))\n| summarize active_hosts = count()",
+        "title": "OA hosts active (2h)",
+        "type": "data",
+        "visualization": "singleValue",
+        "visualizationSettings": {
+          "singleValue": {
+            "label": "OA hosts"
+          }
+        }
+      },
+      "health-otlp": {
+        "davis": {
+          "davisVisualization": {
+            "isAvailable": true
+          },
+          "enabled": false
+        },
+        "query": "fetch logs\n| filter isNotNull(host.name) and host.name != \"\"\n| filter not matchesPhrase(host.name, \"nuc\") and not matchesPhrase(host.name, \"EasyTravel\")\n| summarize c=count(), by:{host.name}\n| filter c > 10\n| summarize otlp_hosts = count()",
+        "title": "OTLP/Pi log hosts (24h)",
+        "type": "data",
+        "visualization": "singleValue",
+        "visualizationSettings": {
+          "singleValue": {
+            "label": "Log hosts"
+          }
+        }
+      },
+      "health-problems": {
+        "davis": {
+          "davisVisualization": {
+            "isAvailable": true
+          },
+          "enabled": false
+        },
+        "query": "fetch events\n| filter event.kind == \"DAVIS_PROBLEM\" and event.status == \"ACTIVE\"\n| filter not matchesPhrase(event.name, \"HA Kiosk\")\n| filter not matchesPhrase(event.name, \"entryway\")\n| summarize open_problems = count()",
+        "title": "Open problems (excl. kiosk noise names)",
+        "type": "data",
+        "visualization": "singleValue",
+        "visualizationSettings": {
+          "singleValue": {
+            "label": "open"
+          }
+        }
+      },
+      "health-u29": {
+        "davis": {
+          "davisVisualization": {
+            "isAvailable": true
+          },
+          "enabled": false
+        },
+        "query": "fetch logs\n| filter host.name == \"utility29\"\n| summarize lines = count()",
+        "title": "utility29 log lines (1h)",
+        "type": "data",
+        "visualization": "singleValue",
+        "visualizationSettings": {
+          "singleValue": {
+            "label": "lines/1h"
+          }
+        }
+      }
+    },
+    "variables": [],
+    "version": 21
+  }
+}

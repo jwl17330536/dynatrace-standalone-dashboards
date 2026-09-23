@@ -1,0 +1,241 @@
+{
+  "name": "utility29 HAProxy (PVE / OTLP front-end)",
+  "type": "dashboard",
+  "owner": "<YOUR_DYNATRACE_USER_ID>",
+  "isPrivate": true,
+  "description": "utility29 \u2014 HAProxy for pve.lindleyhome.com + otel-gateway; OTLP heartbeat now; HAProxy filelog pending ansible deploy.",
+  "version": 2,
+  "modificationInfo": {
+    "createdBy": "",
+    "createdTime": "",
+    "lastModifiedBy": "",
+    "lastModifiedTime": ""
+  },
+  "content": {
+    "annotations": [],
+    "layouts": {
+      "0": {
+        "h": 5,
+        "w": 24,
+        "x": 0,
+        "y": 0
+      },
+      "1": {
+        "h": 4,
+        "w": 6,
+        "x": 0,
+        "y": 5
+      },
+      "2": {
+        "h": 4,
+        "w": 6,
+        "x": 6,
+        "y": 5
+      },
+      "3": {
+        "h": 4,
+        "w": 6,
+        "x": 12,
+        "y": 5
+      },
+      "4": {
+        "h": 4,
+        "w": 6,
+        "x": 18,
+        "y": 5
+      },
+      "5": {
+        "h": 8,
+        "w": 12,
+        "x": 0,
+        "y": 9
+      },
+      "6": {
+        "h": 8,
+        "w": 12,
+        "x": 12,
+        "y": 9
+      },
+      "7": {
+        "h": 10,
+        "w": 24,
+        "x": 0,
+        "y": 17
+      }
+    },
+    "settings": {
+      "defaultTimeframe": {
+        "enabled": true,
+        "value": {
+          "from": "now()-24h",
+          "to": "now()"
+        }
+      }
+    },
+    "tiles": {
+      "0": {
+        "content": "# utility29 HAProxy (PVE / OTLP front-end)\n\nPi **utility29** (172.16.1.29) \u2014 HAProxy fronts **pve.lindleyhome.com** (Proxmox) and **otel-gateway.lindleyhome.com** (:4317/:4318 \u2192 dt02/dt03).\n\n**Status:** \u26a0\ufe0f HAProxy-specific log file not yet in Grail. Ansible updated (`log-health-checks` + `/var/log/haproxy.log` + OTel include). **Re-run** `pve_frontend_haproxy.yml` and `otel-install_configure.yml` on utility29 to complete ingest.\n\nUntil then: OTLP heartbeat + content filters for any haproxy lines via syslog/journald.",
+        "title": "",
+        "type": "markdown"
+      },
+      "1": {
+        "davis": {
+          "davisVisualization": {
+            "isAvailable": true
+          },
+          "enabled": false
+        },
+        "query": "fetch logs\n| filter host.name == \"utility29\"\n| summarize lines = count()",
+        "querySettings": {
+          "defaultSamplingRatio": 10,
+          "defaultScanLimitGbytes": 500,
+          "enableSampling": false,
+          "maxResultMegaBytes": 10,
+          "maxResultRecords": 1000
+        },
+        "title": "OTLP lines (utility29)",
+        "type": "data",
+        "visualization": "singleValue",
+        "visualizationSettings": {
+          "singleValue": {
+            "recordField": "lines"
+          }
+        }
+      },
+      "2": {
+        "davis": {
+          "davisVisualization": {
+            "isAvailable": true
+          },
+          "enabled": false
+        },
+        "query": "fetch logs\n| filter host.name == \"utility29\"\n| summarize last_seen = max(timestamp)\n| fieldsAdd freshness_min = toDouble((now() - last_seen) / 60000000000)\n| fields freshness_min",
+        "querySettings": {
+          "defaultSamplingRatio": 10,
+          "defaultScanLimitGbytes": 500,
+          "enableSampling": false,
+          "maxResultMegaBytes": 10,
+          "maxResultRecords": 1000
+        },
+        "title": "Freshness (min)",
+        "type": "data",
+        "visualization": "singleValue",
+        "visualizationSettings": {
+          "singleValue": {
+            "recordField": "freshness_min"
+          }
+        }
+      },
+      "3": {
+        "davis": {
+          "davisVisualization": {
+            "isAvailable": true
+          },
+          "enabled": false
+        },
+        "query": "fetch logs\n| filter host.name == \"utility29\"\n| filter contains(lower(content), \"haproxy\") or contains(lower(content), \"backend\") or contains(content, \"Server \")\n| summarize hits = count()",
+        "querySettings": {
+          "defaultSamplingRatio": 10,
+          "defaultScanLimitGbytes": 500,
+          "enableSampling": false,
+          "maxResultMegaBytes": 10,
+          "maxResultRecords": 1000
+        },
+        "title": "HAProxy keyword hits",
+        "type": "data",
+        "visualization": "singleValue",
+        "visualizationSettings": {
+          "singleValue": {
+            "recordField": "hits"
+          }
+        }
+      },
+      "4": {
+        "davis": {
+          "davisVisualization": {
+            "isAvailable": true
+          },
+          "enabled": false
+        },
+        "query": "fetch logs\n| filter host.name == \"utility29\" and log.source == \"/var/log/haproxy.log\"\n| summarize lines = count()",
+        "querySettings": {
+          "defaultSamplingRatio": 10,
+          "defaultScanLimitGbytes": 500,
+          "enableSampling": false,
+          "maxResultMegaBytes": 10,
+          "maxResultRecords": 1000
+        },
+        "title": "haproxy.log lines (post-deploy)",
+        "type": "data",
+        "visualization": "singleValue",
+        "visualizationSettings": {
+          "singleValue": {
+            "recordField": "lines"
+          }
+        }
+      },
+      "5": {
+        "davis": {
+          "davisVisualization": {
+            "isAvailable": true
+          },
+          "enabled": false
+        },
+        "query": "fetch logs\n| filter host.name == \"utility29\"\n| makeTimeseries lines=count(), interval:5m",
+        "querySettings": {
+          "defaultSamplingRatio": 10,
+          "defaultScanLimitGbytes": 2000,
+          "enableSampling": false,
+          "maxResultMegaBytes": 10,
+          "maxResultRecords": 5000
+        },
+        "title": "utility29 log volume",
+        "type": "data",
+        "visualization": "lineChart",
+        "visualizationSettings": {}
+      },
+      "6": {
+        "davis": {
+          "davisVisualization": {
+            "isAvailable": true
+          },
+          "enabled": false
+        },
+        "query": "fetch logs\n| filter host.name == \"utility29\"\n| filter contains(lower(content), \"haproxy\") or contains(lower(content), \"backend\") or contains(content, \"Server \") or contains(lower(content), \"down\") or contains(lower(content), \"up \")\n| makeTimeseries hits=count(), interval:5m",
+        "querySettings": {
+          "defaultSamplingRatio": 10,
+          "defaultScanLimitGbytes": 2000,
+          "enableSampling": false,
+          "maxResultMegaBytes": 10,
+          "maxResultRecords": 5000
+        },
+        "title": "HAProxy / backend / Server keywords",
+        "type": "data",
+        "visualization": "lineChart",
+        "visualizationSettings": {}
+      },
+      "7": {
+        "davis": {
+          "davisVisualization": {
+            "isAvailable": true
+          },
+          "enabled": false
+        },
+        "query": "fetch logs\n| filter host.name == \"utility29\"\n| fields timestamp, log.source, content\n| sort timestamp desc\n| limit 40",
+        "querySettings": {
+          "defaultSamplingRatio": 10,
+          "defaultScanLimitGbytes": 2000,
+          "enableSampling": false,
+          "maxResultMegaBytes": 10,
+          "maxResultRecords": 5000
+        },
+        "title": "Recent utility29 logs",
+        "type": "data",
+        "visualization": "table",
+        "visualizationSettings": {}
+      }
+    },
+    "variables": [],
+    "version": 21
+  }
+}

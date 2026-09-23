@@ -1,0 +1,515 @@
+{
+  "name": "Alert Volume Reduction",
+  "type": "dashboard",
+  "owner": "<YOUR_DYNATRACE_USER_ID>",
+  "isPrivate": true,
+  "version": 3,
+  "modificationInfo": {
+    "createdBy": "",
+    "createdTime": "",
+    "lastModifiedBy": "",
+    "lastModifiedTime": ""
+  },
+  "content": {
+    "version": 21,
+    "variables": [
+      {
+        "version": 3,
+        "key": "AlertingProfile",
+        "type": "query",
+        "visible": true,
+        "editable": true,
+        "input": "fetch dt.davis.problems | expand labels.alerting_profile | fieldsAdd name = labels.alerting_profile | filter isNotNull(name) and name != \"\" | dedup name | fields name | append [data record(name = \"(No Alerting Profile)\")] | sort name asc",
+        "multiple": true,
+        "defaultValue": [
+          "3420b2ac-f1cf-4b24-b62d-61ba1ba8ed05*"
+        ],
+        "name": "AlertingProfile"
+      },
+      {
+        "version": 3,
+        "key": "ManagementZone",
+        "type": "query",
+        "visible": true,
+        "editable": true,
+        "input": "fetch dt.entity.host | fields managementZones | append [fetch dt.entity.custom_device | fields managementZones] | expand managementZones | filter isNotNull(managementZones) | dedup managementZones | fields name = managementZones | append [data record(name = \"(No Management Zone)\")] | sort name asc",
+        "multiple": true,
+        "defaultValue": [
+          "3420b2ac-f1cf-4b24-b62d-61ba1ba8ed05*"
+        ],
+        "name": "ManagementZone"
+      }
+    ],
+    "annotations": [],
+    "tiles": {
+      "1": {
+        "type": "markdown",
+        "content": "# Alert Volume Reduction\n\nIdentify top alert contributors, recurring root causes, flapping problems, and temporal patterns to prioritize alert tuning and noise reduction. Set the dashboard timeframe to **30 days** for full analysis."
+      },
+      "2": {
+        "title": "Total Problems",
+        "type": "data",
+        "query": "fetch dt.davis.problems\n| expand affected_entity_ids\n| lookup [\n    fetch dt.entity.host | fields id, managementZones\n    | append [fetch dt.entity.custom_device | fields id, managementZones]\n    | append [fetch dt.entity.service | fields id, managementZones]\n    | append [fetch dt.entity.process_group | fields id, managementZones]\n  ], sourceField: affected_entity_ids, lookupField: id\n| summarize\n    mzs_nested = collectDistinct(lookup.managementZones),\n    event.category = takeAny(event.category),\n    event.name = takeAny(event.name),\n    event.start = takeAny(event.start),\n    event.end = takeAny(event.end),\n    event.status = takeAny(event.status),\n    root_cause_entity_id = takeAny(root_cause_entity_id),\n    root_cause_entity_name = takeAny(root_cause_entity_name),\n    ap_raw = takeAny(labels.alerting_profile),\n    by:{display_id}\n| fieldsAdd mz_list = arrayRemoveNulls(arrayFlatten(mzs_nested))\n| fieldsAdd mz_list = if(arraySize(mz_list) == 0, array(\"(No Management Zone)\"), else: mz_list)\n| filter arraySize(array($ManagementZone)) == 0 or arraySize(array($ManagementZone)) > 200 or in(\"*\", array($ManagementZone)) or contains(toString(array($ManagementZone)), \"3420b2ac\") or iAny(in(mz_list[], array($ManagementZone)))\n| fieldsAdd ap_list = if(isNull(ap_raw) or arraySize(ap_raw) == 0, array(\"(No Alerting Profile)\"), else: ap_raw)\n| filter arraySize(array($AlertingProfile)) == 0 or arraySize(array($AlertingProfile)) > 200 or in(\"*\", array($AlertingProfile)) or contains(toString(array($AlertingProfile)), \"3420b2ac\") or iAny(in(ap_list[], array($AlertingProfile)))\n| summarize total = count()",
+        "visualization": "singleValue",
+        "visualizationSettings": {},
+        "querySettings": {
+          "maxResultRecords": 1000,
+          "defaultScanLimitGbytes": 500,
+          "maxResultMegaBytes": 1,
+          "defaultSamplingRatio": 10,
+          "enableSampling": false
+        },
+        "davis": {
+          "davisVisualization": {
+            "isAvailable": true
+          }
+        }
+      },
+      "3": {
+        "title": "Total Davis Events",
+        "type": "data",
+        "query": "fetch dt.davis.events\n| summarize total = count()",
+        "visualization": "singleValue",
+        "visualizationSettings": {},
+        "querySettings": {
+          "maxResultRecords": 1000,
+          "defaultScanLimitGbytes": 500,
+          "maxResultMegaBytes": 1,
+          "defaultSamplingRatio": 10,
+          "enableSampling": false
+        },
+        "davis": {
+          "davisVisualization": {
+            "isAvailable": true
+          }
+        }
+      },
+      "4": {
+        "title": "Active Problems Now",
+        "type": "data",
+        "query": "fetch dt.davis.problems\n| expand affected_entity_ids\n| lookup [\n    fetch dt.entity.host | fields id, managementZones\n    | append [fetch dt.entity.custom_device | fields id, managementZones]\n    | append [fetch dt.entity.service | fields id, managementZones]\n    | append [fetch dt.entity.process_group | fields id, managementZones]\n  ], sourceField: affected_entity_ids, lookupField: id\n| summarize\n    mzs_nested = collectDistinct(lookup.managementZones),\n    event.category = takeAny(event.category),\n    event.name = takeAny(event.name),\n    event.start = takeAny(event.start),\n    event.end = takeAny(event.end),\n    event.status = takeAny(event.status),\n    root_cause_entity_id = takeAny(root_cause_entity_id),\n    root_cause_entity_name = takeAny(root_cause_entity_name),\n    ap_raw = takeAny(labels.alerting_profile),\n    by:{display_id}\n| fieldsAdd mz_list = arrayRemoveNulls(arrayFlatten(mzs_nested))\n| fieldsAdd mz_list = if(arraySize(mz_list) == 0, array(\"(No Management Zone)\"), else: mz_list)\n| filter arraySize(array($ManagementZone)) == 0 or arraySize(array($ManagementZone)) > 200 or in(\"*\", array($ManagementZone)) or contains(toString(array($ManagementZone)), \"3420b2ac\") or iAny(in(mz_list[], array($ManagementZone)))\n| fieldsAdd ap_list = if(isNull(ap_raw) or arraySize(ap_raw) == 0, array(\"(No Alerting Profile)\"), else: ap_raw)\n| filter arraySize(array($AlertingProfile)) == 0 or arraySize(array($AlertingProfile)) > 200 or in(\"*\", array($AlertingProfile)) or contains(toString(array($AlertingProfile)), \"3420b2ac\") or iAny(in(ap_list[], array($AlertingProfile)))\n| filter event.status == \"ACTIVE\"\n| summarize total = count()",
+        "visualization": "singleValue",
+        "visualizationSettings": {},
+        "querySettings": {
+          "maxResultRecords": 1000,
+          "defaultScanLimitGbytes": 500,
+          "maxResultMegaBytes": 1,
+          "defaultSamplingRatio": 10,
+          "enableSampling": false
+        },
+        "davis": {
+          "davisVisualization": {
+            "isAvailable": true
+          }
+        }
+      },
+      "5": {
+        "title": "Avg Resolution Time",
+        "type": "data",
+        "query": "fetch dt.davis.problems\n| expand affected_entity_ids\n| lookup [\n    fetch dt.entity.host | fields id, managementZones\n    | append [fetch dt.entity.custom_device | fields id, managementZones]\n    | append [fetch dt.entity.service | fields id, managementZones]\n    | append [fetch dt.entity.process_group | fields id, managementZones]\n  ], sourceField: affected_entity_ids, lookupField: id\n| summarize\n    mzs_nested = collectDistinct(lookup.managementZones),\n    event.category = takeAny(event.category),\n    event.name = takeAny(event.name),\n    event.start = takeAny(event.start),\n    event.end = takeAny(event.end),\n    event.status = takeAny(event.status),\n    root_cause_entity_id = takeAny(root_cause_entity_id),\n    root_cause_entity_name = takeAny(root_cause_entity_name),\n    ap_raw = takeAny(labels.alerting_profile),\n    by:{display_id}\n| fieldsAdd mz_list = arrayRemoveNulls(arrayFlatten(mzs_nested))\n| fieldsAdd mz_list = if(arraySize(mz_list) == 0, array(\"(No Management Zone)\"), else: mz_list)\n| filter arraySize(array($ManagementZone)) == 0 or arraySize(array($ManagementZone)) > 200 or in(\"*\", array($ManagementZone)) or contains(toString(array($ManagementZone)), \"3420b2ac\") or iAny(in(mz_list[], array($ManagementZone)))\n| fieldsAdd ap_list = if(isNull(ap_raw) or arraySize(ap_raw) == 0, array(\"(No Alerting Profile)\"), else: ap_raw)\n| filter arraySize(array($AlertingProfile)) == 0 or arraySize(array($AlertingProfile)) > 200 or in(\"*\", array($AlertingProfile)) or contains(toString(array($AlertingProfile)), \"3420b2ac\") or iAny(in(ap_list[], array($AlertingProfile)))\n| filter event.status == \"CLOSED\"\n| fieldsAdd resolution_time = event.end - event.start\n| summarize avg_resolution = avg(resolution_time)",
+        "visualization": "singleValue",
+        "visualizationSettings": {},
+        "querySettings": {
+          "maxResultRecords": 1000,
+          "defaultScanLimitGbytes": 500,
+          "maxResultMegaBytes": 1,
+          "defaultSamplingRatio": 10,
+          "enableSampling": false
+        },
+        "davis": {
+          "davisVisualization": {
+            "isAvailable": true
+          }
+        }
+      },
+      "6": {
+        "type": "markdown",
+        "content": "## Top Alerts by Volume"
+      },
+      "7": {
+        "title": "Top 20 Problems by Count",
+        "type": "data",
+        "query": "fetch dt.davis.problems\n| expand affected_entity_ids\n| lookup [\n    fetch dt.entity.host | fields id, managementZones\n    | append [fetch dt.entity.custom_device | fields id, managementZones]\n    | append [fetch dt.entity.service | fields id, managementZones]\n    | append [fetch dt.entity.process_group | fields id, managementZones]\n  ], sourceField: affected_entity_ids, lookupField: id\n| summarize\n    mzs_nested = collectDistinct(lookup.managementZones),\n    event.category = takeAny(event.category),\n    event.name = takeAny(event.name),\n    event.start = takeAny(event.start),\n    event.end = takeAny(event.end),\n    event.status = takeAny(event.status),\n    root_cause_entity_id = takeAny(root_cause_entity_id),\n    root_cause_entity_name = takeAny(root_cause_entity_name),\n    ap_raw = takeAny(labels.alerting_profile),\n    by:{display_id}\n| fieldsAdd mz_list = arrayRemoveNulls(arrayFlatten(mzs_nested))\n| fieldsAdd mz_list = if(arraySize(mz_list) == 0, array(\"(No Management Zone)\"), else: mz_list)\n| filter arraySize(array($ManagementZone)) == 0 or arraySize(array($ManagementZone)) > 200 or in(\"*\", array($ManagementZone)) or contains(toString(array($ManagementZone)), \"3420b2ac\") or iAny(in(mz_list[], array($ManagementZone)))\n| fieldsAdd ap_list = if(isNull(ap_raw) or arraySize(ap_raw) == 0, array(\"(No Alerting Profile)\"), else: ap_raw)\n| filter arraySize(array($AlertingProfile)) == 0 or arraySize(array($AlertingProfile)) > 200 or in(\"*\", array($AlertingProfile)) or contains(toString(array($AlertingProfile)), \"3420b2ac\") or iAny(in(ap_list[], array($AlertingProfile)))\n| summarize problem_count = count(), alerting_profiles = collectDistinct(ap_raw), by:{event.name, event.category}\n\n| sort problem_count desc\n| limit 20",
+        "visualization": "table",
+        "visualizationSettings": {},
+        "querySettings": {
+          "maxResultRecords": 1000,
+          "defaultScanLimitGbytes": 500,
+          "maxResultMegaBytes": 1,
+          "defaultSamplingRatio": 10,
+          "enableSampling": false
+        },
+        "davis": {
+          "davisVisualization": {
+            "isAvailable": true
+          }
+        }
+      },
+      "8": {
+        "title": "Problems by Category",
+        "type": "data",
+        "query": "fetch dt.davis.problems\n| expand affected_entity_ids\n| lookup [\n    fetch dt.entity.host | fields id, managementZones\n    | append [fetch dt.entity.custom_device | fields id, managementZones]\n    | append [fetch dt.entity.service | fields id, managementZones]\n    | append [fetch dt.entity.process_group | fields id, managementZones]\n  ], sourceField: affected_entity_ids, lookupField: id\n| summarize\n    mzs_nested = collectDistinct(lookup.managementZones),\n    event.category = takeAny(event.category),\n    event.name = takeAny(event.name),\n    event.start = takeAny(event.start),\n    event.end = takeAny(event.end),\n    event.status = takeAny(event.status),\n    root_cause_entity_id = takeAny(root_cause_entity_id),\n    root_cause_entity_name = takeAny(root_cause_entity_name),\n    ap_raw = takeAny(labels.alerting_profile),\n    by:{display_id}\n| fieldsAdd mz_list = arrayRemoveNulls(arrayFlatten(mzs_nested))\n| fieldsAdd mz_list = if(arraySize(mz_list) == 0, array(\"(No Management Zone)\"), else: mz_list)\n| filter arraySize(array($ManagementZone)) == 0 or arraySize(array($ManagementZone)) > 200 or in(\"*\", array($ManagementZone)) or contains(toString(array($ManagementZone)), \"3420b2ac\") or iAny(in(mz_list[], array($ManagementZone)))\n| fieldsAdd ap_list = if(isNull(ap_raw) or arraySize(ap_raw) == 0, array(\"(No Alerting Profile)\"), else: ap_raw)\n| filter arraySize(array($AlertingProfile)) == 0 or arraySize(array($AlertingProfile)) > 200 or in(\"*\", array($AlertingProfile)) or contains(toString(array($AlertingProfile)), \"3420b2ac\") or iAny(in(ap_list[], array($AlertingProfile)))\n| summarize problem_count = count(), by:{event.category}\n| sort problem_count desc",
+        "visualization": "donutChart",
+        "visualizationSettings": {
+          "legend": {
+            "ratio": 32
+          }
+        },
+        "querySettings": {
+          "maxResultRecords": 1000,
+          "defaultScanLimitGbytes": 500,
+          "maxResultMegaBytes": 1,
+          "defaultSamplingRatio": 10,
+          "enableSampling": false
+        },
+        "davis": {
+          "davisVisualization": {
+            "isAvailable": true
+          }
+        }
+      },
+      "9": {
+        "type": "markdown",
+        "content": "## Alert Trends"
+      },
+      "10": {
+        "title": "Problem Volume Over Time",
+        "type": "data",
+        "query": "fetch dt.davis.problems\n| expand affected_entity_ids\n| lookup [\n    fetch dt.entity.host | fields id, managementZones\n    | append [fetch dt.entity.custom_device | fields id, managementZones]\n    | append [fetch dt.entity.service | fields id, managementZones]\n    | append [fetch dt.entity.process_group | fields id, managementZones]\n  ], sourceField: affected_entity_ids, lookupField: id\n| summarize\n    mzs_nested = collectDistinct(lookup.managementZones),\n    event.category = takeAny(event.category),\n    event.name = takeAny(event.name),\n    event.start = takeAny(event.start),\n    event.end = takeAny(event.end),\n    event.status = takeAny(event.status),\n    root_cause_entity_id = takeAny(root_cause_entity_id),\n    root_cause_entity_name = takeAny(root_cause_entity_name),\n    ap_raw = takeAny(labels.alerting_profile),\n    timestamp = takeAny(timestamp),\n    by:{display_id}\n| fieldsAdd mz_list = arrayRemoveNulls(arrayFlatten(mzs_nested))\n| fieldsAdd mz_list = if(arraySize(mz_list) == 0, array(\"(No Management Zone)\"), else: mz_list)\n| filter arraySize(array($ManagementZone)) == 0 or arraySize(array($ManagementZone)) > 200 or in(\"*\", array($ManagementZone)) or contains(toString(array($ManagementZone)), \"3420b2ac\") or iAny(in(mz_list[], array($ManagementZone)))\n| fieldsAdd ap_list = if(isNull(ap_raw) or arraySize(ap_raw) == 0, array(\"(No Alerting Profile)\"), else: ap_raw)\n| filter arraySize(array($AlertingProfile)) == 0 or arraySize(array($AlertingProfile)) > 200 or in(\"*\", array($AlertingProfile)) or contains(toString(array($AlertingProfile)), \"3420b2ac\") or iAny(in(ap_list[], array($AlertingProfile)))\n| makeTimeseries problem_count = count(), interval: 1d",
+        "visualization": "barChart",
+        "visualizationSettings": {},
+        "querySettings": {
+          "maxResultRecords": 1000,
+          "defaultScanLimitGbytes": 500,
+          "maxResultMegaBytes": 1,
+          "defaultSamplingRatio": 10,
+          "enableSampling": false
+        },
+        "davis": {
+          "davisVisualization": {
+            "isAvailable": true
+          }
+        }
+      },
+      "11": {
+        "title": "Problem Volume by Category Over Time",
+        "type": "data",
+        "query": "fetch dt.davis.problems\n| expand affected_entity_ids\n| lookup [\n    fetch dt.entity.host | fields id, managementZones\n    | append [fetch dt.entity.custom_device | fields id, managementZones]\n    | append [fetch dt.entity.service | fields id, managementZones]\n    | append [fetch dt.entity.process_group | fields id, managementZones]\n  ], sourceField: affected_entity_ids, lookupField: id\n| summarize\n    mzs_nested = collectDistinct(lookup.managementZones),\n    event.category = takeAny(event.category),\n    event.name = takeAny(event.name),\n    event.start = takeAny(event.start),\n    event.end = takeAny(event.end),\n    event.status = takeAny(event.status),\n    root_cause_entity_id = takeAny(root_cause_entity_id),\n    root_cause_entity_name = takeAny(root_cause_entity_name),\n    ap_raw = takeAny(labels.alerting_profile),\n    timestamp = takeAny(timestamp),\n    by:{display_id}\n| fieldsAdd mz_list = arrayRemoveNulls(arrayFlatten(mzs_nested))\n| fieldsAdd mz_list = if(arraySize(mz_list) == 0, array(\"(No Management Zone)\"), else: mz_list)\n| filter arraySize(array($ManagementZone)) == 0 or arraySize(array($ManagementZone)) > 200 or in(\"*\", array($ManagementZone)) or contains(toString(array($ManagementZone)), \"3420b2ac\") or iAny(in(mz_list[], array($ManagementZone)))\n| fieldsAdd ap_list = if(isNull(ap_raw) or arraySize(ap_raw) == 0, array(\"(No Alerting Profile)\"), else: ap_raw)\n| filter arraySize(array($AlertingProfile)) == 0 or arraySize(array($AlertingProfile)) > 200 or in(\"*\", array($AlertingProfile)) or contains(toString(array($AlertingProfile)), \"3420b2ac\") or iAny(in(ap_list[], array($AlertingProfile)))\n| makeTimeseries problem_count = count(), interval: 1d, by:{event.category}",
+        "visualization": "areaChart",
+        "visualizationSettings": {},
+        "querySettings": {
+          "maxResultRecords": 1000,
+          "defaultScanLimitGbytes": 500,
+          "maxResultMegaBytes": 1,
+          "defaultSamplingRatio": 10,
+          "enableSampling": false
+        },
+        "davis": {
+          "davisVisualization": {
+            "isAvailable": true
+          }
+        }
+      },
+      "12": {
+        "type": "markdown",
+        "content": "## Temporal Patterns"
+      },
+      "13": {
+        "title": "Problems by Day of Week",
+        "type": "data",
+        "query": "fetch dt.davis.problems\n| expand affected_entity_ids\n| lookup [\n    fetch dt.entity.host | fields id, managementZones\n    | append [fetch dt.entity.custom_device | fields id, managementZones]\n    | append [fetch dt.entity.service | fields id, managementZones]\n    | append [fetch dt.entity.process_group | fields id, managementZones]\n  ], sourceField: affected_entity_ids, lookupField: id\n| summarize\n    mzs_nested = collectDistinct(lookup.managementZones),\n    event.category = takeAny(event.category),\n    event.name = takeAny(event.name),\n    event.start = takeAny(event.start),\n    event.end = takeAny(event.end),\n    event.status = takeAny(event.status),\n    root_cause_entity_id = takeAny(root_cause_entity_id),\n    root_cause_entity_name = takeAny(root_cause_entity_name),\n    ap_raw = takeAny(labels.alerting_profile),\n    timestamp = takeAny(timestamp),\n    by:{display_id}\n| fieldsAdd mz_list = arrayRemoveNulls(arrayFlatten(mzs_nested))\n| fieldsAdd mz_list = if(arraySize(mz_list) == 0, array(\"(No Management Zone)\"), else: mz_list)\n| filter arraySize(array($ManagementZone)) == 0 or arraySize(array($ManagementZone)) > 200 or in(\"*\", array($ManagementZone)) or contains(toString(array($ManagementZone)), \"3420b2ac\") or iAny(in(mz_list[], array($ManagementZone)))\n| fieldsAdd ap_list = if(isNull(ap_raw) or arraySize(ap_raw) == 0, array(\"(No Alerting Profile)\"), else: ap_raw)\n| filter arraySize(array($AlertingProfile)) == 0 or arraySize(array($AlertingProfile)) > 200 or in(\"*\", array($AlertingProfile)) or contains(toString(array($AlertingProfile)), \"3420b2ac\") or iAny(in(ap_list[], array($AlertingProfile)))\n| fieldsAdd day_of_week = getDayOfWeek(event.start)\n| fieldsAdd day_name = if(day_of_week == 1, \"1-Mon\", else: if(day_of_week == 2, \"2-Tue\", else: if(day_of_week == 3, \"3-Wed\", else: if(day_of_week == 4, \"4-Thu\", else: if(day_of_week == 5, \"5-Fri\", else: if(day_of_week == 6, \"6-Sat\", else: \"7-Sun\"))))))\n| summarize problem_count = count(), by:{day_name}\n| sort day_name asc",
+        "visualization": "categoricalBarChart",
+        "visualizationSettings": {},
+        "querySettings": {
+          "maxResultRecords": 1000,
+          "defaultScanLimitGbytes": 500,
+          "maxResultMegaBytes": 1,
+          "defaultSamplingRatio": 10,
+          "enableSampling": false
+        },
+        "davis": {
+          "davisVisualization": {
+            "isAvailable": true
+          }
+        }
+      },
+      "14": {
+        "title": "Problems by Hour of Day",
+        "type": "data",
+        "query": "fetch dt.davis.problems\n| expand affected_entity_ids\n| lookup [\n    fetch dt.entity.host | fields id, managementZones\n    | append [fetch dt.entity.custom_device | fields id, managementZones]\n    | append [fetch dt.entity.service | fields id, managementZones]\n    | append [fetch dt.entity.process_group | fields id, managementZones]\n  ], sourceField: affected_entity_ids, lookupField: id\n| summarize\n    mzs_nested = collectDistinct(lookup.managementZones),\n    event.category = takeAny(event.category),\n    event.name = takeAny(event.name),\n    event.start = takeAny(event.start),\n    event.end = takeAny(event.end),\n    event.status = takeAny(event.status),\n    root_cause_entity_id = takeAny(root_cause_entity_id),\n    root_cause_entity_name = takeAny(root_cause_entity_name),\n    ap_raw = takeAny(labels.alerting_profile),\n    timestamp = takeAny(timestamp),\n    by:{display_id}\n| fieldsAdd mz_list = arrayRemoveNulls(arrayFlatten(mzs_nested))\n| fieldsAdd mz_list = if(arraySize(mz_list) == 0, array(\"(No Management Zone)\"), else: mz_list)\n| filter arraySize(array($ManagementZone)) == 0 or arraySize(array($ManagementZone)) > 200 or in(\"*\", array($ManagementZone)) or contains(toString(array($ManagementZone)), \"3420b2ac\") or iAny(in(mz_list[], array($ManagementZone)))\n| fieldsAdd ap_list = if(isNull(ap_raw) or arraySize(ap_raw) == 0, array(\"(No Alerting Profile)\"), else: ap_raw)\n| filter arraySize(array($AlertingProfile)) == 0 or arraySize(array($AlertingProfile)) > 200 or in(\"*\", array($AlertingProfile)) or contains(toString(array($AlertingProfile)), \"3420b2ac\") or iAny(in(ap_list[], array($AlertingProfile)))\n| fieldsAdd hour = getHour(event.start)\n| summarize problem_count = count(), by:{hour}\n| sort hour asc",
+        "visualization": "categoricalBarChart",
+        "visualizationSettings": {},
+        "querySettings": {
+          "maxResultRecords": 1000,
+          "defaultScanLimitGbytes": 500,
+          "maxResultMegaBytes": 1,
+          "defaultSamplingRatio": 10,
+          "enableSampling": false
+        },
+        "davis": {
+          "davisVisualization": {
+            "isAvailable": true
+          }
+        }
+      },
+      "15": {
+        "type": "markdown",
+        "content": "## Root Causes & Noise Reduction"
+      },
+      "16": {
+        "title": "Top Recurring Root Causes",
+        "type": "data",
+        "query": "fetch dt.davis.problems\n| expand affected_entity_ids\n| lookup [\n    fetch dt.entity.host | fields id, managementZones\n    | append [fetch dt.entity.custom_device | fields id, managementZones]\n    | append [fetch dt.entity.service | fields id, managementZones]\n    | append [fetch dt.entity.process_group | fields id, managementZones]\n  ], sourceField: affected_entity_ids, lookupField: id\n| summarize\n    mzs_nested = collectDistinct(lookup.managementZones),\n    event.category = takeAny(event.category),\n    event.name = takeAny(event.name),\n    event.start = takeAny(event.start),\n    event.end = takeAny(event.end),\n    event.status = takeAny(event.status),\n    root_cause_entity_id = takeAny(root_cause_entity_id),\n    root_cause_entity_name = takeAny(root_cause_entity_name),\n    ap_raw = takeAny(labels.alerting_profile),\n    by:{display_id}\n| fieldsAdd mz_list = arrayRemoveNulls(arrayFlatten(mzs_nested))\n| fieldsAdd mz_list = if(arraySize(mz_list) == 0, array(\"(No Management Zone)\"), else: mz_list)\n| filter arraySize(array($ManagementZone)) == 0 or arraySize(array($ManagementZone)) > 200 or in(\"*\", array($ManagementZone)) or contains(toString(array($ManagementZone)), \"3420b2ac\") or iAny(in(mz_list[], array($ManagementZone)))\n| fieldsAdd ap_list = if(isNull(ap_raw) or arraySize(ap_raw) == 0, array(\"(No Alerting Profile)\"), else: ap_raw)\n| filter arraySize(array($AlertingProfile)) == 0 or arraySize(array($AlertingProfile)) > 200 or in(\"*\", array($AlertingProfile)) or contains(toString(array($AlertingProfile)), \"3420b2ac\") or iAny(in(ap_list[], array($AlertingProfile)))\n| filter isNotNull(root_cause_entity_name)\n| summarize problem_count = count(), first_seen = min(event.start), last_seen = max(event.start), categories = collectDistinct(event.category), by:{root_cause_entity_name}\n| sort problem_count desc\n| limit 20",
+        "visualization": "table",
+        "visualizationSettings": {},
+        "querySettings": {
+          "maxResultRecords": 1000,
+          "defaultScanLimitGbytes": 500,
+          "maxResultMegaBytes": 1,
+          "defaultSamplingRatio": 10,
+          "enableSampling": false
+        },
+        "davis": {
+          "davisVisualization": {
+            "isAvailable": true
+          }
+        }
+      },
+      "17": {
+        "title": "Short-Lived / Flapping Problems (<30 min)",
+        "type": "data",
+        "query": "fetch dt.davis.problems\n| expand affected_entity_ids\n| lookup [\n    fetch dt.entity.host | fields id, managementZones\n    | append [fetch dt.entity.custom_device | fields id, managementZones]\n    | append [fetch dt.entity.service | fields id, managementZones]\n    | append [fetch dt.entity.process_group | fields id, managementZones]\n  ], sourceField: affected_entity_ids, lookupField: id\n| summarize\n    mzs_nested = collectDistinct(lookup.managementZones),\n    event.category = takeAny(event.category),\n    event.name = takeAny(event.name),\n    event.start = takeAny(event.start),\n    event.end = takeAny(event.end),\n    event.status = takeAny(event.status),\n    root_cause_entity_id = takeAny(root_cause_entity_id),\n    root_cause_entity_name = takeAny(root_cause_entity_name),\n    ap_raw = takeAny(labels.alerting_profile),\n    by:{display_id}\n| fieldsAdd mz_list = arrayRemoveNulls(arrayFlatten(mzs_nested))\n| fieldsAdd mz_list = if(arraySize(mz_list) == 0, array(\"(No Management Zone)\"), else: mz_list)\n| filter arraySize(array($ManagementZone)) == 0 or arraySize(array($ManagementZone)) > 200 or in(\"*\", array($ManagementZone)) or contains(toString(array($ManagementZone)), \"3420b2ac\") or iAny(in(mz_list[], array($ManagementZone)))\n| fieldsAdd ap_list = if(isNull(ap_raw) or arraySize(ap_raw) == 0, array(\"(No Alerting Profile)\"), else: ap_raw)\n| filter arraySize(array($AlertingProfile)) == 0 or arraySize(array($AlertingProfile)) > 200 or in(\"*\", array($AlertingProfile)) or contains(toString(array($AlertingProfile)), \"3420b2ac\") or iAny(in(ap_list[], array($AlertingProfile)))\n| filter event.status == \"CLOSED\"\n| fieldsAdd duration = event.end - event.start\n| filter duration < 30m\n| summarize flap_count = count(), avg_duration = avg(duration), by:{event.name}\n| sort flap_count desc\n| limit 20",
+        "visualization": "table",
+        "visualizationSettings": {},
+        "querySettings": {
+          "maxResultRecords": 1000,
+          "defaultScanLimitGbytes": 500,
+          "maxResultMegaBytes": 1,
+          "defaultSamplingRatio": 10,
+          "enableSampling": false
+        },
+        "davis": {
+          "davisVisualization": {
+            "isAvailable": true
+          }
+        }
+      },
+      "19": {
+        "title": "Top 20 Configured/OOTB Alerts by Count",
+        "type": "data",
+        "query": "fetch dt.davis.events\n    | filter isNotNull(dt.settings.object_id)\n    | summarize count=count(), by:{dt.settings.object_id, dt.settings.schema_id, event.name, event.category}\n    | sort count desc\n    | limit 20",
+        "visualization": "table",
+        "visualizationSettings": {
+          "autoSelectVisualization": true,
+          "table": {
+            "hideColumnsForLargeResults": true,
+            "columnWidths": {
+              "[\"dt.settings.object_id\"]": 174
+            }
+          }
+        },
+        "querySettings": {
+          "maxResultRecords": 1000,
+          "defaultScanLimitGbytes": 500,
+          "maxResultMegaBytes": 1,
+          "defaultSamplingRatio": 10,
+          "enableSampling": false
+        },
+        "davis": {
+          "enabled": false,
+          "davisVisualization": {
+            "isAvailable": true
+          }
+        }
+      },
+      "20": {
+        "title": "Root Cause %",
+        "type": "data",
+        "query": "fetch dt.davis.problems\n| expand affected_entity_ids\n| lookup [\n    fetch dt.entity.host | fields id, managementZones\n    | append [fetch dt.entity.custom_device | fields id, managementZones]\n    | append [fetch dt.entity.service | fields id, managementZones]\n    | append [fetch dt.entity.process_group | fields id, managementZones]\n  ], sourceField: affected_entity_ids, lookupField: id\n| summarize\n    mzs_nested = collectDistinct(lookup.managementZones),\n    event.category = takeAny(event.category),\n    event.name = takeAny(event.name),\n    event.start = takeAny(event.start),\n    event.end = takeAny(event.end),\n    event.status = takeAny(event.status),\n    root_cause_entity_id = takeAny(root_cause_entity_id),\n    root_cause_entity_name = takeAny(root_cause_entity_name),\n    ap_raw = takeAny(labels.alerting_profile),\n    by:{display_id}\n| fieldsAdd mz_list = arrayRemoveNulls(arrayFlatten(mzs_nested))\n| fieldsAdd mz_list = if(arraySize(mz_list) == 0, array(\"(No Management Zone)\"), else: mz_list)\n| filter arraySize(array($ManagementZone)) == 0 or arraySize(array($ManagementZone)) > 200 or in(\"*\", array($ManagementZone)) or contains(toString(array($ManagementZone)), \"3420b2ac\") or iAny(in(mz_list[], array($ManagementZone)))\n| fieldsAdd ap_list = if(isNull(ap_raw) or arraySize(ap_raw) == 0, array(\"(No Alerting Profile)\"), else: ap_raw)\n| filter arraySize(array($AlertingProfile)) == 0 or arraySize(array($AlertingProfile)) > 200 or in(\"*\", array($AlertingProfile)) or contains(toString(array($AlertingProfile)), \"3420b2ac\") or iAny(in(ap_list[], array($AlertingProfile)))\n| summarize total = count(), with_root_cause = countIf(isNotNull(root_cause_entity_name))\n| fieldsAdd `Root Cause %` = round((toDouble(with_root_cause) / toDouble(total)) * 100, decimals: 1)",
+        "visualization": "singleValue",
+        "visualizationSettings": {
+          "singleValue": {
+            "recordField": "Root Cause %",
+            "prefixIcon": "FindingsIcon"
+          },
+          "unitsOverrides": [
+            {
+              "identifier": "Root Cause %",
+              "unitCategory": "unspecified",
+              "baseUnit": "none",
+              "displayUnit": null,
+              "decimals": 1,
+              "suffix": "%",
+              "delimiter": false,
+              "cascade": null,
+              "added": 1776364192438
+            }
+          ]
+        },
+        "querySettings": {
+          "maxResultRecords": 1000,
+          "defaultScanLimitGbytes": 500,
+          "maxResultMegaBytes": 1,
+          "defaultSamplingRatio": 10,
+          "enableSampling": false
+        },
+        "davis": {
+          "davisVisualization": {
+            "isAvailable": true
+          }
+        }
+      },
+      "21": {
+        "title": "Top 20 Longest Open Alerts",
+        "type": "data",
+        "query": "fetch dt.davis.problems\n| expand affected_entity_ids\n| lookup [\n    fetch dt.entity.host | fields id, managementZones\n    | append [fetch dt.entity.custom_device | fields id, managementZones]\n    | append [fetch dt.entity.service | fields id, managementZones]\n    | append [fetch dt.entity.process_group | fields id, managementZones]\n  ], sourceField: affected_entity_ids, lookupField: id\n| summarize\n    mzs_nested = collectDistinct(lookup.managementZones),\n    event.category = takeAny(event.category),\n    event.name = takeAny(event.name),\n    event.start = takeAny(event.start),\n    event.end = takeAny(event.end),\n    event.status = takeAny(event.status),\n    root_cause_entity_id = takeAny(root_cause_entity_id),\n    root_cause_entity_name = takeAny(root_cause_entity_name),\n    ap_raw = takeAny(labels.alerting_profile),\n    by:{display_id}\n| fieldsAdd mz_list = arrayRemoveNulls(arrayFlatten(mzs_nested))\n| fieldsAdd mz_list = if(arraySize(mz_list) == 0, array(\"(No Management Zone)\"), else: mz_list)\n| filter arraySize(array($ManagementZone)) == 0 or arraySize(array($ManagementZone)) > 200 or in(\"*\", array($ManagementZone)) or contains(toString(array($ManagementZone)), \"3420b2ac\") or iAny(in(mz_list[], array($ManagementZone)))\n| fieldsAdd ap_list = if(isNull(ap_raw) or arraySize(ap_raw) == 0, array(\"(No Alerting Profile)\"), else: ap_raw)\n| filter arraySize(array($AlertingProfile)) == 0 or arraySize(array($AlertingProfile)) > 200 or in(\"*\", array($AlertingProfile)) or contains(toString(array($AlertingProfile)), \"3420b2ac\") or iAny(in(ap_list[], array($AlertingProfile)))\n| filter event.status == \"CLOSED\"\n| fieldsAdd duration = event.end - event.start\n| fields display_id, event.name, event.category, root_cause_entity_name, duration, event.start, event.end\n| sort duration desc\n| limit 20",
+        "visualization": "table",
+        "visualizationSettings": {},
+        "querySettings": {
+          "maxResultRecords": 1000,
+          "defaultScanLimitGbytes": 500,
+          "maxResultMegaBytes": 1,
+          "defaultSamplingRatio": 10,
+          "enableSampling": false
+        },
+        "davis": {
+          "davisVisualization": {
+            "isAvailable": true
+          }
+        }
+      }
+    },
+    "layouts": {
+      "1": {
+        "x": 0,
+        "y": 0,
+        "w": 24,
+        "h": 2
+      },
+      "2": {
+        "x": 0,
+        "y": 2,
+        "w": 5,
+        "h": 5
+      },
+      "3": {
+        "x": 5,
+        "y": 2,
+        "w": 5,
+        "h": 5
+      },
+      "4": {
+        "x": 10,
+        "y": 2,
+        "w": 5,
+        "h": 5
+      },
+      "5": {
+        "x": 15,
+        "y": 2,
+        "w": 5,
+        "h": 5
+      },
+      "6": {
+        "x": 0,
+        "y": 7,
+        "w": 24,
+        "h": 1
+      },
+      "7": {
+        "x": 0,
+        "y": 8,
+        "w": 16,
+        "h": 10
+      },
+      "8": {
+        "x": 16,
+        "y": 8,
+        "w": 8,
+        "h": 10
+      },
+      "9": {
+        "x": 0,
+        "y": 27,
+        "w": 24,
+        "h": 1
+      },
+      "10": {
+        "x": 0,
+        "y": 28,
+        "w": 12,
+        "h": 8
+      },
+      "11": {
+        "x": 12,
+        "y": 28,
+        "w": 12,
+        "h": 8
+      },
+      "12": {
+        "x": 0,
+        "y": 36,
+        "w": 24,
+        "h": 1
+      },
+      "13": {
+        "x": 0,
+        "y": 37,
+        "w": 12,
+        "h": 8
+      },
+      "14": {
+        "x": 12,
+        "y": 37,
+        "w": 12,
+        "h": 8
+      },
+      "15": {
+        "x": 0,
+        "y": 45,
+        "w": 24,
+        "h": 1
+      },
+      "16": {
+        "x": 0,
+        "y": 46,
+        "w": 12,
+        "h": 10
+      },
+      "17": {
+        "x": 12,
+        "y": 46,
+        "w": 12,
+        "h": 10
+      },
+      "19": {
+        "x": 0,
+        "y": 18,
+        "w": 24,
+        "h": 9
+      },
+      "20": {
+        "x": 20,
+        "y": 2,
+        "w": 4,
+        "h": 5
+      },
+      "21": {
+        "x": 0,
+        "y": 66,
+        "w": 24,
+        "h": 10
+      }
+    },
+    "settings": {
+      "defaultTimeframe": {
+        "value": {
+          "from": "now()-30d",
+          "to": "now()"
+        },
+        "enabled": true
+      }
+    },
+    "importedWithCode": false
+  }
+}

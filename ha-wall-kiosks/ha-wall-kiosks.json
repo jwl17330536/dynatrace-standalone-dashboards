@@ -1,0 +1,384 @@
+{
+  "name": "HA Wall Kiosks",
+  "type": "dashboard",
+  "owner": "<YOUR_DYNATRACE_USER_ID>",
+  "isPrivate": true,
+  "version": 14,
+  "modificationInfo": {
+    "createdBy": "",
+    "createdTime": "",
+    "lastModifiedBy": "",
+    "lastModifiedTime": ""
+  },
+  "content": {
+    "annotations": [],
+    "layouts": {
+      "0": {
+        "h": 3,
+        "w": 24,
+        "x": 0,
+        "y": 0
+      },
+      "1": {
+        "h": 6,
+        "w": 12,
+        "x": 0,
+        "y": 3
+      },
+      "2": {
+        "h": 6,
+        "w": 12,
+        "x": 12,
+        "y": 3
+      },
+      "3": {
+        "h": 6,
+        "w": 12,
+        "x": 0,
+        "y": 9
+      },
+      "4": {
+        "h": 6,
+        "w": 12,
+        "x": 12,
+        "y": 9
+      },
+      "5": {
+        "h": 6,
+        "w": 24,
+        "x": 0,
+        "y": 15
+      },
+      "6": {
+        "h": 8,
+        "w": 24,
+        "x": 0,
+        "y": 21
+      },
+      "7": {
+        "h": 10,
+        "w": 24,
+        "x": 0,
+        "y": 29
+      },
+      "8": {
+        "h": 6,
+        "w": 12,
+        "x": 0,
+        "y": 39
+      },
+      "9": {
+        "h": 6,
+        "w": 12,
+        "x": 12,
+        "y": 39
+      },
+      "10": {
+        "h": 8,
+        "w": 24,
+        "x": 0,
+        "y": 45
+      },
+      "11": {
+        "h": 6,
+        "w": 12,
+        "x": 0,
+        "y": 53
+      },
+      "12": {
+        "h": 6,
+        "w": 12,
+        "x": 12,
+        "y": 53
+      },
+      "13": {
+        "h": 28,
+        "w": 24,
+        "x": 0,
+        "y": 59
+      }
+    },
+    "settings": {},
+    "tiles": {
+      "0": {
+        "content": "# HA Wall Kiosks\n\n**Fleet:** basement / entryway / upstairs Raspberry Pi wall Chromium \u2192 HA `main-dashboard`.\n\n**Signals:** Telegraf OTLP metrics + remediator OTEL logs \u2192 `dt02.lindleyhome.com:4319` \u2192 Grail. Tags: `scope=ha_kiosk`, `fleet=wall_dashboards`.\n\n**Alerts:** Davis detectors (`CUSTOM_ALERT`, `scope=ha_kiosk`) + HTTP synthetic [Home Assistant UI](https://oei3894h.sprint.apps.dynatracelabs.com/ui/apps/dynatrace.syntheticClassic/ui/http-monitor/HTTP_CHECK-B7E7A1709EC9D9AB) create Problems (not the deactivated workflow).\n\n\u2192 **Full operator runbook is the markdown tile at the bottom of this dashboard.**",
+        "title": "",
+        "type": "markdown"
+      },
+      "1": {
+        "davis": {
+          "davisVisualization": {
+            "isAvailable": true
+          },
+          "enabled": false
+        },
+        "query": "timeseries mem = avg(mem_used_percent), by:{host.name}, interval:1m\n| filter in(host.name, {\"basement-dashboard\",\"entryway-dashboard\",\"upstairs-dashboard\"})",
+        "querySettings": {
+          "defaultScanLimitGbytes": 100,
+          "enableSampling": false,
+          "maxResultMegaBytes": 5,
+          "maxResultRecords": 1000
+        },
+        "title": "Memory used %",
+        "type": "data",
+        "visualization": "lineChart",
+        "visualizationSettings": {
+          "autoSelectVisualization": false
+        }
+      },
+      "2": {
+        "davis": {
+          "davisVisualization": {
+            "isAvailable": true
+          },
+          "enabled": false
+        },
+        "query": "timeseries swap = avg(swap_used_percent), by:{host.name}, interval:1m\n| filter in(host.name, {\"basement-dashboard\",\"entryway-dashboard\",\"upstairs-dashboard\"})",
+        "querySettings": {
+          "defaultScanLimitGbytes": 100,
+          "enableSampling": false,
+          "maxResultMegaBytes": 5,
+          "maxResultRecords": 1000
+        },
+        "title": "Swap used %",
+        "type": "data",
+        "visualization": "lineChart",
+        "visualizationSettings": {
+          "autoSelectVisualization": false
+        }
+      },
+      "3": {
+        "davis": {
+          "davisVisualization": {
+            "isAvailable": true
+          },
+          "enabled": false
+        },
+        "query": "timeseries wifi = avg(wireless_level), by:{host.name, interface}, interval:1m\n| filter in(host.name, {\"basement-dashboard\",\"entryway-dashboard\",\"upstairs-dashboard\"})",
+        "querySettings": {
+          "defaultScanLimitGbytes": 100,
+          "enableSampling": false,
+          "maxResultMegaBytes": 5,
+          "maxResultRecords": 1000
+        },
+        "title": "Wi-Fi signal (dBm)",
+        "type": "data",
+        "visualization": "lineChart",
+        "visualizationSettings": {
+          "autoSelectVisualization": false
+        }
+      },
+      "4": {
+        "davis": {
+          "davisVisualization": {
+            "isAvailable": true
+          },
+          "enabled": false
+        },
+        "query": "timeseries n = avg(procstat_lookup_pid_count), by:{host.name, role_detail}, interval:1m\n| filter role_detail == \"procstat_chromium\"\n| filter in(host.name, {\"basement-dashboard\",\"entryway-dashboard\",\"upstairs-dashboard\"})",
+        "querySettings": {
+          "defaultScanLimitGbytes": 100,
+          "enableSampling": false,
+          "maxResultMegaBytes": 5,
+          "maxResultRecords": 1000
+        },
+        "title": "Chromium pid_count",
+        "type": "data",
+        "visualization": "lineChart",
+        "visualizationSettings": {
+          "autoSelectVisualization": false
+        }
+      },
+      "5": {
+        "davis": {
+          "davisVisualization": {
+            "isAvailable": true
+          },
+          "enabled": false
+        },
+        "query": "timeseries user = avg(cpu_usage_user), by:{host.name}, interval:1m\n| filter in(host.name, {\"basement-dashboard\",\"entryway-dashboard\",\"upstairs-dashboard\"})",
+        "querySettings": {
+          "defaultScanLimitGbytes": 100,
+          "enableSampling": false,
+          "maxResultMegaBytes": 5,
+          "maxResultRecords": 1000
+        },
+        "title": "CPU usage user %",
+        "type": "data",
+        "visualization": "lineChart",
+        "visualizationSettings": {
+          "autoSelectVisualization": false
+        }
+      },
+      "6": {
+        "davis": {
+          "davisVisualization": {
+            "isAvailable": true
+          },
+          "enabled": false
+        },
+        "query": "fetch logs\n| filter in(host.name, {\"basement-dashboard\",\"entryway-dashboard\",\"upstairs-dashboard\"})\n| filter contains(content, \"\\\"component\\\":\\\"kiosk-remediator\\\"\")\n| fields timestamp, host.name, content\n| sort timestamp desc\n| limit 50",
+        "querySettings": {
+          "defaultScanLimitGbytes": 100,
+          "enableSampling": false,
+          "maxResultMegaBytes": 5,
+          "maxResultRecords": 1000
+        },
+        "title": "Remediator events (JSON only)",
+        "type": "data",
+        "visualization": "table",
+        "visualizationSettings": {
+          "table": {
+            "columnTypeOverrides": [
+              {
+                "disableRemoval": true,
+                "fields": [
+                  "content"
+                ],
+                "id": 1785633068194,
+                "value": "log-content"
+              }
+            ],
+            "columnWidths": {
+              "[\"content\"]": 1210
+            }
+          },
+          "autoSelectVisualization": false
+        }
+      },
+      "7": {
+        "davis": {
+          "davisVisualization": {
+            "isAvailable": true
+          },
+          "enabled": false
+        },
+        "query": "fetch events\n| filter startsWith(event.name, \"HA Kiosk\")\n| sort timestamp desc\n| fields timestamp, event.name, event.status, event.kind, event.description\n| limit 40",
+        "querySettings": {
+          "defaultScanLimitGbytes": 100,
+          "enableSampling": false,
+          "maxResultMegaBytes": 5,
+          "maxResultRecords": 1000
+        },
+        "title": "HA Kiosk problems / alerts",
+        "type": "data",
+        "visualization": "table",
+        "visualizationSettings": {
+          "autoSelectVisualization": false
+        }
+      },
+      "8": {
+        "davis": {
+          "davisVisualization": {
+            "isAvailable": true
+          },
+          "enabled": false
+        },
+        "query": "timeseries d = avg(disk_used_percent), by:{host.name, path}, interval:1m\n| filter path == \"/\"\n| filter in(host.name, {\"basement-dashboard\",\"entryway-dashboard\",\"upstairs-dashboard\"})",
+        "querySettings": {
+          "defaultScanLimitGbytes": 100,
+          "enableSampling": false,
+          "maxResultMegaBytes": 5,
+          "maxResultRecords": 1000
+        },
+        "title": "Disk used % (/)",
+        "type": "data",
+        "visualization": "lineChart",
+        "visualizationSettings": {
+          "autoSelectVisualization": false
+        }
+      },
+      "9": {
+        "davis": {
+          "davisVisualization": {
+            "isAvailable": true
+          },
+          "enabled": false
+        },
+        "query": "timeseries avail = avg(dt.synthetic.http.availability), by:{dt.entity.http_check}, interval:1m\n| filter dt.entity.http_check == \"HTTP_CHECK-B7E7A1709EC9D9AB\"",
+        "querySettings": {
+          "defaultScanLimitGbytes": 100,
+          "enableSampling": false,
+          "maxResultMegaBytes": 5,
+          "maxResultRecords": 1000
+        },
+        "title": "HA UI HTTP synthetic availability",
+        "type": "data",
+        "visualization": "lineChart",
+        "visualizationSettings": {
+          "autoSelectVisualization": false
+        }
+      },
+      "10": {
+        "davis": {
+          "davisVisualization": {
+            "isAvailable": true
+          },
+          "enabled": false
+        },
+        "query": "fetch events\n| filter event.kind == \"DAVIS_PROBLEM\"\n| filter startsWith(event.name, \"HA Kiosk\")\n| filter event.status == \"ACTIVE\"\n| summarize c = count(), by:{event.name}\n| sort c desc",
+        "querySettings": {
+          "defaultScanLimitGbytes": 100,
+          "enableSampling": false,
+          "maxResultMegaBytes": 5,
+          "maxResultRecords": 1000
+        },
+        "title": "ACTIVE HA Kiosk problems",
+        "type": "data",
+        "visualization": "table",
+        "visualizationSettings": {
+          "autoSelectVisualization": false
+        }
+      },
+      "11": {
+        "davis": {
+          "davisVisualization": {
+            "isAvailable": true
+          },
+          "enabled": false
+        },
+        "query": "timeseries rss = avg(procstat_memory_rss), by:{host.name, role_detail}, interval:1m\n| filter role_detail == \"procstat_chromium\"\n| filter in(host.name, {\"basement-dashboard\",\"entryway-dashboard\",\"upstairs-dashboard\"})",
+        "querySettings": {
+          "defaultScanLimitGbytes": 100,
+          "enableSampling": false,
+          "maxResultMegaBytes": 5,
+          "maxResultRecords": 1000
+        },
+        "title": "Chromium RSS (bytes)",
+        "type": "data",
+        "visualization": "lineChart",
+        "visualizationSettings": {
+          "autoSelectVisualization": false
+        }
+      },
+      "12": {
+        "davis": {
+          "davisVisualization": {
+            "isAvailable": true
+          },
+          "enabled": false
+        },
+        "query": "timeseries t = avg(sensors_temp_input), by:{host.name, chip, feature}, interval:1m\n| filter chip == \"cpu_thermal-virtual-0\"\n| filter in(host.name, {\"basement-dashboard\",\"entryway-dashboard\",\"upstairs-dashboard\"})",
+        "querySettings": {
+          "defaultScanLimitGbytes": 100,
+          "enableSampling": false,
+          "maxResultMegaBytes": 5,
+          "maxResultRecords": 1000
+        },
+        "title": "SoC temp \u00b0C (cpu_thermal)",
+        "type": "data",
+        "visualization": "lineChart",
+        "visualizationSettings": {
+          "autoSelectVisualization": false
+        }
+      },
+      "13": {
+        "content": "# Operator runbook \u2014 HA Wall Kiosks\n\nUse this when diagnosing blank tiles, OTEL not reaching Dynatrace, kiosk performance, remediator behavior, or HA UI outages. Written for \u201cme in 2 months.\u201d\n\n## 1. What this is\n\n- Three Raspberry Pi 3 wall kiosks running Chromium fullscreen against Home Assistant Lovelace.\n- Kiosk URL: `http://automation.lindleyhome.com:8123/lovelace-dashboards/main-dashboard`\n- Ansible inventory (ansible20): group `hass_dashboard_servers` + `otel_observed` with tags `role=ha_kiosk`, `fleet=wall_dashboards`\n- Configure playbook: `playbooks_installs/dashboards-configure_home_automation.yml` (remediator timer **120s**, zramswap, DevTools `--remote-allow-origins=*`)\n- Telegraf playbook: `playbooks_base/telegraf-install_and_manage.yml` \u2192 OTLP exporter to `dt02.lindleyhome.com:4319`\n- Dashboard document ID: `46082379-e46e-46e9-a304-7706e309cbf6` (this dashboard)\n\n## 2. Hosts in scope\n\n- `basement-dashboard` \u2014 wall kiosk\n- `entryway-dashboard` \u2014 wall kiosk (**often weakest Wi\u2011Fi**)\n- `upstairs-dashboard` \u2014 wall kiosk\n- **Out of scope:** `kitchen-dashboard` (not in this fleet / not on these tiles)\n\nTile DQL hardcodes:\n`filter in(host.name, {\"basement-dashboard\",\"entryway-dashboard\",\"upstairs-dashboard\"})`\nDo **not** reintroduce a dashboard `$host` CSV variable with empty default \u2014 that previously blanked all tiles (\u201cNo records\u201d).\n\n## 3. Signal path\n\n```\nkiosk Telegraf (host metrics + procstat chromium)\n  + otelcol-agent-logs (remediator JSONL / journal)\n      \u2192 dt02.lindleyhome.com:4319\n      \u2192 Dynatrace Grail\nDavis anomaly detectors (CUSTOM_ALERT) + HTTP synthetic\n      \u2192 Problems (near real-time)\n```\n\n- OpenPipeline route **`ha-kiosk-remediator`** parses remediator JSON into fields like `kiosk.check`, `kiosk.result`, `kiosk.action`, `kiosk.action_result`.\n- Influx / `dt-influx` path is **not** used (`telegraf_influx_mode: none`). Do not chase classic Influx for this fleet.\n\n## 4. Metric keys on this dashboard\n\n- Memory / swap / CPU: `mem_used_percent`, `swap_used_percent`, `cpu_usage_user`\n- Wi\u2011Fi: `wireless_level` (dBm; more negative = weaker)\n- Chromium process: `procstat_lookup_pid_count`, `procstat_memory_rss` with `role_detail=procstat_chromium`\n- Disk: `disk_used_percent` for path `/`\n- SoC temp: `sensors_temp_input` where `chip == \"cpu_thermal-virtual-0\"` (lm-sensors). **Not** `pi_temp` \u2014 telegraf user cannot run `vcgencmd`.\n- Synthetic availability: `dt.synthetic.http.availability` for monitor `HTTP_CHECK-B7E7A1709EC9D9AB`\n\n## 5. Davis detectors (`scope=ha_kiosk`)\n\nThese open Problems (Grail / event tiles on this dashboard). Classic Problems UI may not list them the same way.\n\n- **High memory** \u2014 ABOVE **85**, 5 of 10\n- **High swap** \u2014 ABOVE **60**, 5 of 10\n- **Wi\u2011Fi weak** \u2014 BELOW **\u221278** dBm, 3 of 5, alert on missing data\n- **Chromium missing** \u2014 BELOW **1** pid_count, 5 of 10, **no** alert on missing data\n- **Metrics silent** \u2014 missing `mem_used_percent`, 3 of 5, missing-data alert\n- **Remediator failure** \u2014 `action_result` fail count ABOVE **0**, 2 of 5\n- **Chromium restart storm** \u2014 elevated restarts, 4 of 10\n- **HA root unreachable** \u2014 remediator `ha_root` fail, 2 of 5\n\n## 6. HTTP synthetic\n\n- Name: **Home Assistant UI**\n- ID: `HTTP_CHECK-B7E7A1709EC9D9AB`\n- URL: `http://automation.lindleyhome.com:8123/`\n- Location: private **`lindleyhome-home`**\n- Frequency: **1 minute**; global outage after **2 consecutive** failures\n- UI: [open synthetic](https://oei3894h.sprint.apps.dynatracelabs.com/ui/apps/dynatrace.syntheticClassic/ui/http-monitor/HTTP_CHECK-B7E7A1709EC9D9AB)\n\nThis is HA reachability from the private location \u2014 not per-kiosk browser health.\n\n## 7. HA / remediator side (on each Pi)\n\n- Remediator is **network-first**: check HA root + gateway before treating Chromium as broken.\n- Never restart Chromium while network/HA root is down.\n- After network OK: dashboard HTTP + DevTools checks; Chromium restart after **3 consecutive** browser failures.\n- Logs: `/var/log/kiosk/events.jsonl` and `logger -t kiosk-remediator` (journal)\n- Stable JSON fields: `component`, `phase`, `check`, `result`, `action`, `action_result`\n- Key units: `chromium-browser`, `kiosk-remediator.timer` (120s), `telegraf`, `otelcol-agent-logs`, `zramswap`\n\n## 8. Diagnose in 2 months (decision tree)\n\n**A. Dashboard all empty / \u201cNo records\u201d**\n1. Confirm tile queries still hardcode the three host names (no empty `$host`).\n2. Paste the same DQL into a Notebook with a generous timeframe.\n3. Notebook has data \u2192 dashboard filter/timeframe issue. Notebook empty \u2192 ingestion / host naming.\n\n**B. No metrics from one or all kiosks**\n1. From ansible20, SSH the host(s): `systemctl status telegraf`\n2. Journal: OTLP timeouts / `DeadlineExceeded` to `dt02:4319`\n3. Confirm host still in `otel_observed` and tags `role=ha_kiosk`\n4. Detector \u201cmetrics silent\u201d / missing mem should fire if silence is real\n\n**C. No remediator logs in Dynatrace**\n1. On Pi: `systemctl status otelcol-agent-logs`; tail `/var/log/kiosk/events.jsonl`\n2. In Dynatrace: OpenPipeline route `ha-kiosk-remediator` still parsing `kiosk.*` fields\n3. Remediator tile on this dashboard filters JSON-only / OpenPipeline fields \u2014 raw journal noise may be excluded\n\n**D. Kiosk blank or slow, but metrics look OK**\n1. Remediator: `dashboard_http` / DevTools fails vs network OK\n2. Chromium RSS + swap % tiles; chronic high swap \u2192 consider reclaim / reboot (disk swap vs zram)\n3. Lovelace `main-dashboard` weight on Pi 3 (heavy cards)\n4. Local: `systemctl status chromium-browser kiosk-remediator.timer`\n\n**E. HA down for everyone**\n1. Synthetic **Home Assistant UI** outage\n2. Remediator `ha_root` fail on **all three** hosts\n3. Not a single-kiosk Chromium issue\n\n**F. One kiosk network / Wi\u2011Fi**\n1. Remediator wifi_bounce / gateway fail on that host only\n2. Check Wi\u2011Fi dBm tile (entryway often weakest, ~\u221267 dBm historically)\n3. Other hosts + synthetic still green \u2192 local RF/AP issue\n\n## 9. What not to confuse\n\n- Deactivated workflow **`HA Wall Kiosk Davis Alerts`** (`66138a8d-2f3b-45d0-945a-b1a1c5ad696f`) does **not** create Problems \u2014 Davis detectors + synthetic do.\n- Ops Explorer / other HTTP synthetics are a **different** product surface from this wall-kiosk fleet.\n- Kitchen dashboard is not monitored by these tiles or `scope=ha_kiosk` detectors.\n- Env: platform `https://oei3894h.sprint.apps.dynatracelabs.com` (classic sibling `\u2026sprint.dynatracelabs.com` for some synthetic UI paths).\n",
+        "title": "",
+        "type": "markdown"
+      }
+    },
+    "variables": [],
+    "version": 21
+  }
+}

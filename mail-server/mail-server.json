@@ -1,0 +1,425 @@
+{
+  "name": "Mail Server",
+  "type": "dashboard",
+  "owner": "<YOUR_DYNATRACE_USER_ID>",
+  "isPrivate": false,
+  "version": 91,
+  "modificationInfo": {
+    "createdBy": "",
+    "createdTime": "",
+    "lastModifiedBy": "",
+    "lastModifiedTime": ""
+  },
+  "content": {
+    "annotations": [],
+    "importedWithCode": false,
+    "layouts": {
+      "0": {
+        "h": 10,
+        "w": 16,
+        "x": 8,
+        "y": 6
+      },
+      "1": {
+        "h": 6,
+        "w": 8,
+        "x": 0,
+        "y": 0
+      },
+      "2": {
+        "h": 6,
+        "w": 8,
+        "x": 8,
+        "y": 0
+      },
+      "3": {
+        "h": 6,
+        "w": 8,
+        "x": 0,
+        "y": 6
+      },
+      "4": {
+        "h": 6,
+        "w": 8,
+        "x": 16,
+        "y": 0
+      },
+      "5": {
+        "h": 4,
+        "w": 8,
+        "x": 0,
+        "y": 12
+      },
+      "6": {
+        "h": 7,
+        "w": 24,
+        "x": 0,
+        "y": 16
+      },
+      "7": {
+        "h": 13,
+        "w": 24,
+        "x": 0,
+        "y": 23
+      }
+    },
+    "settings": {},
+    "tiles": {
+      "0": {
+        "davis": {
+          "davisVisualization": {
+            "isAvailable": true
+          },
+          "enabled": false
+        },
+        "query": "fetch logs\n| filter matchesValue(host.name, \"mail.lindleyhome.com\") AND matchesValue(content, \"*imap*\") AND matchesValue(content, \"*Disconnected: Logged out*\")\n| fields timestamp, content, host.name\n\n\n| parse content, \"\"\"DATA // modify this DPL pattern to extract fields\nLD \"(\" LD:\"user\" \")\" LD \"in\" \"=\" INT:\"bytesIn\"LD \"out\" \"=\" INT:\"bytesOut\" LD \"deleted\" \"=\" INT:\"deleted\" LD \"expunged\" \"=\" INT:\"expunged\" LD \"trashed\" \"=\" INT:\"trashed\" LD \"hdr_count\" \"=\" INT:\"hdrCount\" LD \"hdr_bytes\" \"=\" INT:\"hdrBytes\" LD \"body_count\" \"=\" INT:\"bodyCount\" LD \"body_bytes\" \"=\" INT:\"bodyBytes\"\"\"\"\n| fields timestamp, user, bytesIn, bytesOut, deleted, expunged, trashed, hdrBytes, hdrCount, bodyBytes, bodyCount\n| sort timestamp desc\n| limit 15",
+        "querySettings": {
+          "defaultSamplingRatio": 10,
+          "defaultScanLimitGbytes": 500,
+          "enableSampling": false,
+          "maxResultMegaBytes": 1,
+          "maxResultRecords": 1000
+        },
+        "timeframe": {
+          "tileTimeframe": {
+            "from": "now()-2h",
+            "to": "now()"
+          },
+          "tileTimeframeEnabled": true
+        },
+        "title": "Mailserver Stats - by User",
+        "type": "data",
+        "visualization": "table",
+        "visualizationSettings": {
+          "autoSelectVisualization": false,
+          "table": {
+            "columnOrder": [
+              "[\"timestamp\"]",
+              "[\"user\"]",
+              "[\"bytesIn\"]",
+              "[\"bytesOut\"]",
+              "[\"deleted\"]",
+              "[\"expunged\"]",
+              "[\"trashed\"]",
+              "[\"hdrCount\"]",
+              "[\"hdrBytes\"]",
+              "[\"bodyCount\"]",
+              "[\"bodyBytes\"]"
+            ],
+            "columnTypeOverrides": [
+              {
+                "fields": [
+                  "content"
+                ],
+                "id": 1751997401093,
+                "value": "log-content"
+              }
+            ],
+            "sortBy": [
+              {
+                "columnId": "[\"timestamp\"]",
+                "direction": "descending"
+              }
+            ]
+          }
+        }
+      },
+      "1": {
+        "davis": {
+          "davisVisualization": {
+            "isAvailable": true
+          },
+          "enabled": false
+        },
+        "davisCopilot": {
+          "feedbackProvided": false,
+          "prompt": "show me cpu utilization for mail.lindleyhome.com",
+          "response": {
+            "data": {
+              "dql": "timeseries by:{host.name}, filter:host.name == \"mail.lindleyhome.com\", utilization = avg(dt.host.cpu.usage)",
+              "messageToken": "30679bc9-cdad-423f-9a6d-6a86ef43e1cb",
+              "metadata": {
+                "notifications": []
+              },
+              "prompt": "show me cpu utilization for mail.lindleyhome.com",
+              "status": "SUCCESSFUL"
+            },
+            "status": "success"
+          },
+          "showDqlSnippet": true
+        },
+        "query": "timeseries by:{host.name}, filter:host.name == \"mail.lindleyhome.com\", utilization = avg(dt.host.cpu.usage)",
+        "querySettings": {
+          "defaultSamplingRatio": 10,
+          "defaultScanLimitGbytes": 500,
+          "enableSampling": false,
+          "maxResultMegaBytes": 1,
+          "maxResultRecords": 1000
+        },
+        "subType": "davis-copilot",
+        "title": "CPU",
+        "type": "data",
+        "visualization": "lineChart",
+        "visualizationSettings": {
+          "autoSelectVisualization": true,
+          "chartSettings": {
+            "curve": "smooth",
+            "legend": {
+              "hidden": true
+            }
+          }
+        }
+      },
+      "2": {
+        "davis": {
+          "davisVisualization": {
+            "isAvailable": true
+          },
+          "enabled": false
+        },
+        "query": "timeseries by:{host.name}, filter:host.name == \"mail.lindleyhome.com\", utilization = avg(dt.host.memory.usage)",
+        "querySettings": {
+          "defaultSamplingRatio": 10,
+          "defaultScanLimitGbytes": 500,
+          "enableSampling": false,
+          "maxResultMegaBytes": 1,
+          "maxResultRecords": 1000
+        },
+        "title": "Memory",
+        "type": "data",
+        "visualization": "lineChart",
+        "visualizationSettings": {
+          "autoSelectVisualization": false,
+          "chartSettings": {
+            "curve": "smooth",
+            "legend": {
+              "hidden": true
+            }
+          }
+        }
+      },
+      "3": {
+        "davis": {
+          "davisVisualization": {
+            "isAvailable": true
+          },
+          "enabled": false
+        },
+        "query": "timeseries { avg(dt.host.disk.used.percent), value.A = avg(dt.host.disk.used.percent, scalar: true) }, filter: { host.name == \"mail.lindleyhome.com\" }",
+        "queryConfig": {
+          "globalCommands": {},
+          "subQueries": [
+            {
+              "convertToValue": "Avg",
+              "datatype": "metrics",
+              "filter": "dt.entity.host.name = mail.lindleyhome.com ",
+              "id": "A",
+              "isEnabled": true,
+              "metric": {
+                "aggregation": "avg",
+                "key": "dt.host.disk.used.percent"
+              }
+            }
+          ],
+          "version": 20
+        },
+        "querySettings": {
+          "defaultSamplingRatio": 10,
+          "defaultScanLimitGbytes": 500,
+          "enableSampling": false,
+          "maxResultMegaBytes": 1,
+          "maxResultRecords": 1000
+        },
+        "subType": "dql-builder-metrics",
+        "title": "Disk Utilization",
+        "type": "data",
+        "visualization": "lineChart",
+        "visualizationSettings": {
+          "autoSelectVisualization": true
+        }
+      },
+      "4": {
+        "davis": {
+          "davisVisualization": {
+            "isAvailable": true
+          },
+          "enabled": false
+        },
+        "query": "timeseries { avg(dt.host.net.nic.packets.errors_rx), value.A = avg(dt.host.net.nic.packets.errors_rx, scalar: true), avg(dt.host.net.nic.packets.errors_tx), value.B = avg(dt.host.net.nic.packets.errors_tx, scalar: true) }, union: TRUE, filter: { host.name == \"mail.lindleyhome.com\" }",
+        "queryConfig": {
+          "subQueries": [
+            {
+              "convertToValue": "Avg",
+              "datatype": "metrics",
+              "filter": "dt.entity.host.name = mail.lindleyhome.com ",
+              "id": "A",
+              "isEnabled": true,
+              "metric": {
+                "aggregation": "avg",
+                "key": "dt.host.net.nic.packets.errors_rx"
+              }
+            },
+            {
+              "convertToValue": "Avg",
+              "datatype": "metrics",
+              "filter": "dt.entity.host.name = mail.lindleyhome.com ",
+              "id": "B",
+              "isEnabled": true,
+              "metric": {
+                "aggregation": "avg",
+                "key": "dt.host.net.nic.packets.errors_tx"
+              }
+            }
+          ],
+          "version": 20
+        },
+        "querySettings": {
+          "defaultSamplingRatio": 10,
+          "defaultScanLimitGbytes": 500,
+          "enableSampling": false,
+          "maxResultMegaBytes": 1,
+          "maxResultRecords": 1000
+        },
+        "subType": "dql-builder-metrics",
+        "title": "Packet Errors",
+        "type": "data",
+        "visualization": "lineChart",
+        "visualizationSettings": {
+          "autoSelectVisualization": true,
+          "chartSettings": {
+            "curve": "smooth"
+          }
+        }
+      },
+      "5": {
+        "davis": {
+          "davisVisualization": {
+            "isAvailable": true
+          },
+          "enabled": false
+        },
+        "query": "fetch logs\n| filter matchesValue(host.name, \"mail.lindleyhome.com\") AND matchesValue(content, \"*imap-login*\") AND matchesValue(content, \"*auth failed*\")\n| fields timestamp, content, host.name\n\n| parse content, \"\"\"DATA // modify this DPL pattern to extract fields\nLD \",\" SPACE INT:\"totalAttempts\" LD \"in\" SPACE INT:\"attemptsInSeconds\" LD \"<\" LD:\"user\" \">\" LD \"rip\" \"=\" IPV4ADDR:\"fromIP\"\n\"\"\"\n| fields timestamp, fromIP, attemptsInSeconds, totalAttempts, user",
+        "querySettings": {
+          "defaultSamplingRatio": 10,
+          "defaultScanLimitGbytes": 500,
+          "enableSampling": false,
+          "maxResultMegaBytes": 1,
+          "maxResultRecords": 1000
+        },
+        "timeframe": {
+          "tileTimeframe": {
+            "from": "now()-2h",
+            "to": "now()"
+          },
+          "tileTimeframeEnabled": true
+        },
+        "title": "Failed Server Logins",
+        "type": "data",
+        "visualization": "table",
+        "visualizationSettings": {
+          "autoSelectVisualization": false,
+          "table": {
+            "columnOrder": [
+              "[\"timestamp\"]",
+              "[\"totalAttempts\"]",
+              "[\"attemptsInSeconds\"]",
+              "[\"user\"]",
+              "[\"fromIP\"]"
+            ],
+            "columnTypeOverrides": [
+              {
+                "fields": [
+                  "content"
+                ],
+                "id": 1752002955120,
+                "value": "log-content"
+              }
+            ]
+          }
+        }
+      },
+      "6": {
+        "davis": {
+          "davisVisualization": {
+            "isAvailable": true
+          },
+          "enabled": false
+        },
+        "query": "fetch logs, from:now()-24h\n| filter host.name == \"mail.lindleyhome.com\" and contains(content, \"login\") or contains(content, \"authentication\")\n//| filter contains(content, \"login\") or contains(content, \"authentication\") and dt.entity.host == \"mail.lindleyhome.com\"\n//| fields timestamp, loglevel, dt.process.name, content\n//| sort timestamp desc",
+        "querySettings": {
+          "defaultSamplingRatio": 10,
+          "defaultScanLimitGbytes": 500,
+          "enableSampling": false,
+          "maxResultMegaBytes": 1,
+          "maxResultRecords": 1000
+        },
+        "title": "Mail activity",
+        "type": "data",
+        "visualization": "table",
+        "visualizationSettings": {
+          "autoSelectVisualization": false,
+          "table": {
+            "columnTypeOverrides": [
+              {
+                "fields": [
+                  "content"
+                ],
+                "id": 1756220712775,
+                "value": "log-content"
+              }
+            ],
+            "hiddenColumns": [
+              [
+                "dt.entity.process_group"
+              ]
+            ]
+          }
+        }
+      },
+      "7": {
+        "davis": {
+          "davisVisualization": {
+            "isAvailable": true
+          },
+          "enabled": false
+        },
+        "query": "fetch logs, from:now()-24h\n| filter host.name == \"mail.lindleyhome.com\" and contains(content, \"login\") or contains(content, \"authentication\")\n| fields timestamp, content, dt.process.name, loglevel, http.target\n//| filter contains(content, \"login\") or contains(content, \"authentication\") and dt.entity.host == \"mail.lindleyhome.com\"\n//| fields timestamp, loglevel, dt.process.name, content\n//| sort timestamp desc",
+        "querySettings": {
+          "defaultSamplingRatio": 10,
+          "defaultScanLimitGbytes": 500,
+          "enableSampling": false,
+          "maxResultMegaBytes": 1,
+          "maxResultRecords": 1000
+        },
+        "title": "Authentication Attempts",
+        "type": "data",
+        "visualization": "table",
+        "visualizationSettings": {
+          "autoSelectVisualization": false,
+          "table": {
+            "columnTypeOverrides": [
+              {
+                "fields": [
+                  "content"
+                ],
+                "id": 1756220712775,
+                "value": "log-content"
+              }
+            ],
+            "columnWidths": {
+              "[\"content\"]": 946
+            },
+            "lineWrapIds": [
+              [
+                "content"
+              ]
+            ],
+            "linewrapEnabled": true
+          }
+        }
+      }
+    },
+    "variables": [],
+    "version": 21
+  }
+}

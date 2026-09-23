@@ -1,0 +1,585 @@
+{
+  "name": "Observability Health Dashboard v8",
+  "type": "dashboard",
+  "owner": "<YOUR_DYNATRACE_USER_ID>",
+  "isPrivate": true,
+  "version": 111,
+  "modificationInfo": {
+    "createdBy": "",
+    "createdTime": "",
+    "lastModifiedBy": "",
+    "lastModifiedTime": ""
+  },
+  "content": {
+    "version": 21,
+    "variables": [
+      {
+        "version": 3,
+        "key": "ApplicationName",
+        "type": "query",
+        "visible": true,
+        "editable": true,
+        "input": "load \"/lookups/cmdb_businessapp\"\n| summarize count(), by:{app_name = name}\n| fields app_name\n| sort app_name asc",
+        "multiple": true,
+        "defaultValue": [
+          "3420b2ac-f1cf-4b24-b62d-61ba1ba8ed05*"
+        ],
+        "name": "ApplicationName"
+      },
+      {
+        "version": 3,
+        "key": "BusinessUnit",
+        "type": "query",
+        "visible": true,
+        "editable": true,
+        "input": "load \"/lookups/cmdb_businessapp\" | summarize count(), by:{dv_business_unit} | fields dv_business_unit | sort dv_business_unit asc",
+        "multiple": true,
+        "defaultValue": [
+          "3420b2ac-f1cf-4b24-b62d-61ba1ba8ed05*"
+        ],
+        "name": "BusinessUnit"
+      },
+      {
+        "version": 3,
+        "key": "Tier",
+        "type": "query",
+        "visible": true,
+        "editable": true,
+        "input": "load \"/lookups/cmdb_businessapp\" | summarize count(), by:{business_criticality} | fields business_criticality | sort business_criticality asc",
+        "multiple": true,
+        "defaultValue": [
+          "3420b2ac-f1cf-4b24-b62d-61ba1ba8ed05*"
+        ],
+        "name": "Tier"
+      },
+      {
+        "version": 3,
+        "key": "Location",
+        "type": "query",
+        "visible": true,
+        "editable": true,
+        "input": "load \"/lookups/cmdb_server\" | summarize count(), by:{location} | fields location | sort location asc",
+        "multiple": true,
+        "defaultValue": [
+          "3420b2ac-f1cf-4b24-b62d-61ba1ba8ed05*"
+        ],
+        "name": "Location"
+      },
+      {
+        "version": 3,
+        "key": "MonitoringMode",
+        "type": "query",
+        "visible": true,
+        "editable": true,
+        "input": "data record(monitoringMode = \"Full Stack Only\"), record(monitoringMode = \"Infrastructure Only\"), record(monitoringMode = \"App Only\"), record(monitoringMode = \"Discovery Only\"), record(monitoringMode = \"Mixed\"), record(monitoringMode = \"None\") | fields monitoringMode",
+        "multiple": true,
+        "defaultValue": [
+          "3420b2ac-f1cf-4b24-b62d-61ba1ba8ed05*"
+        ],
+        "name": "MonitoringMode"
+      },
+      {
+        "version": 3,
+        "key": "Status",
+        "type": "query",
+        "visible": true,
+        "editable": true,
+        "input": "load \"/lookups/cmdb_businessapp\" | summarize count(), by:{dv_operational_status} | fields dv_operational_status | sort dv_operational_status asc",
+        "multiple": true,
+        "defaultValue": [
+          "3420b2ac-f1cf-4b24-b62d-61ba1ba8ed05*"
+        ],
+        "name": "Status"
+      }
+    ],
+    "tiles": {
+      "0": {
+        "type": "markdown",
+        "content": "# \u2705 Observability Coverage Snapshot"
+      },
+      "11": {
+        "title": "Active Problems by Application",
+        "type": "data",
+        "query": "fetch dt.entity.host\n| fieldsAdd host_name = entity.name\n| lookup [load \"/lookups/cmdb_server\"], sourceField:host_name, lookupField:fully_qualified_domain_name, fields:{busapp_key = busapp_cmdb_ci_key}\n| filter isNotNull(busapp_key)\n| lookup [load \"/lookups/cmdb_businessapp\"], sourceField:busapp_key, lookupField:cmdb_ci_key, fields:{app_name = name}\n| filter isNotNull(app_name)\n| lookup [fetch events, from:now()-30d | filter event.kind == \"DAVIS_PROBLEM\" AND event.status == \"ACTIVE\" | expand affected_entity_id = affected_entity_ids | filter matchesPhrase(affected_entity_id, \"HOST-\") | summarize `Active Problems` = countDistinct(event.id), by:{host_id = affected_entity_id}], sourceField:id, lookupField:host_id, fields:{`Active Problems`}\n| filter isNotNull(`Active Problems`)\n| summarize `Active Problems` = sum(`Active Problems`), by:{`Application` = app_name}\n| sort `Active Problems` desc",
+        "visualization": "table",
+        "visualizationSettings": {
+          "table": {
+            "rowDensity": "comfortable",
+            "columnWidths": {
+              "[\"Application\"]": 144
+            }
+          }
+        },
+        "querySettings": {
+          "maxResultRecords": 1000,
+          "defaultScanLimitGbytes": 500,
+          "maxResultMegaBytes": 1,
+          "defaultSamplingRatio": 10,
+          "enableSampling": false
+        },
+        "davis": {
+          "enabled": false,
+          "davisVisualization": {
+            "isAvailable": true
+          }
+        }
+      },
+      "12": {
+        "title": "Total Problems by Application (Last 30 Days)",
+        "type": "data",
+        "query": "fetch dt.entity.host\n| fieldsAdd host_name = entity.name\n| lookup [load \"/lookups/cmdb_server\"], sourceField:host_name, lookupField:fully_qualified_domain_name, fields:{busapp_key = busapp_cmdb_ci_key}\n| filter isNotNull(busapp_key)\n| lookup [load \"/lookups/cmdb_businessapp\"], sourceField:busapp_key, lookupField:cmdb_ci_key, fields:{app_name = name}\n| filter isNotNull(app_name)\n| lookup [fetch events, from:now()-30d | filter event.kind == \"DAVIS_PROBLEM\" | expand affected_entity_id = affected_entity_ids | filter matchesPhrase(affected_entity_id, \"HOST-\") | summarize `Total Problems` = countDistinct(event.id), by:{host_id = affected_entity_id}], sourceField:id, lookupField:host_id, fields:{`Total Problems`}\n| filter isNotNull(`Total Problems`)\n| summarize `Total Problems` = sum(`Total Problems`), by:{`Application` = app_name}\n| sort `Total Problems` desc",
+        "visualization": "table",
+        "visualizationSettings": {
+          "table": {
+            "rowDensity": "comfortable",
+            "columnWidths": {
+              "[\"Application\"]": 133
+            }
+          }
+        },
+        "querySettings": {
+          "maxResultRecords": 1000,
+          "defaultScanLimitGbytes": 500,
+          "maxResultMegaBytes": 1,
+          "defaultSamplingRatio": 10,
+          "enableSampling": false
+        },
+        "davis": {
+          "enabled": false,
+          "davisVisualization": {
+            "isAvailable": true
+          }
+        }
+      },
+      "13": {
+        "title": "Total CMDB Servers",
+        "type": "data",
+        "query": "load \"/lookups/cmdb_server\"\n| summarize `Total Servers` = count()",
+        "visualization": "singleValue",
+        "visualizationSettings": {
+          "singleValue": {
+            "prefixIcon": "HostIcon",
+            "recordField": "Total Servers"
+          },
+          "unitsOverrides": [
+            {
+              "added": 1777292296885,
+              "baseUnit": "none",
+              "cascade": null,
+              "decimals": null,
+              "delimiter": false,
+              "displayUnit": null,
+              "identifier": "Total Servers",
+              "suffix": "",
+              "unitCategory": "unspecified"
+            }
+          ]
+        },
+        "querySettings": {
+          "defaultSamplingRatio": 10,
+          "defaultScanLimitGbytes": 500,
+          "enableSampling": false,
+          "maxResultMegaBytes": 1,
+          "maxResultRecords": 1000
+        },
+        "davis": {
+          "enabled": false,
+          "davisVisualization": {
+            "isAvailable": true
+          }
+        }
+      },
+      "15": {
+        "title": "Total Applications from CMDB",
+        "type": "data",
+        "query": "load \"/lookups/cmdb_businessapp\"\n| summarize `Total Applications` = count()",
+        "visualization": "singleValue",
+        "visualizationSettings": {
+          "singleValue": {
+            "prefixIcon": "DesktopIcon",
+            "recordField": "Total Applications"
+          },
+          "unitsOverrides": [
+            {
+              "added": 1776364192438,
+              "baseUnit": "none",
+              "cascade": null,
+              "decimals": null,
+              "delimiter": false,
+              "displayUnit": null,
+              "identifier": "Total Applications",
+              "suffix": "",
+              "unitCategory": "unspecified"
+            }
+          ]
+        },
+        "querySettings": {
+          "defaultSamplingRatio": 10,
+          "defaultScanLimitGbytes": 500,
+          "enableSampling": false,
+          "maxResultMegaBytes": 1,
+          "maxResultRecords": 1000
+        },
+        "davis": {
+          "enabled": false,
+          "davisVisualization": {
+            "isAvailable": true
+          }
+        }
+      },
+      "16": {
+        "title": "Total Applications in Dynatrace",
+        "type": "data",
+        "query": "load \"/lookups/cmdb_businessapp\"\n| fieldsAdd cmdb_ci_key, appname = name\n| lookup [load \"/lookups/cmdb_server\"], sourceField:cmdb_ci_key, lookupField:busapp_cmdb_ci_key, fields:{cmdbhostname = name, server_fqdn = fully_qualified_domain_name}\n| filter isNotNull(name)\n| lookup [\nfetch dt.entity.host\n| fields id, entity.name,  monitoringMode, paasVendorType, isMonitoringCandidate, awsNameTag\n| fieldsAdd monitoringMode = if(isNotNull(paasVendorType), \"APP_ONLY\", else:if(isMonitoringCandidate == true, \"CANDIDATE\", else:monitoringMode))\n| fieldsRemove paasVendorType, awsNameTag, isMonitoringCandidate\n| parse entity.name, \"\"\"LD:hostname ('.' LD:domain)? EOS\"\"\"\n| limit 20000], sourceField:cmdbhostname, lookupField:hostname, fields:{id, hostname, monitoringMode}\n| filter isNotNull(hostname)\n| summarize `Total Applications` = count()",
+        "visualization": "singleValue",
+        "visualizationSettings": {
+          "autoSelectVisualization": false,
+          "singleValue": {
+            "prefixIcon": "DesktopIcon",
+            "recordField": "Total Applications"
+          },
+          "unitsOverrides": [
+            {
+              "added": 1776364166726,
+              "baseUnit": "none",
+              "cascade": null,
+              "decimals": null,
+              "delimiter": false,
+              "displayUnit": null,
+              "identifier": "Total Applications",
+              "suffix": "",
+              "unitCategory": "unspecified"
+            }
+          ]
+        },
+        "querySettings": {
+          "defaultSamplingRatio": 10,
+          "defaultScanLimitGbytes": 500,
+          "enableSampling": false,
+          "maxResultMegaBytes": 1,
+          "maxResultRecords": 1000
+        },
+        "davis": {
+          "enabled": false,
+          "davisVisualization": {
+            "isAvailable": true
+          }
+        }
+      },
+      "17": {
+        "title": "CMDB Apps By Tier",
+        "type": "data",
+        "query": "load \"/lookups/cmdb_businessapp\"\n| summarize `Count` = count(), by:{`CMDB Tier` = business_criticality}\n| fieldsAdd sortOrder = if(`CMDB Tier` == \"Core Services\", 1, \n    else: if(`CMDB Tier` == \"Mission Critical\", 2, \n    else: if(`CMDB Tier` == \"Business Critical\", 3, \n    else: if(`CMDB Tier` == \"Business Essential\", 4, \n    else: 5))))\n| sort sortOrder asc\n| fieldsRemove sortOrder",
+        "visualization": "categoricalBarChart",
+        "visualizationSettings": {
+          "autoSelectVisualization": false
+        },
+        "querySettings": {
+          "maxResultRecords": 1000,
+          "defaultScanLimitGbytes": 500,
+          "maxResultMegaBytes": 1,
+          "defaultSamplingRatio": 10,
+          "enableSampling": false
+        },
+        "davis": {
+          "enabled": false,
+          "davisVisualization": {
+            "isAvailable": true
+          }
+        }
+      },
+      "18": {
+        "title": "Application Observability Overview",
+        "type": "data",
+        "query": "load \"/lookups/cmdb_businessapp\"\n| fields\n    app_key = cmdb_ci_key,\n    `Application` = name,\n    AppShortName = short_name,\n    owner = owned_by,\n    `Business Unit` = dv_business_unit,\n    tier = business_criticality,\n    Status = dv_operational_status,\n    application_type = application_type,\n    rum_expected_raw = rum_expected,\n    rum_domains = rum_domains\n| fieldsAdd\n  app_short_name_lower = lower(AppShortName),\n  rum_expected_num = toLong(coalesce(rum_expected_raw, 0))\n| lookup [\n    load \"/lookups/cmdb_server\"\n    | fields app_key = busapp_cmdb_ci_key, server_name = lower(name), server_location = location\n    | lookup [\n        fetch dt.entity.host\n        | fields id, entity.name, monitoringMode, paasVendorType, isMonitoringCandidate\n        | fieldsAdd monitoringMode = if(isNotNull(paasVendorType), then:\"APP_ONLY\", else:if(isMonitoringCandidate == true, then:\"CANDIDATE\", else:monitoringMode))\n        | parse entity.name, \"\"\"LD:hostname ('.' LD:domain)? EOS\"\"\"\n        | fieldsAdd server_name = lower(hostname)\n        | lookup [\n            fetch logs\n            | summarize logCount = count(), by:{host_id = dt.entity.host}\n          ], sourceField:id, lookupField:host_id, fields:{logCount}\n        | lookup [\n            fetch spans\n            | summarize spanCount = count(), by:{host_id = dt.entity.host}\n          ], sourceField:id, lookupField:host_id, fields:{spanCount}\n        | lookup [\n            timeseries cpu = avg(dt.host.cpu.usage), by:{host_id = dt.entity.host}\n            | fieldsAdd metricEvidence = if(arraySize(arrayRemoveNulls(cpu)) > 0, then:1, else:0)\n            | fields host_id, metricEvidence\n          ], sourceField:id, lookupField:host_id, fields:{metricEvidence}\n        | summarize\n            dt_matched = max(if(isNotNull(id), then:1, else:0)),\n            full_stack = max(if(monitoringMode == \"FULL_STACK\", then:1, else:0)),\n            infrastructure = max(if(monitoringMode == \"INFRASTRUCTURE\", then:1, else:0)),\n            app_only = max(if(monitoringMode == \"APP_ONLY\", then:1, else:0)),\n            discovery = max(if(monitoringMode == \"DISCOVERY\", then:1, else:0)),\n            metric_covered = max(coalesce(metricEvidence, 0)),\n            log_covered = max(if(isNotNull(logCount) AND logCount > 0, then:1, else:0)),\n            trace_covered = max(if(isNotNull(spanCount) AND spanCount > 0, then:1, else:0)),\n            by:{server_name}\n      ], sourceField:server_name, lookupField:server_name, fields:{dt_matched, full_stack, infrastructure, app_only, discovery, metric_covered, log_covered, trace_covered}\n    | summarize\n        location = takeFirst(server_location),\n        locationCount = countDistinct(server_location),\n        locationList = collectDistinct(server_location),\n        `CMDB Servers` = count(),\n        FootprintRaw = sum(coalesce(dt_matched, 0)),\n        fullStackCount = sum(coalesce(full_stack, 0)),\n        infraCount = sum(coalesce(infrastructure, 0)),\n        appOnlyCount = sum(coalesce(app_only, 0)),\n        discoveryCount = sum(coalesce(discovery, 0)),\n        metricCoveredServers = sum(coalesce(metric_covered, 0)),\n        logCoveredServers = sum(coalesce(log_covered, 0)),\n        traceCoveredServers = sum(coalesce(trace_covered, 0)),\n        by:{app_key}\n  ], sourceField:app_key, lookupField:app_key, fields:{location, locationCount, locationList, `CMDB Servers`, FootprintRaw, fullStackCount, infraCount, appOnlyCount, discoveryCount, metricCoveredServers, logCoveredServers, traceCoveredServers}\n| lookup [\n    fetch dt.davis.problems\n    | filter not(dt.davis.is_duplicate) AND event.status == \"ACTIVE\"\n    | expand affected_entity_id = affected_entity_ids\n    | filter matchesPhrase(affected_entity_id, \"HOST-\")\n    | lookup [\n        fetch dt.entity.host\n        | fields id, tags\n        | expand tag = tags\n        | parse tag, \"\"\"'HGApp:' LD:appShortName EOS\"\"\"\n        | filter isNotNull(appShortName)\n        | fieldsAdd appShortName = lower(appShortName)\n        | fields id, appShortName\n      ], sourceField:affected_entity_id, lookupField:id, fields:{appShortName}\n    | filter isNotNull(appShortName)\n    | summarize activeProblems = countDistinct(display_id), by:{appShortName}\n  ], sourceField:app_short_name_lower, lookupField:appShortName, fields:{activeProblems}\n| lookup [\n    load \"/lookups/cmdb_app_frontend_mapping\"\n    | fields\n        app_key = app_cmdb_ci_key,\n        frontend_entity_id,\n        user_event_count_24h,\n        session_count_24h,\n        last_seen_user_event,\n        mapping_confidence,\n        mapping_method,\n        frontend_name\n    | fieldsAdd\n        user_event_count_24h = toLong(coalesce(user_event_count_24h, 0)),\n        session_count_24h = toLong(coalesce(session_count_24h, 0))\n    | summarize\n        mappedFrontendCount = countDistinct(frontend_entity_id),\n        rumUserEvents24h = sum(user_event_count_24h),\n        rumSessions24h = sum(session_count_24h),\n        rumLastSeen = max(last_seen_user_event),\n        rumMappingConfidence = takeFirst(mapping_confidence),\n        rumMappingMethod = takeFirst(mapping_method),\n        rumFrontendName = takeFirst(frontend_name),\n        by:{app_key}\n  ], sourceField:app_key, lookupField:app_key, fields:{mappedFrontendCount, rumUserEvents24h, rumSessions24h, rumLastSeen, rumMappingConfidence, rumMappingMethod, rumFrontendName}\n| fieldsAdd\n    `CMDB Servers` = coalesce(`CMDB Servers`, 0),\n    FootprintRaw = coalesce(FootprintRaw, 0),\n    locationCount = coalesce(locationCount, 0),\n    locationList = coalesce(locationList, array()),\n    fullStackCount = coalesce(fullStackCount, 0),\n    infraCount = coalesce(infraCount, 0),\n    appOnlyCount = coalesce(appOnlyCount, 0),\n    discoveryCount = coalesce(discoveryCount, 0),\n    metricCoveredServers = coalesce(metricCoveredServers, 0),\n    logCoveredServers = coalesce(logCoveredServers, 0),\n    traceCoveredServers = coalesce(traceCoveredServers, 0),\n    `Active Problems` = coalesce(activeProblems, 0),\n    mappedFrontendCount = coalesce(mappedFrontendCount, 0),\n    rumUserEvents24h = coalesce(rumUserEvents24h, 0),\n    rumSessions24h = coalesce(rumSessions24h, 0),\n    rumMappingConfidence = coalesce(rumMappingConfidence, \"none\"),\n    rumMappingMethod = coalesce(rumMappingMethod, \"none\"),\n    rumFrontendName = coalesce(rumFrontendName, \"\")\n| fieldsAdd\n    `CMDB Servers` = toLong(`CMDB Servers`),\n    FootprintRaw = toLong(FootprintRaw),\n    locationCount = toLong(locationCount),\n    fullStackCount = toLong(fullStackCount),\n    infraCount = toLong(infraCount),\n    appOnlyCount = toLong(appOnlyCount),\n    discoveryCount = toLong(discoveryCount),\n    metricCoveredServers = toLong(metricCoveredServers),\n    logCoveredServers = toLong(logCoveredServers),\n    traceCoveredServers = toLong(traceCoveredServers),\n    `Active Problems` = toLong(`Active Problems`)\n| fieldsAdd\n  `Coverage Gap` = `CMDB Servers` - FootprintRaw,\n  `Coverage %` = if(`CMDB Servers` == 0, then:0.0, else:round(100.0 * FootprintRaw / `CMDB Servers`, decimals:1)),\n  monitoringMode = if(FootprintRaw == 0, then:\"None\", else:if(fullStackCount == FootprintRaw AND infraCount == 0 AND appOnlyCount == 0 AND discoveryCount == 0, then:\"Full Stack Only\", else:if(infraCount == FootprintRaw AND fullStackCount == 0 AND appOnlyCount == 0 AND discoveryCount == 0, then:\"Infrastructure Only\", else:if(appOnlyCount == FootprintRaw AND fullStackCount == 0 AND infraCount == 0 AND discoveryCount == 0, then:\"App Only\", else:if(discoveryCount == FootprintRaw, then:\"Discovery Only\", else:\"Mixed\"))))),\n  `Trace Evidence` = concat(toString(traceCoveredServers), \"/\", toString(`CMDB Servers`)),\n  `Metric Evidence` = concat(toString(metricCoveredServers), \"/\", toString(`CMDB Servers`)),\n  `Log Evidence` = concat(toString(logCoveredServers), \"/\", toString(`CMDB Servers`)),\n  `Location Scope` = if(locationCount == 0, then:\"Unknown\", else:if(locationCount == 1, then:arrayToString(arraySort(locationList), delimiter:\", \"), else:concat(toString(locationCount), \" locations: \", arrayToString(arraySort(locationList), delimiter:\", \")))),\n  RUM = if(rum_expected_num == 0, then:\"N/A\", else:if(mappedFrontendCount == 0, then:\"Missing\", else:if(rumUserEvents24h > 0, then:\"Active\", else:\"Configured but inactive\"))),\n  `RUM Evidence` = concat(toString(rumUserEvents24h), \" events / \", toString(rumSessions24h), \" sessions\"),\n  `RUM Mapping` = if(mappedFrontendCount == 0, then:\"none\", else:concat(rumMappingMethod, \" (\", rumMappingConfidence, \")\"))\n| fieldsAdd\n  `Mode Mix` = concat(\"FS \", toString(fullStackCount), \" | Infra \", toString(infraCount), \" | App \", toString(appOnlyCount), \" | Disc \", toString(discoveryCount), \" | Missing \", toString(`Coverage Gap`))\n| fieldsAdd\n    `Coverage Status` = if(`Coverage Gap` == 0, then:\"Complete\", else:if(FootprintRaw == 0, then:\"Missing\", else:\"Partial\")),\n    Footprint = if(`Coverage Gap` > 0, then:concat(\"! \", toString(FootprintRaw)), else:toString(FootprintRaw)),\n    Traces = if(traceCoveredServers == 0, then:\"\u274c\", else:if(traceCoveredServers == `CMDB Servers`, then:\"\u2705\", else:\"\u26a0\ufe0f\")),\n    Metrics = if(metricCoveredServers == 0, then:\"\u274c\", else:if(metricCoveredServers == `CMDB Servers`, then:\"\u2705\", else:\"\u26a0\ufe0f\")),\n    Logs = if(logCoveredServers == 0, then:\"\u274c\", else:if(logCoveredServers == `CMDB Servers`, then:\"\u2705\", else:\"\u26a0\ufe0f\")),\n    `Observability Quality` = if(FootprintRaw == 0, then:\"Missing\", else:if(`Coverage Gap` > 0, then:\"Partial Coverage\", else:if(traceCoveredServers < `CMDB Servers` OR metricCoveredServers < `CMDB Servers` OR logCoveredServers < `CMDB Servers`, then:\"Weak Signals\", else:\"Complete\")))\n| filter in(`Application`, array($ApplicationName))\n| filter in(`Business Unit`, array($BusinessUnit))\n| filter in(tier, array($Tier))\n| filter in(location, array($Location))\n| filter in(monitoringMode, array($MonitoringMode))\n| filter in(Status, array($Status))\n| fields `Application`, `Business Unit`, AppShortName, owner, tier, application_type, rum_domains, `Location Scope`, `Mode Mix`, monitoringMode, Traces, `Trace Evidence`, Metrics, `Metric Evidence`, Logs, `Log Evidence`, RUM, `RUM Evidence`, `RUM Mapping`, `Active Problems`, Footprint, `CMDB Servers`, `Coverage Gap`, `Coverage %`, `Observability Quality`, `Coverage Status`, Status\n| sort `Coverage Gap` desc, `Application` asc",
+        "visualization": "table",
+        "visualizationSettings": {
+          "table": {
+            "sortBy": [
+              {
+                "columnId": "[\"Coverage Gap\"]",
+                "direction": "descending"
+              }
+            ],
+            "columnWidths": {
+              "[\"tier\"]": 77.37,
+              "[\"owner\"]": 81.6,
+              "[\"AppShortName\"]": 146.68,
+              "[\"Business Unit\"]": 143.09,
+              "[\"Application\"]": 140.36,
+              "[\"Mode Mix\"]": 289.78,
+              "[\"monitoringMode\"]": 171.97,
+              "[\"Coverage Gap\"]": 132.1,
+              "[\"CMDB Servers\"]": 121.39,
+              "[\"Footprint\"]": 95.08,
+              "[\"Active Problems\"]": 134.59,
+              "[\"Coverage %\"]": 105.8,
+              "[\"Observability Quality\"]": 151.69,
+              "[\"Coverage Status\"]": 135.6,
+              "[\"RUM\"]": 224.89,
+              "[\"RUM Evidence\"]": 206.49,
+              "[\"RUM Mapping\"]": 229.99,
+              "[\"Traces\"]": 66.99,
+              "[\"Trace Evidence\"]": 114.3,
+              "[\"rum_domains\"]": 238.88
+            }
+          },
+          "coloring": {
+            "colorRules": [
+              {
+                "value": 0,
+                "comparator": ">",
+                "field": "Coverage Gap",
+                "colorMode": "custom-color",
+                "customColor": {
+                  "Default": "#c62239"
+                }
+              }
+            ]
+          }
+        },
+        "querySettings": {
+          "maxResultRecords": 10000,
+          "defaultScanLimitGbytes": 5000,
+          "maxResultMegaBytes": 100,
+          "defaultSamplingRatio": 10,
+          "enableSampling": false
+        },
+        "davis": {
+          "enabled": false,
+          "davisVisualization": {
+            "isAvailable": true
+          }
+        }
+      },
+      "19": {
+        "title": "Servers Monitored by Dynatrace",
+        "type": "data",
+        "query": "fetch dt.entity.host\n| fieldsAdd host_name = entity.name\n| fields id, entity.name,  monitoringMode, paasVendorType, isMonitoringCandidate, awsNameTag\n| fieldsAdd monitoringMode = if(isNotNull(paasVendorType), \"APP_ONLY\", else:if(isMonitoringCandidate == true, \"CANDIDATE\", else:monitoringMode))\n| parse entity.name, \"\"\"LD:hostname ('.' LD:domain)? EOS\"\"\"\n| lookup [ load \"/lookups/cmdb_server\"], sourcefield:hostname, lookupfield:name, fields:{server_fqdn = fully_qualified_domain_name, cmdb_ci_key}\n| fieldsRemove paasVendorType, awsNameTag, isMonitoringCandidate\n| fieldsAdd isInCMDB = if(isNull(cmdb_ci_key), \"NOT FOUND IN CMDB\", else:\"FOUND IN CMDB\")\n| filterOut isInCMDB == \"NOT FOUND IN CMDB\" \n| filterOut monitoringMode == \"CANDIDATE\"\n| limit 20000\n| summarize `Monitored Servers` = count()",
+        "visualization": "singleValue",
+        "visualizationSettings": {
+          "singleValue": {
+            "prefixIcon": "HostIcon",
+            "recordField": "Monitored Servers"
+          },
+          "unitsOverrides": [
+            {
+              "added": 1777292266245,
+              "baseUnit": "none",
+              "cascade": null,
+              "decimals": null,
+              "delimiter": false,
+              "displayUnit": null,
+              "identifier": "Monitored Servers",
+              "suffix": "",
+              "unitCategory": "unspecified"
+            }
+          ]
+        },
+        "querySettings": {
+          "defaultSamplingRatio": 10,
+          "defaultScanLimitGbytes": 500,
+          "enableSampling": false,
+          "maxResultMegaBytes": 1,
+          "maxResultRecords": 1000
+        },
+        "davis": {
+          "enabled": false,
+          "davisVisualization": {
+            "isAvailable": true
+          }
+        }
+      },
+      "20": {
+        "title": "Applications Not in Dynatrace",
+        "type": "data",
+        "query": "load \"/lookups/cmdb_businessapp\"\n| fields `Application` = name, AppShortName = short_name, owner = owned_by, `Business Unit` = dv_business_unit, tier = business_criticality, Status = dv_operational_status, cmdb_ci_key\n| lookup [\n    load \"/lookups/cmdb_server\"\n    | summarize `CMDB Servers` = count(), by:{busapp_cmdb_ci_key}\n  ], sourceField:cmdb_ci_key, lookupField:busapp_cmdb_ci_key, fields:{`CMDB Servers`}\n| lookup [\n    fetch dt.entity.host\n    | fields id, entity.name\n    | parse entity.name, \"\"\"LD:hostname ('.' LD:domain)? EOS\"\"\"\n    | limit 20000\n    | lookup [load \"/lookups/cmdb_server\"], sourceField:hostname, lookupField:name, fields:{busapp_key = busapp_cmdb_ci_key}\n    | filter isNotNull(busapp_key)\n    | summarize dtHostCount = count(), by:{busapp_key}\n  ], sourceField:cmdb_ci_key, lookupField:busapp_key, fields:{dtHostCount}\n| filter isNull(dtHostCount)\n| fieldsRemove dtHostCount, cmdb_ci_key\n| fieldsAdd `CMDB Servers` = coalesce(`CMDB Servers`, 0)\n| filter in(`Business Unit`, array($BusinessUnit))\n| filter in(tier, array($Tier))\n| filter in(Status, array($Status))\n| sort `Application` asc",
+        "visualization": "table",
+        "visualizationSettings": {
+          "table": {
+            "sortBy": [
+              {
+                "columnId": "[\"CMDB Servers\"]",
+                "direction": "descending"
+              }
+            ],
+            "columnWidths": {
+              "[\"Application\"]": 145.36,
+              "[\"AppShortName\"]": 142.08,
+              "[\"owner\"]": 98.85,
+              "[\"Business Unit\"]": 128.09,
+              "[\"tier\"]": 61.37,
+              "[\"Status\"]": 100.8,
+              "[\"CMDB Servers\"]": 129.37
+            }
+          }
+        },
+        "querySettings": {
+          "maxResultRecords": 10000,
+          "defaultScanLimitGbytes": 5000,
+          "maxResultMegaBytes": 100,
+          "defaultSamplingRatio": 10,
+          "enableSampling": false
+        },
+        "davis": {
+          "enabled": false,
+          "davisVisualization": {
+            "isAvailable": true
+          }
+        }
+      },
+      "21": {
+        "title": "Application Server Coverage Drilldown",
+        "type": "data",
+        "query": "load \"/lookups/cmdb_businessapp\"\n| fields app_key = cmdb_ci_key, `Application` = name, `Business Unit` = dv_business_unit, tier = business_criticality, Status = dv_operational_status\n| lookup [\n    load \"/lookups/cmdb_server\"\n    | fields app_key = busapp_cmdb_ci_key, `Server` = name, Location = location\n    | fieldsAdd server_name = lower(`Server`)\n    | lookup [\n        fetch dt.entity.host\n        | fields id, entity.name, monitoringMode, paasVendorType, isMonitoringCandidate\n        | fieldsAdd monitoringMode = if(isNotNull(paasVendorType), then:\"APP_ONLY\", else:if(isMonitoringCandidate == true, then:\"CANDIDATE\", else:monitoringMode))\n        | parse entity.name, \"\"\"LD:hostname ('.' LD:domain)? EOS\"\"\"\n        | fieldsAdd server_name = lower(hostname)\n        | lookup [\n            fetch logs\n            | summarize logCount = count(), by:{host_id = dt.entity.host}\n          ], sourceField:id, lookupField:host_id, fields:{logCount}\n        | lookup [\n            fetch spans\n            | summarize spanCount = count(), by:{host_id = dt.entity.host}\n          ], sourceField:id, lookupField:host_id, fields:{spanCount}\n        | lookup [\n            timeseries cpu = avg(dt.host.cpu.usage), by:{host_id = dt.entity.host}\n            | fieldsAdd metricEvidence = if(arraySize(arrayRemoveNulls(cpu)) > 0, then:1, else:0)\n            | fields host_id, metricEvidence\n          ], sourceField:id, lookupField:host_id, fields:{metricEvidence}\n        | summarize\n            hostMatch = max(if(isNotNull(id), then:1, else:0)),\n            fullStackCount = sum(if(monitoringMode == \"FULL_STACK\", then:1, else:0)),\n            infraCount = sum(if(monitoringMode == \"INFRASTRUCTURE\", then:1, else:0)),\n            appOnlyCount = sum(if(monitoringMode == \"APP_ONLY\", then:1, else:0)),\n            discoveryCount = sum(if(monitoringMode == \"DISCOVERY\", then:1, else:0)),\n            traceEvidence = max(if(isNotNull(spanCount) AND spanCount > 0, then:1, else:0)),\n            metricEvidence = max(coalesce(metricEvidence, 0)),\n            logEvidence = max(if(isNotNull(logCount) AND logCount > 0, then:1, else:0)),\n            by:{server_name}\n      ], sourceField:server_name, lookupField:server_name, fields:{hostMatch, fullStackCount, infraCount, appOnlyCount, discoveryCount, traceEvidence, metricEvidence, logEvidence}\n  ], sourceField:app_key, lookupField:app_key, fields:{`Server`, Location, hostMatch, fullStackCount, infraCount, appOnlyCount, discoveryCount, traceEvidence, metricEvidence, logEvidence}\n| fieldsAdd\n    hostMatch = coalesce(hostMatch, 0),\n    fullStackCount = coalesce(fullStackCount, 0),\n    infraCount = coalesce(infraCount, 0),\n    appOnlyCount = coalesce(appOnlyCount, 0),\n    discoveryCount = coalesce(discoveryCount, 0),\n    traceEvidence = coalesce(traceEvidence, 0),\n    metricEvidence = coalesce(metricEvidence, 0),\n    logEvidence = coalesce(logEvidence, 0)\n| fieldsAdd\n    `Dynatrace Match` = if(hostMatch > 0, then:\"\u2705\", else:\"\u274c\"),\n    `Mode Detail` = if(hostMatch == 0, then:\"Missing\", else:if(fullStackCount > 0 AND infraCount == 0 AND appOnlyCount == 0 AND discoveryCount == 0, then:\"Full Stack\", else:if(infraCount > 0 AND fullStackCount == 0 AND appOnlyCount == 0 AND discoveryCount == 0, then:\"Infrastructure\", else:if(appOnlyCount > 0 AND fullStackCount == 0 AND infraCount == 0 AND discoveryCount == 0, then:\"App Only\", else:if(discoveryCount > 0 AND fullStackCount == 0 AND infraCount == 0 AND appOnlyCount == 0, then:\"Discovery\", else:\"Mixed\"))))),\n    Traces = if(traceEvidence == 1, then:\"\u2705\", else:if(hostMatch == 1, then:\"\u274c\", else:\"\u274c\")),\n    Metrics = if(metricEvidence == 1, then:\"\u2705\", else:if(hostMatch == 1, then:\"\u274c\", else:\"\u274c\")),\n    Logs = if(logEvidence == 1, then:\"\u2705\", else:if(hostMatch == 1, then:\"\u274c\", else:\"\u274c\")),\n    `Server Quality` = if(hostMatch == 0, then:\"Missing\", else:if(traceEvidence == 1 AND metricEvidence == 1 AND logEvidence == 1, then:\"Complete\", else:\"Weak Signals\"))\n| fieldsAdd ServerQualityRank = if(`Server Quality` == \"Missing\", then:3, else:if(`Server Quality` == \"Weak Signals\", then:2, else:1))\n| filter in(`Application`, array($ApplicationName))\n| filter in(`Business Unit`, array($BusinessUnit))\n| filter in(tier, array($Tier))\n| filter in(Location, array($Location))\n| filter in(Status, array($Status))\n| sort ServerQualityRank desc, `Application` asc, `Server` asc\n| fields `Application`, `Server`, Location, `Dynatrace Match`, `Mode Detail`, Traces, Metrics, Logs, `Server Quality`, `Business Unit`, tier, Status",
+        "visualization": "table",
+        "visualizationSettings": {
+          "table": {
+            "columnWidths": {
+              "[\"Traces\"]": 110.99,
+              "[\"Application\"]": 153.38,
+              "[\"Server\"]": 161.9,
+              "[\"Location\"]": 129,
+              "[\"Dynatrace Match\"]": 142.39,
+              "[\"Mode Detail\"]": 128.79,
+              "[\"Metrics\"]": 71.89,
+              "[\"Logs\"]": 65.6,
+              "[\"Server Quality\"]": 130.89,
+              "[\"Business Unit\"]": 142.1,
+              "[\"tier\"]": 66.39,
+              "[\"Status\"]": 158.8
+            }
+          }
+        },
+        "querySettings": {
+          "maxResultRecords": 10000,
+          "defaultScanLimitGbytes": 5000,
+          "maxResultMegaBytes": 100,
+          "defaultSamplingRatio": 10,
+          "enableSampling": false
+        },
+        "davis": {
+          "enabled": false,
+          "davisVisualization": {
+            "isAvailable": true
+          }
+        }
+      },
+      "22": {
+        "type": "markdown",
+        "content": "# Application Observability Details"
+      },
+      "23": {
+        "type": "markdown",
+        "content": "#  Problem Details - By Application"
+      },
+      "24": {
+        "type": "markdown",
+        "content": "# Goals:\n Avoid bridges altogether  |  If unavoidable, reduce the time spent on bridge | Reduce number of people on bridges"
+      }
+    },
+    "layouts": {
+      "0": {
+        "x": 0,
+        "y": 2,
+        "w": 12,
+        "h": 2
+      },
+      "11": {
+        "x": 14,
+        "y": 4,
+        "w": 5,
+        "h": 12
+      },
+      "12": {
+        "x": 19,
+        "y": 4,
+        "w": 5,
+        "h": 12
+      },
+      "13": {
+        "x": 6,
+        "y": 4,
+        "w": 6,
+        "h": 4
+      },
+      "15": {
+        "x": 0,
+        "y": 4,
+        "w": 6,
+        "h": 4
+      },
+      "16": {
+        "x": 0,
+        "y": 8,
+        "w": 6,
+        "h": 4
+      },
+      "17": {
+        "x": 0,
+        "y": 16,
+        "w": 24,
+        "h": 7
+      },
+      "18": {
+        "x": 0,
+        "y": 25,
+        "w": 24,
+        "h": 10
+      },
+      "19": {
+        "x": 6,
+        "y": 8,
+        "w": 6,
+        "h": 4
+      },
+      "20": {
+        "x": 0,
+        "y": 12,
+        "w": 12,
+        "h": 4
+      },
+      "21": {
+        "x": 0,
+        "y": 35,
+        "w": 24,
+        "h": 10
+      },
+      "22": {
+        "x": 0,
+        "y": 23,
+        "w": 24,
+        "h": 2
+      },
+      "23": {
+        "x": 14,
+        "y": 2,
+        "w": 10,
+        "h": 2
+      },
+      "24": {
+        "x": 0,
+        "y": 0,
+        "w": 24,
+        "h": 2
+      }
+    },
+    "importedWithCode": false,
+    "settings": {},
+    "annotations": [
+      {
+        "version": 2,
+        "key": "45fdda39-8669-460c-9361-b44d18c50d5b",
+        "name": "Application Observability Details",
+        "type": "query",
+        "input": "pp",
+        "displaySettings": {
+          "referenceIds": [
+            "3420b2ac-f1cf-4b24-b62d-61ba1ba8ed05*"
+          ],
+          "color": "var(--dt-colors-charts-loglevel-info-default, #134fc9)"
+        }
+      }
+    ]
+  }
+}

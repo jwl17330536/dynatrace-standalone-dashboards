@@ -1,0 +1,339 @@
+{
+  "name": "Netflow Operations Health v2",
+  "type": "dashboard",
+  "owner": "<YOUR_DYNATRACE_USER_ID>",
+  "isPrivate": true,
+  "description": "Operational health with enhanced KPI prominence - direction coverage, DNS resolution, enrichment quality, and data quality trends.",
+  "version": 2,
+  "modificationInfo": {
+    "createdBy": "",
+    "createdTime": "",
+    "lastModifiedBy": "",
+    "lastModifiedTime": ""
+  },
+  "content": {
+    "annotations": [],
+    "importedWithCode": false,
+    "layouts": {
+      "0": {
+        "h": 1,
+        "w": 24,
+        "x": 0,
+        "y": 0
+      },
+      "1": {
+        "h": 4,
+        "w": 6,
+        "x": 0,
+        "y": 1
+      },
+      "2": {
+        "h": 4,
+        "w": 6,
+        "x": 6,
+        "y": 1
+      },
+      "3": {
+        "h": 4,
+        "w": 6,
+        "x": 12,
+        "y": 1
+      },
+      "4": {
+        "h": 4,
+        "w": 6,
+        "x": 18,
+        "y": 1
+      },
+      "5": {
+        "h": 7,
+        "w": 24,
+        "x": 0,
+        "y": 5
+      },
+      "6": {
+        "h": 6,
+        "w": 12,
+        "x": 0,
+        "y": 12
+      },
+      "7": {
+        "h": 6,
+        "w": 12,
+        "x": 12,
+        "y": 12
+      },
+      "8": {
+        "h": 6,
+        "w": 12,
+        "x": 0,
+        "y": 18
+      },
+      "9": {
+        "h": 6,
+        "w": 12,
+        "x": 12,
+        "y": 18
+      },
+      "10": {
+        "h": 7,
+        "w": 24,
+        "x": 0,
+        "y": 24
+      }
+    },
+    "settings": {
+      "defaultTimeframe": {
+        "enabled": true,
+        "value": {
+          "from": "now()-2h",
+          "to": "now()"
+        }
+      }
+    },
+    "tiles": {
+      "0": {
+        "content": "# Netflow Operations Health v2\n**Is something wrong?** Data quality, direction coverage, DNS resolution, and enrichment status with anomaly detection.\n",
+        "type": "markdown"
+      },
+      "1": {
+        "davis": {
+          "davisVisualization": {
+            "isAvailable": true
+          },
+          "enabled": false
+        },
+        "query": "fetch logs\n| filter dt.openpipeline.source == \"extension:custom:netflow-observability\" and coalesce(content, \"\") != \"collector_diagnostics\"\n| summarize total = count(), unknown = countIf(coalesce(`netflow.flow.direction`, \"unknown\") == \"unknown\")\n| fieldsAdd pct = round(100.0 * unknown / total, decimals: 1)\n",
+        "title": "Unknown Direction %",
+        "type": "data",
+        "visualization": "singleValue",
+        "visualizationSettings": {
+          "singleValue": {
+            "label": "%",
+            "recordField": "pct"
+          },
+          "autoSelectVisualization": false
+        },
+        "querySettings": {
+          "maxResultRecords": 1000,
+          "defaultScanLimitGbytes": 500,
+          "maxResultMegaBytes": 100,
+          "defaultSamplingRatio": 10,
+          "enableSampling": false
+        }
+      },
+      "2": {
+        "davis": {
+          "davisVisualization": {
+            "isAvailable": true
+          },
+          "enabled": false
+        },
+        "query": "fetch logs\n| filter dt.openpipeline.source == \"extension:custom:netflow-observability\" and coalesce(content, \"\") != \"collector_diagnostics\"\n| summarize total = count(), unresolved = countIf(coalesce(`netflow.destination.hostname`, \"\") == \"\")\n| fieldsAdd pct = round(100.0 * unresolved / total, decimals: 1)\n",
+        "title": "DNS Resolution Issues %",
+        "type": "data",
+        "visualization": "singleValue",
+        "visualizationSettings": {
+          "singleValue": {
+            "label": "%",
+            "recordField": "pct"
+          },
+          "autoSelectVisualization": false
+        },
+        "querySettings": {
+          "maxResultRecords": 1000,
+          "defaultScanLimitGbytes": 500,
+          "maxResultMegaBytes": 100,
+          "defaultSamplingRatio": 10,
+          "enableSampling": false
+        }
+      },
+      "3": {
+        "davis": {
+          "davisVisualization": {
+            "isAvailable": true
+          },
+          "enabled": false
+        },
+        "query": "fetch logs\n| filter dt.openpipeline.source == \"extension:custom:netflow-observability\" and coalesce(content, \"\") != \"collector_diagnostics\"\n| summarize total = count(), unenriched = countIf((coalesce(`netflow.destination.provider`, \"\") == \"\" or coalesce(`netflow.destination.provider`, \"\") == \"private\") and coalesce(`netflow.destination.asn`, \"\") == \"\")\n| fieldsAdd pct = round(100.0 * unenriched / total, decimals: 1)\n",
+        "title": "Unenriched IPs %",
+        "type": "data",
+        "visualization": "singleValue",
+        "visualizationSettings": {
+          "singleValue": {
+            "label": "%",
+            "recordField": "pct"
+          },
+          "autoSelectVisualization": false
+        },
+        "querySettings": {
+          "maxResultRecords": 1000,
+          "defaultScanLimitGbytes": 500,
+          "maxResultMegaBytes": 100,
+          "defaultSamplingRatio": 10,
+          "enableSampling": false
+        }
+      },
+      "4": {
+        "davis": {
+          "davisVisualization": {
+            "isAvailable": true
+          },
+          "enabled": false
+        },
+        "query": "fetch logs\n| filter dt.openpipeline.source == \"extension:custom:netflow-observability\" and coalesce(content, \"\") != \"collector_diagnostics\"\n| summarize total = count(), with_direction = countIf(isNotNull(`netflow.flow.direction`)), with_hostname = countIf(isNotNull(`netflow.destination.hostname`)), with_enrichment = countIf(isNotNull(`netflow.destination.provider`) and `netflow.destination.provider` != \"private\")\n| fieldsAdd quality_score = round((with_direction * 0.4 + with_hostname * 0.3 + with_enrichment * 0.3) / total * 100.0, decimals: 1)\n",
+        "title": "Data Quality Score",
+        "type": "data",
+        "visualization": "singleValue",
+        "visualizationSettings": {
+          "singleValue": {
+            "label": "%",
+            "recordField": "quality_score"
+          },
+          "autoSelectVisualization": false
+        },
+        "querySettings": {
+          "maxResultRecords": 1000,
+          "defaultScanLimitGbytes": 500,
+          "maxResultMegaBytes": 100,
+          "defaultSamplingRatio": 10,
+          "enableSampling": false
+        }
+      },
+      "5": {
+        "davis": {
+          "davisVisualization": {
+            "isAvailable": true
+          },
+          "enabled": false
+        },
+        "query": "fetch logs\n| filter dt.openpipeline.source == \"extension:custom:netflow-observability\" and coalesce(content, \"\") != \"collector_diagnostics\"\n| makeTimeseries total_flows = count(), unknown_direction = countIf(coalesce(`netflow.flow.direction`, \"unknown\") == \"unknown\"), unresolved_dns = countIf(coalesce(`netflow.destination.hostname`, \"\") == \"\"), unenriched_ips = countIf((coalesce(`netflow.destination.provider`, \"\") == \"\" or coalesce(`netflow.destination.provider`, \"\") == \"private\") and coalesce(`netflow.destination.asn`, \"\") == \"\"), interval: 5m\n",
+        "title": "Data Quality Trend (Flow Count + Quality Issues)",
+        "type": "data",
+        "visualization": "lineChart",
+        "visualizationSettings": {
+          "autoSelectVisualization": false
+        },
+        "querySettings": {
+          "maxResultRecords": 1000,
+          "defaultScanLimitGbytes": 500,
+          "maxResultMegaBytes": 100,
+          "defaultSamplingRatio": 10,
+          "enableSampling": false
+        }
+      },
+      "6": {
+        "davis": {
+          "davisVisualization": {
+            "isAvailable": true
+          },
+          "enabled": false
+        },
+        "query": "fetch logs\n| filter dt.openpipeline.source == \"extension:custom:netflow-observability\" and coalesce(content, \"\") != \"collector_diagnostics\"\n| filter coalesce(`netflow.flow.direction`, \"unknown\") == \"unknown\"\n| summarize flow_count = count(), bytes = sum(toLong(coalesce(`netflow.flow.io.bytes`, 0))), by: {src_ip = coalesce(`netflow.source.ip`, \"unknown\")}\n| fieldsAdd gb = round(bytes / 1073741824.0, decimals: 3)\n| sort flow_count desc\n| limit 20\n",
+        "title": "Unknown Direction Sources (Top 20)",
+        "type": "data",
+        "visualization": "table",
+        "visualizationSettings": {
+          "autoSelectVisualization": false
+        },
+        "querySettings": {
+          "maxResultRecords": 1000,
+          "defaultScanLimitGbytes": 500,
+          "maxResultMegaBytes": 100,
+          "defaultSamplingRatio": 10,
+          "enableSampling": false
+        }
+      },
+      "7": {
+        "davis": {
+          "davisVisualization": {
+            "isAvailable": true
+          },
+          "enabled": false
+        },
+        "query": "fetch logs\n| filter dt.openpipeline.source == \"extension:custom:netflow-observability\" and coalesce(content, \"\") != \"collector_diagnostics\"\n| filter coalesce(`netflow.destination.hostname`, \"\") == \"\"\n| summarize flow_count = count(), bytes = sum(toLong(coalesce(`netflow.flow.io.bytes`, 0))), by: {dst_ip = coalesce(`netflow.destination.ip`, \"unknown\")}\n| fieldsAdd gb = round(bytes / 1073741824.0, decimals: 3)\n| sort flow_count desc\n| limit 20\n",
+        "title": "Unresolved DNS Destinations (Top 20)",
+        "type": "data",
+        "visualization": "table",
+        "visualizationSettings": {
+          "autoSelectVisualization": false
+        },
+        "querySettings": {
+          "maxResultRecords": 1000,
+          "defaultScanLimitGbytes": 500,
+          "maxResultMegaBytes": 100,
+          "defaultSamplingRatio": 10,
+          "enableSampling": false
+        }
+      },
+      "8": {
+        "davis": {
+          "davisVisualization": {
+            "isAvailable": true
+          },
+          "enabled": false
+        },
+        "query": "fetch logs\n| filter dt.openpipeline.source == \"extension:custom:netflow-observability\" and coalesce(content, \"\") != \"collector_diagnostics\"\n| filter (coalesce(`netflow.destination.provider`, \"\") == \"\" or coalesce(`netflow.destination.provider`, \"\") == \"private\") and coalesce(`netflow.destination.asn`, \"\") == \"\"\n| summarize flow_count = count(), bytes = sum(toLong(coalesce(`netflow.flow.io.bytes`, 0))), by: {dst_ip = coalesce(`netflow.destination.ip`, \"unknown\"), dst_hostname = coalesce(`netflow.destination.hostname`, \"unresolved\")}\n| fieldsAdd gb = round(bytes / 1073741824.0, decimals: 3)\n| sort flow_count desc\n| limit 20\n",
+        "title": "Unenriched IPs (Top 20 - No Provider/ASN)",
+        "type": "data",
+        "visualization": "table",
+        "visualizationSettings": {
+          "autoSelectVisualization": false
+        },
+        "querySettings": {
+          "maxResultRecords": 1000,
+          "defaultScanLimitGbytes": 500,
+          "maxResultMegaBytes": 100,
+          "defaultSamplingRatio": 10,
+          "enableSampling": false
+        }
+      },
+      "9": {
+        "davis": {
+          "davisVisualization": {
+            "isAvailable": true
+          },
+          "enabled": false
+        },
+        "query": "fetch logs\n| filter dt.openpipeline.source == \"extension:custom:netflow-observability\" and coalesce(content, \"\") != \"collector_diagnostics\"\n| filter coalesce(`netflow.flow.direction`, \"unknown\") == \"unknown\"\n| summarize bytes = sum(toLong(coalesce(`netflow.flow.io.bytes`, 0))), flow_count = count(), by: {src_ip = coalesce(`netflow.source.ip`, \"unknown\"), dst_ip = coalesce(`netflow.destination.ip`, \"unknown\"), protocol = coalesce(`netflow.network.transport`, \"unknown\")}\n| fieldsAdd gb = round(bytes / 1073741824.0, decimals: 3)\n| filter gb > 0.01\n| sort gb desc\n| limit 20\n",
+        "title": "Suspicious Outbound (Unknown Direction + High Volume)",
+        "type": "data",
+        "visualization": "table",
+        "visualizationSettings": {
+          "autoSelectVisualization": false
+        },
+        "querySettings": {
+          "maxResultRecords": 1000,
+          "defaultScanLimitGbytes": 500,
+          "maxResultMegaBytes": 100,
+          "defaultSamplingRatio": 10,
+          "enableSampling": false
+        }
+      },
+      "10": {
+        "davis": {
+          "davisVisualization": {
+            "isAvailable": true
+          },
+          "enabled": false
+        },
+        "query": "fetch logs\n| filter dt.openpipeline.source == \"extension:custom:netflow-observability\" and coalesce(content, \"\") != \"collector_diagnostics\"\n| summarize \n  total_flows = count(),\n  total_bytes = sum(toLong(coalesce(`netflow.flow.io.bytes`, 0))),\n  unknown_direction_flows = countIf(coalesce(`netflow.flow.direction`, \"unknown\") == \"unknown\"),\n  unresolved_dns_flows = countIf(coalesce(`netflow.destination.hostname`, \"\") == \"\"),\n  unenriched_flows = countIf((coalesce(`netflow.destination.provider`, \"\") == \"\" or coalesce(`netflow.destination.provider`, \"\") == \"private\") and coalesce(`netflow.destination.asn`, \"\") == \"\"),\n  by: {}\n| fieldsAdd \n  pct_unknown_dir = round(100.0 * unknown_direction_flows / total_flows, decimals: 1),\n  pct_unresolved_dns = round(100.0 * unresolved_dns_flows / total_flows, decimals: 1),\n  pct_unenriched = round(100.0 * unenriched_flows / total_flows, decimals: 1),\n  total_gb = round(total_bytes / 1073741824.0, decimals: 2)\n",
+        "title": "All Quality Issues Summary",
+        "type": "data",
+        "visualization": "table",
+        "visualizationSettings": {
+          "autoSelectVisualization": false
+        },
+        "querySettings": {
+          "maxResultRecords": 1000,
+          "defaultScanLimitGbytes": 500,
+          "maxResultMegaBytes": 100,
+          "defaultSamplingRatio": 10,
+          "enableSampling": false
+        }
+      }
+    },
+    "variables": [],
+    "version": 21
+  }
+}

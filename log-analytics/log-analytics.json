@@ -1,0 +1,1184 @@
+{
+  "name": "Log Analytics",
+  "type": "dashboard",
+  "owner": "<YOUR_DYNATRACE_USER_ID>",
+  "isPrivate": false,
+  "version": 8,
+  "modificationInfo": {
+    "createdBy": "",
+    "createdTime": "",
+    "lastModifiedBy": "",
+    "lastModifiedTime": ""
+  },
+  "content": {
+    "version": 21,
+    "variables": [
+      {
+        "version": 3,
+        "key": "Buckets",
+        "type": "query",
+        "visible": true,
+        "input": "fetch dt.system.buckets\n| filter dt.system.table==\"logs\"\n| fields name\n| sort name",
+        "multiple": true,
+        "defaultValue": [
+          "default_logs"
+        ],
+        "name": "Buckets"
+      },
+      {
+        "version": 3,
+        "key": "Namespace",
+        "type": "query",
+        "visible": true,
+        "input": "data record(entity.name=\"Non-Kubernetes\")\n| append [fetch dt.entity.cloud_application_namespace\n| fields entity.name\n| sort entity.name]",
+        "multiple": true,
+        "defaultValue": [
+          "3420b2ac-f1cf-4b24-b62d-61ba1ba8ed05*"
+        ],
+        "name": "Namespace"
+      },
+      {
+        "version": 3,
+        "key": "logsource",
+        "type": "text",
+        "visible": true,
+        "name": "logsource"
+      },
+      {
+        "version": 3,
+        "key": "Sampling",
+        "type": "csv",
+        "visible": true,
+        "input": "10000,1000,100,10,1",
+        "multiple": false,
+        "defaultValue": "100",
+        "name": "Sampling"
+      },
+      {
+        "version": 3,
+        "key": "Status",
+        "type": "csv",
+        "visible": true,
+        "input": "NONE,INFO,WARN,ERROR",
+        "multiple": false,
+        "defaultValue": "ERROR",
+        "name": "Status"
+      },
+      {
+        "version": 3,
+        "key": "Content",
+        "type": "text",
+        "visible": true,
+        "name": "Content"
+      }
+    ],
+    "tiles": {
+      "2": {
+        "title": "Logs per Status over Time with total sums on the left for each status",
+        "type": "data",
+        "query": "fetch logs, samplingRatio:toLong($Sampling)\n| filter in(dt.system.bucket, $Buckets)\n| filter ((isNull(k8s.namespace.name) and in(\"Non-Kubernetes\",array($Namespace)) or in(k8s.namespace.name, array($Namespace))) and (isNull($logsource) or matchesValue($logsource, \" \") or contains(log.source,$logsource)))\n| filter contains(content, $Content)\n| maketimeseries {count=count(default:0)}, by: {status}, bins:60",
+        "visualization": "barChart",
+        "visualizationSettings": {
+          "chartSettings": {
+            "truncationMode": "middle",
+            "legend": {
+              "hidden": true
+            },
+            "xAxisLabel": "timeframe",
+            "xAxisScaling": "analyzedTimeframe",
+            "hiddenLegendFields": [
+              "dt.entity.process_group",
+              "dt.entity.cloud_application",
+              "dt.entity.process_group_instance"
+            ],
+            "fieldMapping": {
+              "leftAxisValues": [
+                "count"
+              ],
+              "timestamp": "timeframe"
+            }
+          },
+          "coloring": {
+            "colorRules": [
+              {
+                "field": "DT.name",
+                "comparator": "= *value*",
+                "value": "",
+                "type": "string",
+                "colorMode": "color-palette",
+                "colorPalette": "log-level"
+              }
+            ]
+          },
+          "autoSelectVisualization": false
+        },
+        "querySettings": {
+          "maxResultRecords": 1000,
+          "defaultScanLimitGbytes": 50,
+          "maxResultMegaBytes": 1,
+          "defaultSamplingRatio": 10,
+          "enableSampling": false
+        },
+        "davis": {
+          "enabled": false,
+          "davisVisualization": {
+            "isAvailable": true
+          }
+        }
+      },
+      "3": {
+        "type": "markdown",
+        "content": "### Quick Start: Let Dynatrace Make your Logs Actionable!\n\n[Watch on YouTube](https://www.youtube.com/watch?v=TmdqFtivtdo) This dashboard gives quick access to relevant logs that you can easily filter on ...\n* **buckets**: Specify which data set you want to query!\n* **namespaces**: Running on k8s? Then select the namespaces your are interested in\n* **logsource**: Want to analyze a specific log file or source?\n* **sampling**: Leverage the DQL sampling feature, e.g:only analyze every 100th log!\n* **status**: This is the status filter for the **Top 20 Tables**\n* **content**: Looking for a specific message? Then enter the log content pattern\n\n**To test this dashboard on the Playground Tenant please try the following settings:** \n* [Scenario with all namespaces with any logsource](https://wkf10640.apps.dynatrace.com/ui/apps/dynatrace.dashboards/dashboard/bfb7e2ed-e545-43fa-ae07-72ec92cbaaf9#from=now%28%29-2h&to=now%28%29&tileIds=3&vfilter_Buckets=default_logs&vfilter_Namespace=3420b2ac-f1cf-4b24-b62d-61ba1ba8ed05*&&vfilter_logsource=%20&vfilter_Sampling=100&vfilter_Status=ERROR)\n* [Scenario focusing on content from log sources that contain .log](https://wkf10640.apps.dynatrace.com/ui/apps/dynatrace.dashboards/dashboard/bfb7e2ed-e545-43fa-ae07-72ec92cbaaf9#from=now%28%29-2h&to=now%28%29&tileIds=3&vfilter_Buckets=default_logs&vfilter_Namespace=3420b2ac-f1cf-4b24-b62d-61ba1ba8ed05*&vfilter_logsource=.log&vfilter_Sampling=100&vfilter_Status=ERROR)\n\nIf you have feedback please send it to [devrel@dynatrace.com](mailto:devrel@dynatrace.com?subject=Feedback%20Log%20Pattern%20Dashboard)"
+      },
+      "4": {
+        "title": "Top 20 Log Messages overall",
+        "type": "data",
+        "query": "fetch logs, samplingRatio:toLong($Sampling)\n| filter in(dt.system.bucket, $Buckets)\n| filter ((isNull(k8s.namespace.name) and in(\"Non-Kubernetes\",array($Namespace)) or in(k8s.namespace.name, array($Namespace))) and (isNull($logsource) or matchesValue($logsource, \" \") or contains(log.source,$logsource)))\n| filter contains(content, $Content)\n| summarize count=count(), by:{status,content}\n| sort count desc\n| limit 20\n| fields count, status, content",
+        "visualization": "table",
+        "visualizationSettings": {
+          "table": {
+            "columnTypeOverrides": [
+              {
+                "fields": [
+                  "content"
+                ],
+                "id": 1733924190106,
+                "value": "log-content"
+              }
+            ],
+            "enableSparklines": true,
+            "linewrapEnabled": true,
+            "monospacedFontColumns": [
+              [
+                "content"
+              ]
+            ],
+            "monospacedFontEnabled": true,
+            "lineWrapIds": [
+              [
+                "content"
+              ]
+            ],
+            "sortBy": [
+              {
+                "columnId": "[\"count()\"]",
+                "direction": "descending"
+              }
+            ],
+            "columnWidths": {
+              "[\"pattern\"]": 1504,
+              "[\"example\"]": 1736,
+              "[\"content\"]": 620
+            }
+          },
+          "autoSelectVisualization": false
+        },
+        "querySettings": {
+          "maxResultRecords": 1000,
+          "defaultScanLimitGbytes": 50,
+          "maxResultMegaBytes": 1,
+          "defaultSamplingRatio": 10,
+          "enableSampling": false
+        },
+        "davis": {
+          "enabled": false,
+          "davisVisualization": {
+            "isAvailable": true
+          }
+        }
+      },
+      "5": {
+        "title": "Top 20 Log Messages for selected Status",
+        "type": "data",
+        "query": "fetch logs, samplingRatio:toLong($Sampling)\n| filter in(dt.system.bucket, $Buckets)\n| filter ((isNull(k8s.namespace.name) and in(\"Non-Kubernetes\",array($Namespace)) or in(k8s.namespace.name, array($Namespace))) and (isNull($logsource) or matchesValue($logsource, \" \") or contains(log.source,$logsource)))\n| filter contains(content, $Content)\n| filter status == $Status\n| summarize count=count(), by:{status,content}\n| sort count desc\n| limit 20\n| fields count, status, content",
+        "visualization": "table",
+        "visualizationSettings": {
+          "table": {
+            "columnTypeOverrides": [
+              {
+                "fields": [
+                  "content"
+                ],
+                "id": 1733924188871,
+                "value": "log-content"
+              }
+            ],
+            "enableSparklines": true,
+            "linewrapEnabled": true,
+            "monospacedFontColumns": [
+              [
+                "content"
+              ]
+            ],
+            "monospacedFontEnabled": true,
+            "lineWrapIds": [
+              [
+                "content"
+              ]
+            ],
+            "sortBy": [
+              {
+                "columnId": "[\"count()\"]",
+                "direction": "descending"
+              }
+            ],
+            "columnWidths": {
+              "[\"pattern\"]": 1504,
+              "[\"example\"]": 1736,
+              "[\"content\"]": 552
+            }
+          },
+          "autoSelectVisualization": false
+        },
+        "querySettings": {
+          "maxResultRecords": 1000,
+          "defaultScanLimitGbytes": 50,
+          "maxResultMegaBytes": 1,
+          "defaultSamplingRatio": 10,
+          "enableSampling": false
+        },
+        "davis": {
+          "enabled": false,
+          "davisVisualization": {
+            "isAvailable": true
+          }
+        }
+      },
+      "6": {
+        "title": "Top 20 Log Messages for selected Status connected to Trace",
+        "type": "data",
+        "query": "fetch logs, samplingRatio:toLong($Sampling)\n| filter in(dt.system.bucket, $Buckets)\n| filter ((isNull(k8s.namespace.name) and in(\"Non-Kubernetes\",array($Namespace)) or in(k8s.namespace.name, array($Namespace))) and (isNull($logsource) or matchesValue($logsource, \" \") or contains(log.source,$logsource)))\n| filter contains(content, $Content)\n| filter isNotNull(trace_id)\n| summarize count=count(), by:{status,content,trace_id,timestamp}\n| sort count desc\n| limit 20\n| fields count, status, content, trace_id, timestamp",
+        "visualization": "table",
+        "visualizationSettings": {
+          "table": {
+            "columnTypeOverrides": [
+              {
+                "fields": [
+                  "content"
+                ],
+                "id": 1733924222663,
+                "value": "log-content"
+              }
+            ],
+            "enableSparklines": true,
+            "linewrapEnabled": true,
+            "monospacedFontColumns": [
+              [
+                "content"
+              ]
+            ],
+            "monospacedFontEnabled": true,
+            "lineWrapIds": [
+              [
+                "content"
+              ]
+            ],
+            "sortBy": [
+              {
+                "columnId": "[\"count()\"]",
+                "direction": "descending"
+              }
+            ],
+            "columnWidths": {
+              "[\"pattern\"]": 1504,
+              "[\"example\"]": 1736,
+              "[\"content\"]": 771
+            }
+          },
+          "autoSelectVisualization": false
+        },
+        "querySettings": {
+          "maxResultRecords": 1000,
+          "defaultScanLimitGbytes": 50,
+          "maxResultMegaBytes": 1,
+          "defaultSamplingRatio": 10,
+          "enableSampling": false
+        },
+        "davis": {
+          "enabled": false,
+          "davisVisualization": {
+            "isAvailable": true
+          }
+        }
+      },
+      "7": {
+        "title": "",
+        "type": "data",
+        "query": "fetch logs, samplingRatio:toLong($Sampling)\n| filter in(dt.system.bucket, $Buckets)\n| filter ((isNull(k8s.namespace.name) and in(\"Non-Kubernetes\",array($Namespace)) or in(k8s.namespace.name, array($Namespace))) and (isNull($logsource) or matchesValue($logsource, \" \") or contains(log.source,$logsource)))\n| filter contains(content, $Content)\n| filter status == \"NONE\"\n| summarize count()",
+        "visualization": "singleValue",
+        "visualizationSettings": {
+          "singleValue": {
+            "labelMode": "none",
+            "label": "count()",
+            "recordField": "count()",
+            "prefixIcon": "",
+            "trend": {
+              "isVisible": false,
+              "trendField": "count()",
+              "trendType": "custom"
+            }
+          },
+          "autoSelectVisualization": false
+        },
+        "querySettings": {
+          "maxResultRecords": 1000,
+          "defaultScanLimitGbytes": 50,
+          "maxResultMegaBytes": 1,
+          "defaultSamplingRatio": 10,
+          "enableSampling": false
+        },
+        "davis": {
+          "enabled": false,
+          "davisVisualization": {
+            "isAvailable": true
+          }
+        }
+      },
+      "8": {
+        "title": "",
+        "type": "data",
+        "query": "fetch logs, samplingRatio:toLong($Sampling)\n| filter in(dt.system.bucket, $Buckets)\n| filter ((isNull(k8s.namespace.name) and in(\"Non-Kubernetes\",array($Namespace)) or in(k8s.namespace.name, array($Namespace))) and (isNull($logsource) or matchesValue($logsource, \" \") or contains(log.source,$logsource)))\n| filter contains(content, $Content)\n| filter status == \"INFO\"\n| summarize count()",
+        "visualization": "singleValue",
+        "visualizationSettings": {
+          "singleValue": {
+            "labelMode": "none",
+            "label": "count()",
+            "recordField": "count()",
+            "prefixIcon": "",
+            "trend": {
+              "isVisible": false,
+              "trendField": "count()",
+              "trendType": "custom"
+            }
+          },
+          "coloring": {
+            "colorRules": [
+              {
+                "value": 0,
+                "comparator": "\u2265",
+                "field": "count()",
+                "colorMode": "custom-color",
+                "customColor": {
+                  "Default": "var(--dt-colors-charts-categorical-color-01-default, #134fc9)"
+                }
+              }
+            ]
+          },
+          "autoSelectVisualization": false
+        },
+        "querySettings": {
+          "maxResultRecords": 1000,
+          "defaultScanLimitGbytes": 50,
+          "maxResultMegaBytes": 1,
+          "defaultSamplingRatio": 10,
+          "enableSampling": false
+        },
+        "davis": {
+          "enabled": false,
+          "davisVisualization": {
+            "isAvailable": true
+          }
+        }
+      },
+      "9": {
+        "title": "",
+        "type": "data",
+        "query": "fetch logs, samplingRatio:toLong($Sampling)\n| filter in(dt.system.bucket, $Buckets)\n| filter ((isNull(k8s.namespace.name) and in(\"Non-Kubernetes\",array($Namespace)) or in(k8s.namespace.name, array($Namespace))) and (isNull($logsource) or matchesValue($logsource, \" \") or contains(log.source,$logsource)))\n| filter contains(content, $Content)\n| filter status == \"WARN\"\n| summarize count()",
+        "visualization": "singleValue",
+        "visualizationSettings": {
+          "singleValue": {
+            "labelMode": "none",
+            "label": "count()",
+            "recordField": "count()",
+            "prefixIcon": "",
+            "trend": {
+              "isVisible": false,
+              "trendField": "count()",
+              "trendType": "custom"
+            }
+          },
+          "coloring": {
+            "colorRules": [
+              {
+                "value": 0,
+                "comparator": "\u2265",
+                "field": "count()",
+                "colorMode": "custom-color",
+                "customColor": {
+                  "Default": "var(--dt-colors-charts-categorical-color-14-default, #d56b1a)"
+                }
+              }
+            ]
+          },
+          "autoSelectVisualization": false
+        },
+        "querySettings": {
+          "maxResultRecords": 1000,
+          "defaultScanLimitGbytes": 50,
+          "maxResultMegaBytes": 1,
+          "defaultSamplingRatio": 10,
+          "enableSampling": false
+        },
+        "davis": {
+          "enabled": false,
+          "davisVisualization": {
+            "isAvailable": true
+          }
+        }
+      },
+      "10": {
+        "title": "",
+        "type": "data",
+        "query": "fetch logs, samplingRatio:toLong($Sampling)\n| filter in(dt.system.bucket, $Buckets)\n| filter ((isNull(k8s.namespace.name) and in(\"Non-Kubernetes\",array($Namespace)) or in(k8s.namespace.name, array($Namespace))) and (isNull($logsource) or matchesValue($logsource, \" \") or contains(log.source,$logsource)))\n| filter contains(content, $Content)\n| filter status == \"ERROR\"\n| summarize count()",
+        "visualization": "singleValue",
+        "visualizationSettings": {
+          "singleValue": {
+            "labelMode": "none",
+            "label": "count()",
+            "recordField": "count()",
+            "prefixIcon": "",
+            "trend": {
+              "isVisible": false,
+              "trendField": "count()",
+              "trendType": "custom"
+            }
+          },
+          "coloring": {
+            "colorRules": [
+              {
+                "value": 0,
+                "comparator": "\u2265",
+                "field": "count()",
+                "colorMode": "custom-color",
+                "customColor": {
+                  "Default": "var(--dt-colors-charts-categorical-color-12-default, #cd3741)"
+                }
+              }
+            ]
+          },
+          "autoSelectVisualization": false
+        },
+        "querySettings": {
+          "maxResultRecords": 1000,
+          "defaultScanLimitGbytes": 50,
+          "maxResultMegaBytes": 1,
+          "defaultSamplingRatio": 10,
+          "enableSampling": false
+        },
+        "davis": {
+          "enabled": false,
+          "davisVisualization": {
+            "isAvailable": true
+          }
+        }
+      },
+      "11": {
+        "title": "",
+        "type": "data",
+        "query": "fetch logs, samplingRatio:toLong($Sampling)\n| filter in(dt.system.bucket, $Buckets)\n| filter ((isNull(k8s.namespace.name) and in(\"Non-Kubernetes\",array($Namespace)) or in(k8s.namespace.name, array($Namespace))) and (isNull($logsource) or matchesValue($logsource, \" \") or contains(log.source,$logsource)))\n| filter contains(content, $Content)\n| limit 100\n| fields status, timestamp, log.source, content, dt.entity.host, dt.entity.kubernetes_cluster, dt.entity.cloud_application, dt.entity.cloud_application_instance, dt.entity.cloud_application_namespace, trace_id, span_id",
+        "visualization": "table",
+        "visualizationSettings": {
+          "table": {
+            "columnTypeOverrides": [
+              {
+                "fields": [
+                  "content"
+                ],
+                "id": 1733924224022,
+                "value": "log-content"
+              }
+            ],
+            "enableSparklines": true,
+            "hiddenColumns": [
+              [
+                "dt.entity.host"
+              ],
+              [
+                "dt.entity.kubernetes_cluster"
+              ],
+              [
+                "dt.entity.cloud_application"
+              ],
+              [
+                "dt.entity.cloud_application_instance"
+              ],
+              [
+                "dt.entity.cloud_application_namespace"
+              ],
+              [
+                "trace_id"
+              ],
+              [
+                "span_id"
+              ]
+            ],
+            "linewrapEnabled": true,
+            "monospacedFontColumns": [
+              [
+                "content"
+              ]
+            ],
+            "monospacedFontEnabled": true,
+            "lineWrapIds": [
+              [
+                "content"
+              ]
+            ],
+            "sortBy": [
+              {
+                "columnId": "[\"count()\"]",
+                "direction": "descending"
+              }
+            ],
+            "columnWidths": {
+              "[\"pattern\"]": 1504,
+              "[\"example\"]": 1736,
+              "[\"dt.entity.process_group\"]": 322.01416015625,
+              "[\"dt.entity.process_group_instance\"]": 385,
+              "[\"log.source\"]": 164.09375,
+              "[\"content\"]": 743,
+              "[\"timestamp\"]": 231.6676025390625
+            }
+          },
+          "autoSelectVisualization": false
+        },
+        "querySettings": {
+          "maxResultRecords": 1000,
+          "defaultScanLimitGbytes": 50,
+          "maxResultMegaBytes": 1,
+          "defaultSamplingRatio": 10,
+          "enableSampling": false
+        },
+        "davis": {
+          "enabled": false,
+          "davisVisualization": {
+            "isAvailable": true
+          }
+        }
+      },
+      "12": {
+        "title": "Top Log Sources",
+        "type": "data",
+        "query": "fetch logs, samplingRatio:toLong($Sampling)\n| filter in(dt.system.bucket, $Buckets)\n| filter ((isNull(k8s.namespace.name) and in(\"Non-Kubernetes\",array($Namespace)) or in(k8s.namespace.name, array($Namespace))) and (isNull($logsource) or matchesValue($logsource, \" \") or contains(log.source,$logsource)))\n| filter contains(content, $Content)\n| summarize {count()}, by: {log.source}",
+        "visualization": "table",
+        "visualizationSettings": {
+          "table": {
+            "enableSparklines": true,
+            "hiddenColumns": [
+              [
+                "timeframe"
+              ],
+              [
+                "interval"
+              ]
+            ],
+            "lineWrapIds": [
+              [
+                "timeframe"
+              ],
+              [
+                "interval"
+              ],
+              [
+                "pattern"
+              ],
+              [
+                "count"
+              ]
+            ],
+            "sortBy": [
+              {
+                "columnId": "[\"count()\"]",
+                "direction": "descending"
+              }
+            ],
+            "columnWidths": {
+              "[\"pattern\"]": 1504,
+              "[\"example\"]": 1736,
+              "[\"log.source\"]": 367.73010253906244
+            }
+          },
+          "autoSelectVisualization": false
+        },
+        "querySettings": {
+          "maxResultRecords": 1000,
+          "defaultScanLimitGbytes": 50,
+          "maxResultMegaBytes": 1,
+          "defaultSamplingRatio": 10,
+          "enableSampling": false
+        },
+        "davis": {
+          "enabled": false,
+          "davisVisualization": {
+            "isAvailable": true
+          }
+        }
+      },
+      "13": {
+        "title": "NONE Logs with Error",
+        "type": "data",
+        "query": "fetch logs, samplingRatio:toLong($Sampling)\n| filter in(dt.system.bucket, $Buckets)\n| filter ((isNull(k8s.namespace.name) and in(\"Non-Kubernetes\",array($Namespace)) or in(k8s.namespace.name, array($Namespace))) and (isNull($logsource) or matchesValue($logsource, \" \") or contains(log.source,$logsource)))\n| filter contains(content, $Content)\n| filter contains(content, \"Error\") or contains(content, \"error\")\n| filter status == \"NONE\"\n| summarize count()",
+        "visualization": "singleValue",
+        "visualizationSettings": {
+          "singleValue": {
+            "labelMode": "none",
+            "label": "count()",
+            "recordField": "count()",
+            "prefixIcon": "",
+            "trend": {
+              "isVisible": false,
+              "trendType": "custom"
+            }
+          },
+          "coloring": {
+            "colorRules": [
+              {
+                "value": 0,
+                "comparator": "\u2265",
+                "field": "count()",
+                "colorMode": "custom-color",
+                "customColor": {
+                  "Default": "var(--dt-colors-charts-categorical-color-12-default, #cd3741)"
+                }
+              }
+            ]
+          },
+          "autoSelectVisualization": false
+        },
+        "querySettings": {
+          "maxResultRecords": 1000,
+          "defaultScanLimitGbytes": 50,
+          "maxResultMegaBytes": 1,
+          "defaultSamplingRatio": 10,
+          "enableSampling": false
+        },
+        "davis": {
+          "enabled": false,
+          "davisVisualization": {
+            "isAvailable": true
+          }
+        }
+      },
+      "14": {
+        "title": "NONE Logs with Error Content",
+        "type": "data",
+        "query": "fetch logs, samplingRatio:toLong($Sampling)\n| filter in(dt.system.bucket, $Buckets)\n| filter ((isNull(k8s.namespace.name) and in(\"Non-Kubernetes\",array($Namespace)) or in(k8s.namespace.name, array($Namespace))) and (isNull($logsource) or matchesValue($logsource, \" \") or contains(log.source,$logsource)))\n| filter contains(content, $Content)\n| filter contains(content, \"Error\") or contains(content, \"error\")\n| filter status == \"NONE\"\n| fields status, timestamp, log.source, content, dt.entity.host, dt.entity.kubernetes_cluster, dt.entity.cloud_application, dt.entity.cloud_application_instance, dt.entity.cloud_application_namespace, trace_id, span_id",
+        "visualization": "table",
+        "visualizationSettings": {
+          "table": {
+            "columnTypeOverrides": [
+              {
+                "fields": [
+                  "content"
+                ],
+                "id": 1733924278583,
+                "value": "log-content"
+              }
+            ],
+            "enableSparklines": true,
+            "hiddenColumns": [
+              [
+                "dt.entity.host"
+              ],
+              [
+                "dt.entity.kubernetes_cluster"
+              ],
+              [
+                "dt.entity.cloud_application"
+              ],
+              [
+                "dt.entity.cloud_application_instance"
+              ],
+              [
+                "dt.entity.cloud_application_namespace"
+              ],
+              [
+                "trace_id"
+              ],
+              [
+                "span_id"
+              ]
+            ],
+            "monospacedFontColumns": [
+              [
+                "content"
+              ]
+            ],
+            "monospacedFontEnabled": true,
+            "sortBy": [
+              {
+                "columnId": "[\"count()\"]",
+                "direction": "descending"
+              }
+            ],
+            "columnWidths": {
+              "[\"pattern\"]": 1504,
+              "[\"example\"]": 1736
+            }
+          },
+          "coloring": {
+            "colorRules": [
+              {
+                "value": 0,
+                "comparator": "\u2265",
+                "field": "count()",
+                "colorMode": "custom-color",
+                "customColor": {
+                  "Default": "var(--dt-colors-charts-categorical-color-12-default, #cd3741)"
+                }
+              }
+            ]
+          },
+          "autoSelectVisualization": false
+        },
+        "querySettings": {
+          "maxResultRecords": 1000,
+          "defaultScanLimitGbytes": 50,
+          "maxResultMegaBytes": 1,
+          "defaultSamplingRatio": 10,
+          "enableSampling": false
+        },
+        "davis": {
+          "enabled": false,
+          "davisVisualization": {
+            "isAvailable": true
+          }
+        }
+      },
+      "15": {
+        "title": "Number of Logs with Trace Context",
+        "type": "data",
+        "query": "fetch logs, samplingRatio:toLong($Sampling)\n| filter in(dt.system.bucket, $Buckets)\n| filter ((isNull(k8s.namespace.name) and in(\"Non-Kubernetes\",array($Namespace)) or in(k8s.namespace.name, array($Namespace))) and (isNull($logsource) or matchesValue($logsource, \" \") or contains(log.source,$logsource)))\n| filter contains(content, $Content)\n| filter isNotNull(trace_id)\n| summarize count()",
+        "visualization": "singleValue",
+        "visualizationSettings": {
+          "singleValue": {
+            "labelMode": "none",
+            "label": "count()",
+            "recordField": "count()",
+            "prefixIcon": "",
+            "trend": {
+              "isVisible": false,
+              "trendType": "custom"
+            }
+          },
+          "coloring": {
+            "colorRules": [
+              {
+                "value": 0,
+                "comparator": "\u2265",
+                "field": "count()",
+                "colorMode": "custom-color",
+                "customColor": {
+                  "Default": "var(--dt-colors-charts-categorical-color-09-default, #649438)"
+                }
+              }
+            ]
+          },
+          "autoSelectVisualization": false
+        },
+        "querySettings": {
+          "maxResultRecords": 1000,
+          "defaultScanLimitGbytes": 50,
+          "maxResultMegaBytes": 1,
+          "defaultSamplingRatio": 10,
+          "enableSampling": false
+        },
+        "davis": {
+          "enabled": false,
+          "davisVisualization": {
+            "isAvailable": true
+          }
+        }
+      },
+      "16": {
+        "title": "Top Log Message",
+        "type": "data",
+        "query": "fetch logs, samplingRatio:toLong($Sampling)\n| filter in(dt.system.bucket, $Buckets)\n| filter ((isNull(k8s.namespace.name) and in(\"Non-Kubernetes\",array($Namespace)) or in(k8s.namespace.name, array($Namespace))) and (isNull($logsource) or matchesValue($logsource, \" \") or contains(log.source,$logsource)))\n| filter contains(content, $Content)\n| summarize count=count(), by:{status,content}\n| sort count desc\n| limit 1\n| fields count, content",
+        "visualization": "table",
+        "visualizationSettings": {
+          "table": {
+            "columnTypeOverrides": [
+              {
+                "fields": [
+                  "content"
+                ],
+                "id": 1733924190536,
+                "value": "log-content"
+              }
+            ],
+            "enableSparklines": true,
+            "hiddenColumns": [
+              [
+                "timeframe"
+              ],
+              [
+                "interval"
+              ]
+            ],
+            "lineWrapIds": [
+              [
+                "timeframe"
+              ],
+              [
+                "interval"
+              ],
+              [
+                "pattern"
+              ],
+              [
+                "count"
+              ]
+            ],
+            "sortBy": [
+              {
+                "columnId": "[\"count()\"]",
+                "direction": "descending"
+              }
+            ],
+            "columnWidths": {
+              "[\"pattern\"]": 1504,
+              "[\"example\"]": 1736
+            }
+          },
+          "coloring": {
+            "colorRules": [
+              {
+                "value": 0,
+                "comparator": "\u2265",
+                "field": "count()",
+                "colorMode": "custom-color",
+                "customColor": {
+                  "Default": "var(--dt-colors-charts-categorical-color-09-default, #649438)"
+                }
+              }
+            ]
+          },
+          "autoSelectVisualization": false
+        },
+        "querySettings": {
+          "maxResultRecords": 1000,
+          "defaultScanLimitGbytes": 50,
+          "maxResultMegaBytes": 1,
+          "defaultSamplingRatio": 10,
+          "enableSampling": false
+        },
+        "davis": {
+          "enabled": false,
+          "davisVisualization": {
+            "isAvailable": true
+          }
+        }
+      },
+      "17": {
+        "title": "Number of Logs w/o Trace Context",
+        "type": "data",
+        "query": "fetch logs, samplingRatio:toLong($Sampling)\n| filter in(dt.system.bucket, $Buckets)\n| filter ((isNull(k8s.namespace.name) and in(\"Non-Kubernetes\",array($Namespace)) or in(k8s.namespace.name, array($Namespace))) and (isNull($logsource) or matchesValue($logsource, \" \") or contains(log.source,$logsource)))\n| filter contains(content, $Content)\n| filter isNull(trace_id)\n| summarize count()",
+        "visualization": "singleValue",
+        "visualizationSettings": {
+          "singleValue": {
+            "labelMode": "none",
+            "label": "count()",
+            "recordField": "count()",
+            "prefixIcon": "",
+            "trend": {
+              "isVisible": false,
+              "trendType": "custom"
+            }
+          },
+          "coloring": {
+            "colorRules": [
+              {
+                "value": 0,
+                "comparator": "\u2265",
+                "field": "count()",
+                "colorMode": "custom-color",
+                "customColor": {
+                  "Default": "var(--dt-colors-charts-categorical-color-12-default, #cd3741)"
+                }
+              }
+            ]
+          },
+          "autoSelectVisualization": false
+        },
+        "querySettings": {
+          "maxResultRecords": 1000,
+          "defaultScanLimitGbytes": 50,
+          "maxResultMegaBytes": 1,
+          "defaultSamplingRatio": 10,
+          "enableSampling": false
+        },
+        "davis": {
+          "enabled": false,
+          "davisVisualization": {
+            "isAvailable": true
+          }
+        }
+      },
+      "18": {
+        "type": "markdown",
+        "content": "### Top Logs\nAnalyze overall top log messages, for the selected filtered status or those that have a connected Trace\n\n**Open Trace:** In the Logs with Traces simply click on the log and select \"Open Record With\" to open the Distributed Traces App"
+      },
+      "19": {
+        "type": "markdown",
+        "content": "### Most Recent Logs that match the dashboard filter\nYou can also click on a log and select \"Open Record With\" to open the connected host, container or trace"
+      },
+      "20": {
+        "title": "Logs with Exceptions",
+        "type": "data",
+        "query": "fetch logs, samplingRatio:toLong($Sampling)\n| filter in(dt.system.bucket, $Buckets)\n| filter ((isNull(k8s.namespace.name) and in(\"Non-Kubernetes\",array($Namespace)) or in(k8s.namespace.name, array($Namespace))) and (isNull($logsource) or matchesValue($logsource, \" \") or contains(log.source,$logsource)))\n| filter contains(content, \"Exception\")\n| summarize count=count()\n\n",
+        "visualization": "singleValue",
+        "visualizationSettings": {
+          "singleValue": {
+            "labelMode": "none",
+            "label": "count",
+            "recordField": "count",
+            "prefixIcon": "",
+            "trend": {
+              "isVisible": false,
+              "trendType": "custom"
+            }
+          },
+          "coloring": {
+            "colorRules": [
+              {
+                "value": 0,
+                "comparator": "\u2265",
+                "field": "count",
+                "colorMode": "custom-color",
+                "customColor": {
+                  "Default": "var(--dt-colors-charts-categorical-color-12-default, #cd3741)"
+                }
+              }
+            ]
+          },
+          "autoSelectVisualization": false
+        },
+        "querySettings": {
+          "maxResultRecords": 1000,
+          "defaultScanLimitGbytes": 50,
+          "maxResultMegaBytes": 1,
+          "defaultSamplingRatio": 10,
+          "enableSampling": false
+        },
+        "davis": {
+          "enabled": false,
+          "davisVisualization": {
+            "isAvailable": true
+          }
+        }
+      },
+      "21": {
+        "type": "markdown",
+        "content": "### Logs with errors or exceptions\nSometimes we have logs that contain error or exception information but we miss it because the log level is not properly set. \nFollowing two tables show logs that should be errors!"
+      },
+      "22": {
+        "title": "Logs with Exceptions",
+        "type": "data",
+        "query": "fetch logs, samplingRatio:toLong($Sampling)\n| filter in(dt.system.bucket, $Buckets)\n| filter ((isNull(k8s.namespace.name) and in(\"Non-Kubernetes\",array($Namespace)) or in(k8s.namespace.name, array($Namespace))) and (isNull($logsource) or matchesValue($logsource, \" \") or contains(log.source,$logsource)))\n| filter contains(content, $Content)\n| filter contains(content, \"Exception\") or contains(content, \"exception\")\n| fields status, timestamp, log.source, content, dt.entity.host, dt.entity.kubernetes_cluster, dt.entity.cloud_application, dt.entity.cloud_application_instance, dt.entity.cloud_application_namespace, trace_id, span_id",
+        "visualization": "table",
+        "visualizationSettings": {
+          "table": {
+            "enableSparklines": true,
+            "hiddenColumns": [
+              [
+                "dt.entity.host"
+              ],
+              [
+                "dt.entity.kubernetes_cluster"
+              ],
+              [
+                "dt.entity.cloud_application"
+              ],
+              [
+                "dt.entity.cloud_application_instance"
+              ],
+              [
+                "dt.entity.cloud_application_namespace"
+              ],
+              [
+                "trace_id"
+              ],
+              [
+                "span_id"
+              ]
+            ],
+            "monospacedFontColumns": [
+              [
+                "content"
+              ]
+            ],
+            "monospacedFontEnabled": true,
+            "sortBy": [
+              {
+                "columnId": "[\"count()\"]",
+                "direction": "descending"
+              }
+            ],
+            "columnWidths": {
+              "[\"pattern\"]": 1504,
+              "[\"example\"]": 1736
+            }
+          },
+          "coloring": {
+            "colorRules": [
+              {
+                "value": 0,
+                "comparator": "\u2265",
+                "field": "count()",
+                "colorMode": "custom-color",
+                "customColor": {
+                  "Default": "var(--dt-colors-charts-categorical-color-12-default, #cd3741)"
+                }
+              }
+            ]
+          },
+          "autoSelectVisualization": false
+        },
+        "querySettings": {
+          "maxResultRecords": 1000,
+          "defaultScanLimitGbytes": 50,
+          "maxResultMegaBytes": 1,
+          "defaultSamplingRatio": 10,
+          "enableSampling": false
+        },
+        "davis": {
+          "enabled": false,
+          "davisVisualization": {
+            "isAvailable": true
+          }
+        }
+      }
+    },
+    "layouts": {
+      "2": {
+        "x": 2,
+        "y": 6,
+        "w": 14,
+        "h": 8
+      },
+      "3": {
+        "x": 0,
+        "y": 0,
+        "w": 16,
+        "h": 6
+      },
+      "4": {
+        "x": 0,
+        "y": 16,
+        "w": 12,
+        "h": 7
+      },
+      "5": {
+        "x": 12,
+        "y": 16,
+        "w": 12,
+        "h": 7
+      },
+      "6": {
+        "x": 0,
+        "y": 23,
+        "w": 24,
+        "h": 5
+      },
+      "7": {
+        "x": 0,
+        "y": 12,
+        "w": 2,
+        "h": 2
+      },
+      "8": {
+        "x": 0,
+        "y": 10,
+        "w": 2,
+        "h": 2
+      },
+      "9": {
+        "x": 0,
+        "y": 8,
+        "w": 2,
+        "h": 2
+      },
+      "10": {
+        "x": 0,
+        "y": 6,
+        "w": 2,
+        "h": 2
+      },
+      "11": {
+        "x": 0,
+        "y": 30,
+        "w": 24,
+        "h": 8
+      },
+      "12": {
+        "x": 16,
+        "y": 8,
+        "w": 8,
+        "h": 6
+      },
+      "13": {
+        "x": 16,
+        "y": 0,
+        "w": 4,
+        "h": 3
+      },
+      "14": {
+        "x": 0,
+        "y": 40,
+        "w": 24,
+        "h": 5
+      },
+      "15": {
+        "x": 16,
+        "y": 3,
+        "w": 4,
+        "h": 3
+      },
+      "16": {
+        "x": 16,
+        "y": 6,
+        "w": 8,
+        "h": 2
+      },
+      "17": {
+        "x": 20,
+        "y": 3,
+        "w": 4,
+        "h": 3
+      },
+      "18": {
+        "x": 0,
+        "y": 14,
+        "w": 24,
+        "h": 2
+      },
+      "19": {
+        "x": 0,
+        "y": 28,
+        "w": 24,
+        "h": 2
+      },
+      "20": {
+        "x": 20,
+        "y": 0,
+        "w": 4,
+        "h": 3
+      },
+      "21": {
+        "x": 0,
+        "y": 38,
+        "w": 24,
+        "h": 2
+      },
+      "22": {
+        "x": 0,
+        "y": 45,
+        "w": 24,
+        "h": 5
+      }
+    },
+    "settings": {},
+    "importedWithCode": false,
+    "annotations": []
+  }
+}

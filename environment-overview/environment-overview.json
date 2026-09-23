@@ -1,0 +1,556 @@
+{
+  "name": "Environment Overview - v1",
+  "type": "dashboard",
+  "owner": "<YOUR_DYNATRACE_USER_ID>",
+  "isPrivate": false,
+  "version": 10,
+  "modificationInfo": {
+    "createdBy": "",
+    "createdTime": "",
+    "lastModifiedBy": "",
+    "lastModifiedTime": ""
+  },
+  "content": {
+    "annotations": [],
+    "importedWithCode": false,
+    "layouts": {
+      "1": {
+        "h": 3,
+        "w": 6,
+        "x": 0,
+        "y": 0
+      },
+      "10": {
+        "h": 6,
+        "w": 14,
+        "x": 10,
+        "y": 16
+      },
+      "11": {
+        "h": 6,
+        "w": 12,
+        "x": 0,
+        "y": 22
+      },
+      "12": {
+        "h": 6,
+        "w": 12,
+        "x": 12,
+        "y": 22
+      },
+      "2": {
+        "h": 3,
+        "w": 6,
+        "x": 6,
+        "y": 0
+      },
+      "3": {
+        "h": 3,
+        "w": 6,
+        "x": 12,
+        "y": 0
+      },
+      "4": {
+        "h": 3,
+        "w": 6,
+        "x": 18,
+        "y": 0
+      },
+      "5": {
+        "h": 7,
+        "w": 14,
+        "x": 0,
+        "y": 3
+      },
+      "6": {
+        "h": 7,
+        "w": 10,
+        "x": 14,
+        "y": 3
+      },
+      "7": {
+        "h": 6,
+        "w": 12,
+        "x": 0,
+        "y": 10
+      },
+      "8": {
+        "h": 6,
+        "w": 12,
+        "x": 12,
+        "y": 10
+      },
+      "9": {
+        "h": 6,
+        "w": 10,
+        "x": 0,
+        "y": 16
+      }
+    },
+    "settings": {
+      "defaultTimeframe": {
+        "enabled": true,
+        "value": {
+          "from": "now()-2h",
+          "to": "now()"
+        }
+      }
+    },
+    "tiles": {
+      "1": {
+        "davis": {
+          "davisVisualization": {
+            "isAvailable": true
+          },
+          "enabled": false
+        },
+        "query": "fetch events, from:-2h\n| filter event.kind == \"DAVIS_PROBLEM\"\n| filter event.status == \"ACTIVE\"\n| summarize open = countDistinct(display_id)\n",
+        "querySettings": {
+          "defaultSamplingRatio": 10,
+          "defaultScanLimitGbytes": 500,
+          "enableSampling": false,
+          "maxResultMegaBytes": 1,
+          "maxResultRecords": 1000
+        },
+        "title": "Open Problems Now",
+        "type": "data",
+        "visualization": "singleValue",
+        "visualizationSettings": {
+          "autoSelectVisualization": false,
+          "coloring": {
+            "colorRules": [
+              {
+                "colorMode": "custom-color",
+                "comparator": "=",
+                "customColor": {
+                  "Default": "var(--dt-colors-charts-status-ideal-default, #2f6862)"
+                },
+                "field": "open",
+                "value": 0
+              }
+            ]
+          },
+          "singleValue": {
+            "label": "Open Problems",
+            "recordField": "open"
+          }
+        }
+      },
+      "10": {
+        "davis": {
+          "davisVisualization": {
+            "isAvailable": true
+          },
+          "enabled": false
+        },
+        "query": "fetch logs, from:now()-2h\n| filter in(loglevel, array(\"ERROR\", \"WARN\", \"CRITICAL\", \"NOTICE\"))\n| makeTimeseries cnt=count(), interval:5m, by:{loglevel}\n",
+        "querySettings": {
+          "defaultSamplingRatio": 10,
+          "defaultScanLimitGbytes": 500,
+          "enableSampling": false,
+          "maxResultMegaBytes": 1,
+          "maxResultRecords": 1000
+        },
+        "title": "Log Volume \u2014 Errors, Warnings & Critical (stacked)",
+        "type": "data",
+        "visualization": "areaChart",
+        "visualizationSettings": {
+          "autoSelectVisualization": false,
+          "chartSettings": {
+            "legend": {
+              "position": "bottom"
+            }
+          }
+        }
+      },
+      "11": {
+        "davis": {
+          "davisVisualization": {
+            "isAvailable": true
+          },
+          "enabled": false
+        },
+        "query": "fetch spans, from:now()-2h\n| filter isNotNull(duration)\n| makeTimeseries {p50=percentile(duration, 50), p95=percentile(duration, 95), p99=percentile(duration, 99)}, interval:5m\n",
+        "querySettings": {
+          "defaultSamplingRatio": 10,
+          "defaultScanLimitGbytes": 500,
+          "enableSampling": false,
+          "maxResultMegaBytes": 1,
+          "maxResultRecords": 1000
+        },
+        "title": "Span Response Time \u2014 p50 / p95 / p99",
+        "type": "data",
+        "visualization": "lineChart",
+        "visualizationSettings": {
+          "autoSelectVisualization": false,
+          "chartSettings": {
+            "legend": {
+              "position": "bottom"
+            }
+          },
+          "unitsOverrides": [
+            {
+              "added": 1776795500396,
+              "baseUnit": "nanosecond",
+              "cascade": null,
+              "decimals": 1,
+              "delimiter": false,
+              "displayUnit": null,
+              "identifier": "p50",
+              "suffix": ""
+            },
+            {
+              "added": 1776795500396,
+              "baseUnit": "nanosecond",
+              "cascade": null,
+              "decimals": 1,
+              "delimiter": false,
+              "displayUnit": null,
+              "identifier": "p95",
+              "suffix": ""
+            },
+            {
+              "added": 1776795500396,
+              "baseUnit": "nanosecond",
+              "cascade": null,
+              "decimals": 1,
+              "delimiter": false,
+              "displayUnit": null,
+              "identifier": "p99",
+              "suffix": ""
+            }
+          ]
+        }
+      },
+      "12": {
+        "davis": {
+          "davisVisualization": {
+            "isAvailable": true
+          },
+          "enabled": false
+        },
+        "query": "fetch logs, from:now()-1h\n| filter in(loglevel, array(\"ERROR\", \"CRITICAL\"))\n| fieldsAdd hostname = coalesce(host.name, entityName(dt.entity.host))\n| summarize cnt=count(), by:{hostname, log.source}\n| sort cnt desc\n| limit 20\n",
+        "querySettings": {
+          "defaultSamplingRatio": 10,
+          "defaultScanLimitGbytes": 500,
+          "enableSampling": false,
+          "maxResultMegaBytes": 1,
+          "maxResultRecords": 1000
+        },
+        "title": "Top Log Error Sources \u2014 Last 1h",
+        "type": "data",
+        "visualization": "table",
+        "visualizationSettings": {
+          "autoSelectVisualization": false,
+          "table": {
+            "linewrapEnabled": true
+          }
+        }
+      },
+      "2": {
+        "davis": {
+          "davisVisualization": {
+            "isAvailable": true
+          },
+          "enabled": false
+        },
+        "query": "fetch events, from:-24h\n| filter event.kind == \"DAVIS_PROBLEM\"\n| summarize problems_24h = countDistinct(display_id)\n",
+        "querySettings": {
+          "defaultSamplingRatio": 10,
+          "defaultScanLimitGbytes": 500,
+          "enableSampling": false,
+          "maxResultMegaBytes": 1,
+          "maxResultRecords": 1000
+        },
+        "title": "Problems \u2014 Last 24h",
+        "type": "data",
+        "visualization": "singleValue",
+        "visualizationSettings": {
+          "autoSelectVisualization": false,
+          "coloring": {
+            "colorRules": [
+              {
+                "colorMode": "custom-color",
+                "comparator": "=",
+                "customColor": {
+                  "Default": "var(--dt-colors-charts-status-ideal-default, #2f6862)"
+                },
+                "field": "problems_24h",
+                "value": 0
+              }
+            ]
+          },
+          "singleValue": {
+            "label": "Problems (24h)",
+            "recordField": "problems_24h"
+          }
+        }
+      },
+      "3": {
+        "davis": {
+          "davisVisualization": {
+            "isAvailable": true
+          },
+          "enabled": false
+        },
+        "query": "fetch dt.entity.host\n| summarize monitored_hosts = count()\n",
+        "querySettings": {
+          "defaultSamplingRatio": 10,
+          "defaultScanLimitGbytes": 500,
+          "enableSampling": false,
+          "maxResultMegaBytes": 1,
+          "maxResultRecords": 1000
+        },
+        "title": "Monitored Hosts",
+        "type": "data",
+        "visualization": "singleValue",
+        "visualizationSettings": {
+          "autoSelectVisualization": false,
+          "singleValue": {
+            "label": "Hosts",
+            "recordField": "monitored_hosts"
+          }
+        }
+      },
+      "4": {
+        "davis": {
+          "davisVisualization": {
+            "isAvailable": true
+          },
+          "enabled": false
+        },
+        "query": "fetch logs, from:now()-1h\n| filter in(loglevel, array(\"ERROR\", \"CRITICAL\"))\n| summarize log_errors = count()\n",
+        "querySettings": {
+          "defaultSamplingRatio": 10,
+          "defaultScanLimitGbytes": 500,
+          "enableSampling": false,
+          "maxResultMegaBytes": 1,
+          "maxResultRecords": 1000
+        },
+        "title": "Log Errors \u2014 Last 1h",
+        "type": "data",
+        "visualization": "singleValue",
+        "visualizationSettings": {
+          "autoSelectVisualization": false,
+          "coloring": {
+            "colorRules": [
+              {
+                "colorMode": "custom-color",
+                "comparator": ">",
+                "customColor": {
+                  "Default": "var(--dt-colors-charts-status-critical-default, #c62239)"
+                },
+                "field": "log_errors",
+                "value": 500
+              }
+            ]
+          },
+          "singleValue": {
+            "label": "Log Errors (1h)",
+            "recordField": "log_errors"
+          }
+        }
+      },
+      "5": {
+        "davis": {
+          "davisVisualization": {
+            "isAvailable": true
+          },
+          "enabled": false
+        },
+        "query": "fetch events, from:-24h\n| filter event.kind == \"DAVIS_PROBLEM\"\n| summarize\n    event_name      = takeMin(event.name),\n    event_category  = takeMin(event.category),\n    event_start     = takeMin(event.start),\n    affected        = takeMin(affected_entity_names),\n    active_count    = countIf(event.status == \"ACTIVE\"),\n    by:{display_id}\n| fieldsAdd status = coalesce(if(active_count > 0, \"ACTIVE\"), \"CLOSED\")\n| sort event_start desc\n| limit 25\n",
+        "querySettings": {
+          "defaultSamplingRatio": 10,
+          "defaultScanLimitGbytes": 500,
+          "enableSampling": false,
+          "maxResultMegaBytes": 1,
+          "maxResultRecords": 1000
+        },
+        "title": "Recent Problems (last 24h) \u2014 auto-deduped by problem ID",
+        "type": "data",
+        "visualization": "table",
+        "visualizationSettings": {
+          "autoSelectVisualization": false,
+          "coloring": {
+            "colorRules": [
+              {
+                "colorMode": "custom-color",
+                "comparator": "=",
+                "customColor": {
+                  "Default": "var(--dt-colors-charts-status-critical-default, #c62239)"
+                },
+                "field": "status",
+                "value": "ACTIVE"
+              },
+              {
+                "colorMode": "custom-color",
+                "comparator": "=",
+                "customColor": {
+                  "Default": "var(--dt-colors-charts-status-ideal-default, #2f6862)"
+                },
+                "field": "status",
+                "value": "CLOSED"
+              }
+            ]
+          },
+          "table": {
+            "linewrapEnabled": true
+          }
+        }
+      },
+      "6": {
+        "davis": {
+          "davisVisualization": {
+            "isAvailable": true
+          },
+          "enabled": false
+        },
+        "query": "timeseries availability=avg(dt.synthetic.browser.availability), by:{dt.entity.synthetic_test}, from:now()-24h, interval:5m\n| fieldsAdd monitor=entityName(dt.entity.synthetic_test)\n| fieldsAdd last_availability=arrayLast(availability)\n| summarize last_availability=max(last_availability), by:{monitor}\n| fieldsAdd status=if(last_availability >= 100, \"UP\", else: if(last_availability > 0, \"DEGRADED\", else: \"DOWN\"))\n| fields monitor, status, last_availability\n| sort monitor asc\n",
+        "querySettings": {
+          "defaultSamplingRatio": 10,
+          "defaultScanLimitGbytes": 500,
+          "enableSampling": false,
+          "maxResultMegaBytes": 1,
+          "maxResultRecords": 1000
+        },
+        "title": "Synthetic Monitors \u2014 Status",
+        "type": "data",
+        "visualization": "table",
+        "visualizationSettings": {
+          "autoSelectVisualization": false,
+          "coloring": {
+            "colorRules": [
+              {
+                "colorMode": "custom-color",
+                "comparator": "=",
+                "customColor": {
+                  "Default": "var(--dt-colors-charts-status-critical-default, #c62239)"
+                },
+                "field": "status",
+                "value": "DOWN"
+              },
+              {
+                "colorMode": "custom-color",
+                "comparator": "=",
+                "customColor": {
+                  "Default": "var(--dt-colors-charts-status-warning-default, #eea53c)"
+                },
+                "field": "status",
+                "value": "DEGRADED"
+              },
+              {
+                "colorMode": "custom-color",
+                "comparator": "=",
+                "customColor": {
+                  "Default": "var(--dt-colors-charts-status-ideal-default, #2f6862)"
+                },
+                "field": "status",
+                "value": "UP"
+              }
+            ]
+          },
+          "table": {
+            "linewrapEnabled": true
+          }
+        }
+      },
+      "7": {
+        "davis": {
+          "davisVisualization": {
+            "isAvailable": true
+          },
+          "enabled": false
+        },
+        "query": "timeseries avg(dt.host.cpu.usage), by:{dt.entity.host}, from:now()-2h, interval:5m\n| fieldsAdd hostname = entityName(dt.entity.host)\n| fieldsRemove dt.entity.host\n",
+        "querySettings": {
+          "defaultSamplingRatio": 10,
+          "defaultScanLimitGbytes": 500,
+          "enableSampling": false,
+          "maxResultMegaBytes": 1,
+          "maxResultRecords": 1000
+        },
+        "title": "Host CPU Usage % \u2014 All Hosts",
+        "type": "data",
+        "visualization": "lineChart",
+        "visualizationSettings": {
+          "autoSelectVisualization": false,
+          "chartSettings": {
+            "legend": {
+              "position": "bottom"
+            }
+          }
+        }
+      },
+      "8": {
+        "davis": {
+          "davisVisualization": {
+            "isAvailable": true
+          },
+          "enabled": false
+        },
+        "query": "timeseries avg(dt.host.memory.used), by:{dt.entity.host}, from:now()-2h, interval:5m\n| fieldsAdd hostname = entityName(dt.entity.host)\n| fieldsRemove dt.entity.host\n",
+        "querySettings": {
+          "defaultSamplingRatio": 10,
+          "defaultScanLimitGbytes": 500,
+          "enableSampling": false,
+          "maxResultMegaBytes": 1,
+          "maxResultRecords": 1000
+        },
+        "title": "Host Memory Used \u2014 All Hosts",
+        "type": "data",
+        "visualization": "lineChart",
+        "visualizationSettings": {
+          "autoSelectVisualization": false,
+          "chartSettings": {
+            "legend": {
+              "position": "bottom"
+            }
+          }
+        }
+      },
+      "9": {
+        "davis": {
+          "davisVisualization": {
+            "isAvailable": true
+          },
+          "enabled": false
+        },
+        "query": "timeseries disk_pct=max(dt.host.disk.used.percent),\n  by:{dt.entity.host, dt.entity.disk},\n  from:now()-5m, interval:5m\n| fieldsAdd hostname = entityName(dt.entity.host)\n| fieldsRemove dt.entity.host\n| fields hostname, dt.entity.disk, disk_pct=arrayMax(disk_pct)\n| sort disk_pct desc\n| limit 30\n",
+        "querySettings": {
+          "defaultSamplingRatio": 10,
+          "defaultScanLimitGbytes": 500,
+          "enableSampling": false,
+          "maxResultMegaBytes": 1,
+          "maxResultRecords": 1000
+        },
+        "title": "Disk Usage % \u2014 All Hosts (highest first)",
+        "type": "data",
+        "visualization": "table",
+        "visualizationSettings": {
+          "autoSelectVisualization": false,
+          "coloring": {
+            "colorRules": [
+              {
+                "colorMode": "custom-color",
+                "comparator": ">",
+                "customColor": {
+                  "Default": "var(--dt-colors-charts-status-critical-default, #c62239)"
+                },
+                "field": "disk_pct",
+                "value": 85
+              }
+            ]
+          },
+          "table": {
+            "columnWidths": {
+              "[\"dt.entity.disk\"]": 205.38,
+              "[\"hostname\"]": 210.6
+            }
+          }
+        }
+      }
+    },
+    "variables": [],
+    "version": 21
+  }
+}

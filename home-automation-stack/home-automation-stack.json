@@ -1,0 +1,303 @@
+{
+  "name": "Home Automation Stack",
+  "type": "dashboard",
+  "owner": "<YOUR_DYNATRACE_USER_ID>",
+  "isPrivate": true,
+  "description": "automation.lindleyhome.com containers \u2014 HA, appdaemon, mosquitto, zwave, ha-mcp, otel-collector.",
+  "version": 1,
+  "modificationInfo": {
+    "createdBy": "",
+    "createdTime": "",
+    "lastModifiedBy": "",
+    "lastModifiedTime": ""
+  },
+  "content": {
+    "annotations": [],
+    "layouts": {
+      "0": {
+        "h": 4,
+        "w": 24,
+        "x": 0,
+        "y": 0
+      },
+      "1": {
+        "h": 4,
+        "w": 6,
+        "x": 0,
+        "y": 4
+      },
+      "2": {
+        "h": 4,
+        "w": 6,
+        "x": 6,
+        "y": 4
+      },
+      "3": {
+        "h": 4,
+        "w": 6,
+        "x": 12,
+        "y": 4
+      },
+      "4": {
+        "h": 4,
+        "w": 6,
+        "x": 18,
+        "y": 4
+      },
+      "5": {
+        "h": 8,
+        "w": 12,
+        "x": 0,
+        "y": 8
+      },
+      "6": {
+        "h": 8,
+        "w": 12,
+        "x": 12,
+        "y": 8
+      },
+      "7": {
+        "h": 8,
+        "w": 12,
+        "x": 0,
+        "y": 16
+      },
+      "8": {
+        "h": 8,
+        "w": 12,
+        "x": 12,
+        "y": 16
+      },
+      "9": {
+        "h": 10,
+        "w": 24,
+        "x": 0,
+        "y": 24
+      }
+    },
+    "settings": {
+      "defaultTimeframe": {
+        "enabled": true,
+        "value": {
+          "from": "now()-24h",
+          "to": "now()"
+        }
+      }
+    },
+    "tiles": {
+      "0": {
+        "content": "# Home Automation Stack\n\nHost **automation.lindleyhome.com** \u2014 Docker stack (complement to [HA Wall Kiosks](https://oei3894h.sprint.apps.dynatracelabs.com/ui/apps/dynatrace.dashboards/dashboard/46082379-e46e-46e9-a304-7706e309cbf6#from=now()-24h&to=now()) and [Ops Explorer](https://oei3894h.sprint.apps.dynatracelabs.com/ui/apps/dynatrace.dashboards/dashboard/0091f243-4911-4bae-bc3e-77e12ed4f8f8#from=now()-24h&to=now())).\n\n**Containers:** homeassistant \u00b7 appdaemon \u00b7 mosquitto \u00b7 zwavejs2mqtt \u00b7 ha-mcp \u00b7 otel-collector.\n\n**Automation:** SRG-HomeAssistant \u00b7 HASS Updater \u00b7 container silence detectors.",
+        "title": "",
+        "type": "markdown"
+      },
+      "1": {
+        "davis": {
+          "davisVisualization": {
+            "isAvailable": true
+          },
+          "enabled": false
+        },
+        "query": "fetch logs\n| filter host.name == \"automation.lindleyhome.com\" and isNotNull(container.name)\n| filter in(container.name, {\"homeassistant\", \"appdaemon\", \"mosquitto\", \"zwavejs2mqtt\", \"ha-mcp\", \"otel-collector\"})\n| summarize lines = count()",
+        "querySettings": {
+          "defaultSamplingRatio": 10,
+          "defaultScanLimitGbytes": 500,
+          "enableSampling": false,
+          "maxResultMegaBytes": 10,
+          "maxResultRecords": 1000
+        },
+        "title": "Container log lines",
+        "type": "data",
+        "visualization": "singleValue",
+        "visualizationSettings": {
+          "singleValue": {
+            "recordField": "lines"
+          }
+        }
+      },
+      "2": {
+        "davis": {
+          "davisVisualization": {
+            "isAvailable": true
+          },
+          "enabled": false
+        },
+        "query": "fetch logs\n| filter host.name == \"automation.lindleyhome.com\" and container.name == \"homeassistant\"\n| filter contains(lower(content), \"error\") or contains(lower(content), \"exception\")\n| summarize errors = count()",
+        "querySettings": {
+          "defaultSamplingRatio": 10,
+          "defaultScanLimitGbytes": 500,
+          "enableSampling": false,
+          "maxResultMegaBytes": 10,
+          "maxResultRecords": 1000
+        },
+        "title": "HA error-ish",
+        "type": "data",
+        "visualization": "singleValue",
+        "visualizationSettings": {
+          "singleValue": {
+            "recordField": "errors"
+          }
+        }
+      },
+      "3": {
+        "davis": {
+          "davisVisualization": {
+            "isAvailable": true
+          },
+          "enabled": false
+        },
+        "query": "fetch logs\n| filter host.name == \"automation.lindleyhome.com\" and container.name == \"appdaemon\"\n| filter contains(lower(content), \"error\") or contains(lower(content), \"exception\")\n| summarize errors = count()",
+        "querySettings": {
+          "defaultSamplingRatio": 10,
+          "defaultScanLimitGbytes": 500,
+          "enableSampling": false,
+          "maxResultMegaBytes": 10,
+          "maxResultRecords": 1000
+        },
+        "title": "AppDaemon error-ish",
+        "type": "data",
+        "visualization": "singleValue",
+        "visualizationSettings": {
+          "singleValue": {
+            "recordField": "errors"
+          }
+        }
+      },
+      "4": {
+        "davis": {
+          "davisVisualization": {
+            "isAvailable": true
+          },
+          "enabled": false
+        },
+        "query": "timeseries avg(dt.host.cpu.usage), filter:{host.name == \"automation.lindleyhome.com\"}\n| fieldsAdd `CPU %` = arrayAvg(`avg(dt.host.cpu.usage)`)\n| fields `CPU %`",
+        "querySettings": {
+          "defaultSamplingRatio": 10,
+          "defaultScanLimitGbytes": 500,
+          "enableSampling": false,
+          "maxResultMegaBytes": 10,
+          "maxResultRecords": 1000
+        },
+        "title": "Host CPU %",
+        "type": "data",
+        "visualization": "singleValue",
+        "visualizationSettings": {
+          "singleValue": {
+            "recordField": "CPU %"
+          }
+        }
+      },
+      "5": {
+        "davis": {
+          "davisVisualization": {
+            "isAvailable": true
+          },
+          "enabled": false
+        },
+        "query": "fetch logs\n| filter host.name == \"automation.lindleyhome.com\" and isNotNull(container.name)\n| filter in(container.name, {\"homeassistant\", \"appdaemon\", \"mosquitto\", \"zwavejs2mqtt\", \"ha-mcp\", \"otel-collector\", \"ops-explorer\"})\n| summarize lines=count(), by:{container.name}\n| sort lines desc",
+        "querySettings": {
+          "defaultSamplingRatio": 10,
+          "defaultScanLimitGbytes": 2000,
+          "enableSampling": false,
+          "maxResultMegaBytes": 10,
+          "maxResultRecords": 5000
+        },
+        "title": "Log volume by container",
+        "type": "data",
+        "visualization": "categoricalBarChart",
+        "visualizationSettings": {
+          "categoricalBarChart": {}
+        }
+      },
+      "6": {
+        "davis": {
+          "davisVisualization": {
+            "isAvailable": true
+          },
+          "enabled": false
+        },
+        "query": "fetch logs\n| filter host.name == \"automation.lindleyhome.com\" and isNotNull(container.name)\n| filter in(container.name, {\"homeassistant\", \"appdaemon\", \"mosquitto\", \"zwavejs2mqtt\", \"ha-mcp\", \"otel-collector\"})\n| makeTimeseries lines=count(), by:{container.name}, interval:5m",
+        "querySettings": {
+          "defaultSamplingRatio": 10,
+          "defaultScanLimitGbytes": 2000,
+          "enableSampling": false,
+          "maxResultMegaBytes": 10,
+          "maxResultRecords": 5000
+        },
+        "title": "Container log volume over time",
+        "type": "data",
+        "visualization": "lineChart",
+        "visualizationSettings": {
+          "lineChart": {}
+        }
+      },
+      "7": {
+        "davis": {
+          "davisVisualization": {
+            "isAvailable": true
+          },
+          "enabled": false
+        },
+        "query": "fetch logs\n| filter host.name == \"automation.lindleyhome.com\" and container.name == \"homeassistant\"\n| filter contains(lower(content), \"error\") or contains(lower(content), \"exception\")\n| makeTimeseries errors=count(), interval:5m",
+        "querySettings": {
+          "defaultSamplingRatio": 10,
+          "defaultScanLimitGbytes": 2000,
+          "enableSampling": false,
+          "maxResultMegaBytes": 10,
+          "maxResultRecords": 5000
+        },
+        "title": "HA errors over time",
+        "type": "data",
+        "visualization": "lineChart",
+        "visualizationSettings": {
+          "lineChart": {}
+        }
+      },
+      "8": {
+        "davis": {
+          "davisVisualization": {
+            "isAvailable": true
+          },
+          "enabled": false
+        },
+        "query": "timeseries avg(dt.host.cpu.usage), filter:{host.name == \"automation.lindleyhome.com\"}",
+        "querySettings": {
+          "defaultSamplingRatio": 10,
+          "defaultScanLimitGbytes": 2000,
+          "enableSampling": false,
+          "maxResultMegaBytes": 10,
+          "maxResultRecords": 5000
+        },
+        "title": "Host CPU",
+        "type": "data",
+        "visualization": "lineChart",
+        "visualizationSettings": {
+          "lineChart": {}
+        }
+      },
+      "9": {
+        "davis": {
+          "davisVisualization": {
+            "isAvailable": true
+          },
+          "enabled": false
+        },
+        "query": "fetch logs\n| filter host.name == \"automation.lindleyhome.com\"\n| filter in(container.name, {\"homeassistant\", \"appdaemon\", \"zwavejs2mqtt\"})\n| filter contains(lower(content), \"error\") or contains(lower(content), \"exception\") or contains(lower(content), \"unhealthy\")\n| fields timestamp, container.name, content\n| sort timestamp desc\n| limit 40",
+        "querySettings": {
+          "defaultSamplingRatio": 10,
+          "defaultScanLimitGbytes": 2000,
+          "enableSampling": false,
+          "maxResultMegaBytes": 10,
+          "maxResultRecords": 5000
+        },
+        "title": "Recent HA / appdaemon / zwave errors",
+        "type": "data",
+        "visualization": "table",
+        "visualizationSettings": {
+          "table": {}
+        }
+      }
+    },
+    "variables": [],
+    "version": 21
+  }
+}

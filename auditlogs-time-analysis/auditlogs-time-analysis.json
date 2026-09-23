@@ -1,0 +1,1840 @@
+{
+  "name": "AuditLogs_Time_origedited",
+  "type": "dashboard",
+  "owner": "<YOUR_DYNATRACE_USER_ID>",
+  "isPrivate": false,
+  "version": 23,
+  "modificationInfo": {
+    "createdBy": "",
+    "createdTime": "",
+    "lastModifiedBy": "",
+    "lastModifiedTime": ""
+  },
+  "content": {
+    "version": 21,
+    "variables": [
+      {
+        "version": 3,
+        "key": "User",
+        "type": "code",
+        "visible": true,
+        "editable": true,
+        "input": "import { queryExecutionClient } from '@dynatrace-sdk/client-query';\n\nexport default async function () {\n  const groupByField = 'user';\n\n  const query = `\nfetch dt.system.events, timeframe:\"${$dt_timeframe_from}/${$dt_timeframe_to}\"\n| filter event.kind == \"AUDIT_EVENT\"\n| fields ${groupByField}\n| summarize _cnt = count(), by:{${groupByField}}\n| fields ${groupByField}\n| sort ${groupByField} asc\n  `.trim();\n\n  const response = await queryExecutionClient.queryExecute({\n    body: { query },\n  });\n\n  const records = response?.result?.records ?? [];\n\n  return records\n    .map((r: any) => r[groupByField] ?? 'UNKNOWN')\n    .filter((v: any) => v !== null && v !== undefined && String(v).length > 0)\n    .map((v: any) => String(v));\n}",
+        "multiple": true,
+        "defaultValue": [
+          "3420b2ac-f1cf-4b24-b62d-61ba1ba8ed05*"
+        ],
+        "name": "User"
+      },
+      {
+        "version": 3,
+        "key": "EventType",
+        "type": "code",
+        "visible": true,
+        "editable": true,
+        "input": "import { queryExecutionClient } from '@dynatrace-sdk/client-query';\n\nexport default async function () {\n  const groupByField = 'eventType';\n\n  const query = `\nfetch dt.system.events, timeframe:\"${$dt_timeframe_from}/${$dt_timeframe_to}\"\n| filter event.kind == \"AUDIT_EVENT\"\n| fields ${groupByField}\n| summarize _cnt = count(), by:{${groupByField}}\n| fields ${groupByField}\n| sort ${groupByField} asc\n  `.trim();\n\n  const response = await queryExecutionClient.queryExecute({\n    body: { query },\n  });\n\n  const records = response?.result?.records ?? [];\n\n  return records\n    .map((r: any) => r[groupByField] ?? 'UNKNOWN')\n    .filter((v: any) => v !== null && v !== undefined && String(v).length > 0)\n    .map((v: any) => String(v));\n}",
+        "multiple": true,
+        "defaultValue": [
+          "3420b2ac-f1cf-4b24-b62d-61ba1ba8ed05*"
+        ],
+        "name": "EventType"
+      },
+      {
+        "version": 3,
+        "key": "Category",
+        "type": "code",
+        "visible": true,
+        "editable": true,
+        "input": "import { queryExecutionClient } from '@dynatrace-sdk/client-query';\n\nexport default async function () {\n  const groupByField = 'category';\n\n  const query = `\nfetch dt.system.events, timeframe:\"${$dt_timeframe_from}/${$dt_timeframe_to}\"\n| filter event.kind == \"AUDIT_EVENT\"\n| fields ${groupByField}\n| summarize _cnt = count(), by:{${groupByField}}\n| fields ${groupByField}\n| sort ${groupByField} asc\n  `.trim();\n\n  const response = await queryExecutionClient.queryExecute({\n    body: { query },\n  });\n\n  const records = response?.result?.records ?? [];\n\n  return records\n    .map((r: any) => r[groupByField] ?? 'UNKNOWN')\n    .filter((v: any) => v !== null && v !== undefined && String(v).length > 0)\n    .map((v: any) => String(v));\n}",
+        "multiple": true,
+        "defaultValue": [
+          "3420b2ac-f1cf-4b24-b62d-61ba1ba8ed05*"
+        ],
+        "name": "Category"
+      },
+      {
+        "version": 3,
+        "key": "EntityId",
+        "type": "code",
+        "visible": true,
+        "editable": true,
+        "input": "import { queryExecutionClient } from '@dynatrace-sdk/client-query';\n\nexport default async function () {\n  // Change this to whatever field you want distinct values for\n  const groupByField = 'resource';\n\n  const query = `\nfetch dt.system.events, timeframe:\"${$dt_timeframe_from}/${$dt_timeframe_to}\"\n| filter event.kind == \"AUDIT_EVENT\"\n| fields ${groupByField}\n| summarize _cnt = count(), by:{${groupByField}}\n| fields ${groupByField}\n| sort ${groupByField} asc\n  `.trim();\n\n  const response = await queryExecutionClient.queryExecute({\n    body: { query },\n  });\n\n  const records = response?.result?.records ?? [];\n\n  return records\n    .map((r: any) => r[groupByField] ?? 'UNKNOWN')\n    .filter((v: any) => v !== null && v !== undefined && String(v).length > 0)\n    .map((v: any) => String(v));\n}",
+        "multiple": true,
+        "defaultValue": [
+          "3420b2ac-f1cf-4b24-b62d-61ba1ba8ed05*"
+        ],
+        "name": "EntityId"
+      },
+      {
+        "version": 3,
+        "key": "Tiempo",
+        "type": "csv",
+        "visible": true,
+        "editable": true,
+        "input": "day,hour,minute",
+        "multiple": false,
+        "name": "Tiempo"
+      }
+    ],
+    "tiles": {
+      "9": {
+        "title": "",
+        "type": "code",
+        "input": "import { auditLogsClient } from '@dynatrace-sdk/client-classic-environment-v2';\n\nexport default async function () {\n  // \ud83d\udc49 Funci\u00f3n para normalizar timestamps a \"YYYY-MM-DDTHH:MM\"\n  function normalizeToMinute(value) {\n    const epochMs = typeof value === 'string'\n      ? new Date(value).getTime()\n      : value > 1e12 ? value : value * 1000;\n\n    const date = new Date(epochMs);\n    return date.toISOString().substring(0, 16);\n  }\n\n  // \ud83d\udc49 Funci\u00f3n para inferir tipo autom\u00e1ticamente\n  function inferType(value) {\n    if (typeof value === 'number') {\n      if (value > 1e12 || (value > 1e9 && value < 1e12)) return 'timestamp';\n      return 'long';\n    }\n    if (typeof value === 'string') {\n      if (/^\\d{4}-\\d{2}-\\d{2}T\\d{2}:\\d{2}/.test(value)) return 'timestamp';\n      return 'string';\n    }\n    return 'string';\n  }\n\n  // \ud83d\udd01 Funci\u00f3n flexible de agrupaci\u00f3n + tipado\n  function buildDataFrameAdvanced(data, groupByFields = []) {\n    const grouped = {};\n\n    data.forEach(item => {\n      const keyParts = groupByFields.map(field => {\n        const value = item[field] ?? 'UNKNOWN';\n        return field === 'timestamp' ? normalizeToMinute(value) : value;\n      });\n\n      const key = keyParts.join('|');\n      grouped[key] = (grouped[key] || 0) + 1;\n    });\n\n    const records = Object.entries(grouped)\n      .sort(([, a], [, b]) => b - a)\n      .map(([key, count]) => {\n        const values = key.split('|');\n        const record = {};\n        groupByFields.forEach((field, i) => {\n          record[field] = values[i];\n        });\n        record.count = count;\n        return record;\n      });\n\n    const sample = records[0] || {};\n    const mappings = groupByFields.reduce((acc, field) => {\n      acc[field] = { type: inferType(sample[field]) };\n      return acc;\n    }, { count: { type: 'long' } });\n\n    const types = [{\n      mappings,\n      indexRange: [0, records.length]\n    }];\n\n    return { records, types };\n  }\n\n  // \ud83d\udce5 Funci\u00f3n para traer todos los registros de auditor\u00eda\n  async function fetchAllAuditLogs({ filter, from, to, pageSize } = {}) {\n    let auditLogs = [];\n    let next = undefined;\n\n    const config = { filter, from, to, pageSize };\n    console.log(config)\n\n    console.log(`Fetching first page...`);\n    const firstresponse = await auditLogsClient.getLogs(config);\n    console.log(firstresponse)\n    auditLogs = [...firstresponse.auditLogs];\n    next = firstresponse.nextPageKey;\n\n    let pageCounter = 1;\n    while (next) {\n      console.log(`Fetching page ${++pageCounter}...`);\n      const response = await auditLogsClient.getLogs({ nextPageKey: next });\n      auditLogs = [...auditLogs, ...response.auditLogs];\n      next = response.nextPageKey;\n    }\n\n    return auditLogs;\n  }\n\n  // \ud83d\udce6 Ejecutar y agrupar por campos deseados\n  const data = await fetchAllAuditLogs({\n    filter: '',\n    from:  $dt_timeframe_from,\n    to: $dt_timeframe_to,\n    pageSize: 5000\n  });\n\n  // Cambi\u00e1 los campos como gustes: eventType, user, timestamp, success, etc.\n  const groupedData = buildDataFrameAdvanced(data, ['eventType']);\n\n  console.log(groupedData);\n  return groupedData;\n}\n",
+        "visualization": "categoricalBarChart",
+        "visualizationSettings": {
+          "autoSelectVisualization": false,
+          "chartSettings": {
+            "truncationMode": "middle",
+            "legend": {
+              "hidden": true
+            },
+            "categoricalBarChartSettings": {
+              "categoryAxisLabel": "eventType",
+              "isCategoryLabelVisible": false,
+              "categoryAxis": [
+                "eventType"
+              ],
+              "valueAxis": [
+                "count"
+              ],
+              "valueAxisLabel": "count",
+              "layout": "vertical"
+            }
+          },
+          "unitsOverrides": []
+        }
+      },
+      "17": {
+        "title": "",
+        "type": "code",
+        "input": "import { auditLogsClient } from '@dynatrace-sdk/client-classic-environment-v2';\n\nexport default async function () {\n  // \ud83d\udc49 Normaliza timestamp seg\u00fan granularidad (day, hour, minute)\n  function normalizeToGranularity(value, granularity = 'minute') {\n    if (!value) return 'UNKNOWN';\n\n    const date = typeof value === 'number' ? new Date(value) : new Date(value);\n    if (isNaN(date.getTime())) return 'UNKNOWN';\n\n    const year = date.getUTCFullYear();\n    const month = String(date.getUTCMonth() + 1).padStart(2, '0');\n    const day = String(date.getUTCDate()).padStart(2, '0');\n    const hour = String(date.getUTCHours()).padStart(2, '0');\n    const minute = String(date.getUTCMinutes()).padStart(2, '0');\n\n    switch (granularity) {\n      case 'day':\n        return `${year}-${month}-${day}T00:00`;\n      case 'hour':\n        return `${year}-${month}-${day}T${hour}:00`;\n      case 'minute':\n      default:\n        return `${year}-${month}-${day}T${hour}:${minute}`;\n    }\n  }\n\n  // \ud83d\udc49 Inferencia de tipo\n  function inferType(value) {\n    if (typeof value === 'number') return 'long';\n    if (!isNaN(Date.parse(value))) return 'timestamp';\n    return 'string';\n  }\n\n  // \ud83d\udd01 Agrupaci\u00f3n flexible\n  function buildDataFrameAdvanced(data, groupByFields = [], { timeGranularity = 'minute' } = {}) {\n    const grouped = {};\n    const hasNoSystem = groupByFields.includes('no-system');\n\n    const filteredData = hasNoSystem\n      ? data.filter(item => typeof item.user === 'string' && item.user.includes('@'))\n      : data;\n\n    filteredData.forEach(item => {\n      const keyParts = groupByFields\n        .filter(field => field !== 'no-system') // Ignorar 'no-system' como campo real\n        .map(field => {\n          let value = item[field] ?? 'UNKNOWN';\n\n          if (field === 'timestamp') {\n            value = normalizeToGranularity(value, timeGranularity);\n          } else if (field === 'user' && typeof value === 'string' && value.includes('@')) {\n            // value = value \n            value = value.split('@')[1]; // solo el dominio\n          }\n\n          return value;\n        });\n\n      const key = keyParts.join('|');\n      grouped[key] = (grouped[key] || 0) + 1;\n    });\n\n    const records = Object.entries(grouped)\n      .sort(([, a], [, b]) => b - a)\n      .map(([key, count]) => {\n        const values = key.split('|');\n        const record = {};\n        groupByFields\n          .filter(field => field !== 'no-system')\n          .forEach((field, i) => {\n            record[field] = values[i];\n          });\n        record.count = count;\n        return record;\n      });\n\n    const sample = records[0] || {};\n    const mappings = groupByFields\n      .filter(field => field !== 'no-system')\n      .reduce((acc, field) => {\n        acc[field] = { type: inferType(sample[field]) };\n        return acc;\n      }, { count: { type: 'long' } });\n\n    const types = [{\n      mappings,\n      indexRange: [0, records.length]\n    }];\n\n    return { records, types };\n  }\n\n  // \ud83d\udce5 Fetch paginado de logs\n  async function fetchAllAuditLogs({ filter, from, to, pageSize } = {}) {\n    let auditLogs = [];\n    let next = undefined;\n\n    const config = { filter, from, to, pageSize };\n    console.log(`Fetching first page...`);\n    const firstresponse = await auditLogsClient.getLogs(config);\n    auditLogs = [...firstresponse.auditLogs];\n    next = firstresponse.nextPageKey;\n\n    let pageCounter = 1;\n    while (next) {\n      console.log(`Fetching page ${++pageCounter}...`);\n      const response = await auditLogsClient.getLogs({ nextPageKey: next });\n      auditLogs = [...auditLogs, ...response.auditLogs];\n      next = response.nextPageKey;\n    }\n\n    return auditLogs;\n  }\n\n  // \ud83e\uddea Ejecuci\u00f3n final\n  const data = await fetchAllAuditLogs({\n    filter: '', // eventType(\"LOGIN\")\n    from:  $dt_timeframe_from,\n    to: $dt_timeframe_to,\n    pageSize: 5000\n  });\n\n  // \ud83d\udcca Agrupar por campos (con granularidad configurable)\n  const groupedData = buildDataFrameAdvanced(\n    data,\n    ['user', 'timestamp' ],\n    { timeGranularity: $Tiempo } // \ud83d\udc48 Pod\u00e9s usar 'minute', 'hour' o 'day'\n  );\n\n  console.log(groupedData);\n  return groupedData;\n}\n",
+        "visualization": "lineChart",
+        "visualizationSettings": {
+          "chartSettings": {
+            "xAxisLabel": "timestamp",
+            "xAxisScaling": "auto",
+            "fieldMapping": {
+              "leftAxisValues": [
+                "count"
+              ],
+              "timestamp": "timestamp"
+            },
+            "gapPolicy": "connect"
+          },
+          "dataMapping": {
+            "displayedFields": [
+              "user"
+            ]
+          },
+          "legend": {
+            "ratio": 24
+          },
+          "autoSelectVisualization": false
+        }
+      },
+      "18": {
+        "title": "",
+        "type": "code",
+        "input": "import { auditLogsClient } from '@dynatrace-sdk/client-classic-environment-v2';\n\nexport default async function () {\n  // \ud83d\udc49 Normaliza timestamp seg\u00fan granularidad (day, hour, minute)\n  function normalizeToGranularity(value, granularity = 'minute') {\n    if (!value) return 'UNKNOWN';\n\n    const date = typeof value === 'number' ? new Date(value) : new Date(value);\n    if (isNaN(date.getTime())) return 'UNKNOWN';\n\n    const year = date.getUTCFullYear();\n    const month = String(date.getUTCMonth() + 1).padStart(2, '0');\n    const day = String(date.getUTCDate()).padStart(2, '0');\n    const hour = String(date.getUTCHours()).padStart(2, '0');\n    const minute = String(date.getUTCMinutes()).padStart(2, '0');\n\n    switch (granularity) {\n      case 'day':\n        return `${year}-${month}-${day}T00:00`;\n      case 'hour':\n        return `${year}-${month}-${day}T${hour}:00`;\n      case 'minute':\n      default:\n        return `${year}-${month}-${day}T${hour}:${minute}`;\n    }\n  }\n\n  // \ud83d\udc49 Inferencia de tipo\n  function inferType(value) {\n    if (typeof value === 'number') return 'long';\n    if (!isNaN(Date.parse(value))) return 'timestamp';\n    return 'string';\n  }\n\n  // \ud83d\udd01 Agrupaci\u00f3n flexible\n  function buildDataFrameAdvanced(data, groupByFields = [], { timeGranularity = 'minute' } = {}) {\n    const grouped = {};\n    const hasNoSystem = groupByFields.includes('no-system');\n\n    const filteredData = hasNoSystem\n      ? data.filter(item => typeof item.user === 'string' && item.user.includes('@'))\n      : data;\n\n    filteredData.forEach(item => {\n      const keyParts = groupByFields\n        .filter(field => field !== 'no-system') // Ignorar 'no-system' como campo real\n        .map(field => {\n          let value = item[field] ?? 'UNKNOWN';\n\n          if (field === 'timestamp') {\n            value = normalizeToGranularity(value, timeGranularity);\n          } else if (field === 'user' && typeof value === 'string' && value.includes('@')) {\n            // value = value \n            value = value.split('@')[1]; // solo el dominio\n          }\n\n          return value;\n        });\n\n      const key = keyParts.join('|');\n      grouped[key] = (grouped[key] || 0) + 1;\n    });\n\n    const records = Object.entries(grouped)\n      .sort(([, a], [, b]) => b - a)\n      .map(([key, count]) => {\n        const values = key.split('|');\n        const record = {};\n        groupByFields\n          .filter(field => field !== 'no-system')\n          .forEach((field, i) => {\n            record[field] = values[i];\n          });\n        record.count = count;\n        return record;\n      });\n\n    const sample = records[0] || {};\n    const mappings = groupByFields\n      .filter(field => field !== 'no-system')\n      .reduce((acc, field) => {\n        acc[field] = { type: inferType(sample[field]) };\n        return acc;\n      }, { count: { type: 'long' } });\n\n    const types = [{\n      mappings,\n      indexRange: [0, records.length]\n    }];\n\n    return { records, types };\n  }\n\n  // \ud83d\udce5 Fetch paginado de logs\n  async function fetchAllAuditLogs({ filter, from, to, pageSize } = {}) {\n    let auditLogs = [];\n    let next = undefined;\n\n    const config = { filter, from, to, pageSize };\n    console.log(`Fetching first page...`);\n    const firstresponse = await auditLogsClient.getLogs(config);\n    auditLogs = [...firstresponse.auditLogs];\n    next = firstresponse.nextPageKey;\n\n    let pageCounter = 1;\n    while (next) {\n      console.log(`Fetching page ${++pageCounter}...`);\n      const response = await auditLogsClient.getLogs({ nextPageKey: next });\n      auditLogs = [...auditLogs, ...response.auditLogs];\n      next = response.nextPageKey;\n    }\n\n    return auditLogs;\n  }\n\n  // \ud83e\uddea Ejecuci\u00f3n final\n  const data = await fetchAllAuditLogs({\n    filter: '', // eventType(\"LOGIN\")\n    from:  $dt_timeframe_from,\n    to: $dt_timeframe_to,\n    pageSize: 5000\n  });\n\n  // \ud83d\udcca Agrupar por campos (con granularidad configurable)\n  const groupedData = buildDataFrameAdvanced(\n    data,\n    ['user'],\n    { timeGranularity: 'day' } // \ud83d\udc48 Pod\u00e9s usar 'minute', 'hour' o 'day'\n  );\n\n  console.log(groupedData);\n  return groupedData;\n}\n",
+        "visualization": "categoricalBarChart",
+        "visualizationSettings": {
+          "autoSelectVisualization": false,
+          "chartSettings": {
+            "truncationMode": "middle",
+            "legend": {
+              "hidden": true
+            },
+            "categoricalBarChartSettings": {
+              "categoryAxisLabel": "user",
+              "categoryAxis": [
+                "user"
+              ],
+              "valueAxis": [
+                "count"
+              ],
+              "valueAxisLabel": "count"
+            }
+          },
+          "legend": {
+            "ratio": 32
+          }
+        }
+      },
+      "19": {
+        "title": "",
+        "type": "code",
+        "input": "import { queryExecutionClient } from '@dynatrace-sdk/client-query';\n\nexport default async function () {\n  const query = `\nfetch dt.system.events, timeframe:\"${$dt_timeframe_from}/${$dt_timeframe_to}\"\n| filter event.kind == \"AUDIT_EVENT\"\n| limit 1\n  `.trim();\n\n  const response = await queryExecutionClient.queryExecute({ body: { query } });\n  const record = response?.result?.records?.[0] ?? {};\n\n  const keys = Object.keys(record).sort((a, b) => a.localeCompare(b));\n\n  // Return keys as a simple table so you can see them in a dashboard tile\n  const records = keys.map(k => ({ field: k, valuePreview: record[k] }));\n\n  return {\n    records,\n    types: [\n      {\n        mappings: {\n          field: { type: 'string' },\n          valuePreview: { type: 'string' },\n        },\n        indexRange: [0, records.length],\n      },\n    ],\n  };\n}",
+        "visualization": "singleValue",
+        "visualizationSettings": {
+          "singleValue": {
+            "labelMode": "none",
+            "label": "element",
+            "recordField": "count",
+            "colorThresholdTarget": "background",
+            "trend": {
+              "isVisible": true
+            }
+          },
+          "autoSelectVisualization": false
+        }
+      },
+      "20": {
+        "title": "",
+        "type": "code",
+        "input": "import { queryExecutionClient } from '@dynatrace-sdk/client-query';\n\nexport default async function () {\n  const query = `\nfetch dt.system.events, timeframe:\"${$dt_timeframe_from}/${$dt_timeframe_to}\"\n| filter event.kind == \"AUDIT_EVENT\"\n| filter eventType == \"LOGOUT\"\n| summarize count = count(), by:{ eventType }\n| sort count desc\n  `.trim();\n\n  const response = await queryExecutionClient.queryExecute({ body: { query } });\n  const records = response?.result?.records ?? [];\n\n  return {\n    records,\n    types: [\n      {\n        mappings: {\n          eventType: { type: 'string' },\n          count: { type: 'long' },\n        },\n        indexRange: [0, records.length],\n      },\n    ],\n  };\n}",
+        "visualization": "singleValue",
+        "visualizationSettings": {
+          "singleValue": {
+            "labelMode": "none",
+            "label": "element",
+            "recordField": "count",
+            "colorThresholdTarget": "background",
+            "trend": {
+              "isVisible": true
+            }
+          },
+          "autoSelectVisualization": false
+        }
+      },
+      "21": {
+        "title": "",
+        "type": "code",
+        "input": "import { auditLogsClient } from '@dynatrace-sdk/client-classic-environment-v2';\n\nexport default async function () {\n  // \ud83d\udc49 Normaliza timestamp seg\u00fan granularidad (day, hour, minute)\n  function normalizeToGranularity(value, granularity = 'minute') {\n    if (!value) return 'UNKNOWN';\n\n    const date = typeof value === 'number' ? new Date(value) : new Date(value);\n    if (isNaN(date.getTime())) return 'UNKNOWN';\n\n    const year = date.getUTCFullYear();\n    const month = String(date.getUTCMonth() + 1).padStart(2, '0');\n    const day = String(date.getUTCDate()).padStart(2, '0');\n    const hour = String(date.getUTCHours()).padStart(2, '0');\n    const minute = String(date.getUTCMinutes()).padStart(2, '0');\n\n    switch (granularity) {\n      case 'day':\n        return `${year}-${month}-${day}T00:00`;\n      case 'hour':\n        return `${year}-${month}-${day}T${hour}:00`;\n      case 'minute':\n      default:\n        return `${year}-${month}-${day}T${hour}:${minute}`;\n    }\n  }\n\n  // \ud83d\udc49 Inferencia de tipo\n  function inferType(value) {\n    if (typeof value === 'number') return 'long';\n    if (!isNaN(Date.parse(value))) return 'timestamp';\n    return 'string';\n  }\n\n  // \ud83d\udd01 Agrupaci\u00f3n flexible\n  function buildDataFrameAdvanced(data, groupByFields = [], { timeGranularity = 'minute' } = {}) {\n    const grouped = {};\n    const hasNoSystem = groupByFields.includes('no-system');\n\n    const filteredData = hasNoSystem\n      ? data.filter(item => typeof item.user === 'string' && item.user.includes('@'))\n      : data;\n\n    filteredData.forEach(item => {\n      const keyParts = groupByFields\n        .filter(field => field !== 'no-system') // Ignorar 'no-system' como campo real\n        .map(field => {\n          let value = item[field] ?? 'UNKNOWN';\n\n          if (field === 'timestamp') {\n            value = normalizeToGranularity(value, timeGranularity);\n          } else if (field === 'user' && typeof value === 'string' && value.includes('@')) {\n            value = value \n          }\n\n          return value;\n        });\n\n      const key = keyParts.join('|');\n      grouped[key] = (grouped[key] || 0) + 1;\n    });\n\n    const records = Object.entries(grouped)\n      .sort(([, a], [, b]) => b - a)\n      .map(([key, count]) => {\n        const values = key.split('|');\n        const record = {};\n        groupByFields\n          .filter(field => field !== 'no-system')\n          .forEach((field, i) => {\n            record[field] = values[i];\n          });\n        record.count = count;\n        return record;\n      });\n\n    const sample = records[0] || {};\n    const mappings = groupByFields\n      .filter(field => field !== 'no-system')\n      .reduce((acc, field) => {\n        acc[field] = { type: inferType(sample[field]) };\n        return acc;\n      }, { count: { type: 'long' } });\n\n    const types = [{\n      mappings,\n      indexRange: [0, records.length]\n    }];\n\n    return { records, types };\n  }\n\n  // \ud83d\udce5 Fetch paginado de logs\n  async function fetchAllAuditLogs({ filter, from, to, pageSize } = {}) {\n    let auditLogs = [];\n    let next = undefined;\n\n    const config = { filter, from, to, pageSize };\n    console.log(`Fetching first page...`);\n    const firstresponse = await auditLogsClient.getLogs(config);\n    auditLogs = [...firstresponse.auditLogs];\n    next = firstresponse.nextPageKey;\n\n    let pageCounter = 1;\n    while (next) {\n      console.log(`Fetching page ${++pageCounter}...`);\n      const response = await auditLogsClient.getLogs({ nextPageKey: next });\n      auditLogs = [...auditLogs, ...response.auditLogs];\n      next = response.nextPageKey;\n    }\n\n    return auditLogs;\n  }\n\n  // \ud83e\uddea Ejecuci\u00f3n final\n  const data = await fetchAllAuditLogs({\n    filter: 'eventType(\"UPDATE\")', // eventType(\"LOGIN\")\n    from:  $dt_timeframe_from,\n    to: $dt_timeframe_to,\n    pageSize: 5000\n  });\n\n  // \ud83d\udcca Agrupar por campos (con granularidad configurable)\n  const groupedData = buildDataFrameAdvanced(\n    data,\n    ['eventType' ],\n    { timeGranularity: 'day' } // \ud83d\udc48 Pod\u00e9s usar 'minute', 'hour' o 'day'\n  );\n\n  console.log(groupedData);\n  return groupedData;\n}\n",
+        "visualization": "singleValue",
+        "visualizationSettings": {
+          "singleValue": {
+            "labelMode": "none",
+            "label": "element",
+            "recordField": "count",
+            "colorThresholdTarget": "background",
+            "trend": {
+              "isVisible": true
+            }
+          },
+          "autoSelectVisualization": false
+        }
+      },
+      "22": {
+        "title": "",
+        "type": "code",
+        "input": "import { auditLogsClient } from '@dynatrace-sdk/client-classic-environment-v2';\n\nexport default async function () {\n  // \ud83d\udc49 Normaliza timestamp seg\u00fan granularidad (day, hour, minute)\n  function normalizeToGranularity(value, granularity = 'minute') {\n    if (!value) return 'UNKNOWN';\n\n    const date = typeof value === 'number' ? new Date(value) : new Date(value);\n    if (isNaN(date.getTime())) return 'UNKNOWN';\n\n    const year = date.getUTCFullYear();\n    const month = String(date.getUTCMonth() + 1).padStart(2, '0');\n    const day = String(date.getUTCDate()).padStart(2, '0');\n    const hour = String(date.getUTCHours()).padStart(2, '0');\n    const minute = String(date.getUTCMinutes()).padStart(2, '0');\n\n    switch (granularity) {\n      case 'day':\n        return `${year}-${month}-${day}T00:00`;\n      case 'hour':\n        return `${year}-${month}-${day}T${hour}:00`;\n      case 'minute':\n      default:\n        return `${year}-${month}-${day}T${hour}:${minute}`;\n    }\n  }\n\n  // \ud83d\udc49 Inferencia de tipo\n  function inferType(value) {\n    if (typeof value === 'number') return 'long';\n    if (!isNaN(Date.parse(value))) return 'timestamp';\n    return 'string';\n  }\n\n  // \ud83d\udd01 Agrupaci\u00f3n flexible\n  function buildDataFrameAdvanced(data, groupByFields = [], { timeGranularity = 'minute' } = {}) {\n    const grouped = {};\n    const hasNoSystem = groupByFields.includes('no-system');\n\n    const filteredData = hasNoSystem\n      ? data.filter(item => typeof item.user === 'string' && item.user.includes('@'))\n      : data;\n\n    filteredData.forEach(item => {\n      const keyParts = groupByFields\n        .filter(field => field !== 'no-system') // Ignorar 'no-system' como campo real\n        .map(field => {\n          let value = item[field] ?? 'UNKNOWN';\n\n          if (field === 'timestamp') {\n            value = normalizeToGranularity(value, timeGranularity);\n          } else if (field === 'user' && typeof value === 'string' && value.includes('@')) {\n            value = value \n          }\n\n          return value;\n        });\n\n      const key = keyParts.join('|');\n      grouped[key] = (grouped[key] || 0) + 1;\n    });\n\n    const records = Object.entries(grouped)\n      .sort(([, a], [, b]) => b - a)\n      .map(([key, count]) => {\n        const values = key.split('|');\n        const record = {};\n        groupByFields\n          .filter(field => field !== 'no-system')\n          .forEach((field, i) => {\n            record[field] = values[i];\n          });\n        record.count = count;\n        return record;\n      });\n\n    const sample = records[0] || {};\n    const mappings = groupByFields\n      .filter(field => field !== 'no-system')\n      .reduce((acc, field) => {\n        acc[field] = { type: inferType(sample[field]) };\n        return acc;\n      }, { count: { type: 'long' } });\n\n    const types = [{\n      mappings,\n      indexRange: [0, records.length]\n    }];\n\n    return { records, types };\n  }\n\n  // \ud83d\udce5 Fetch paginado de logs\n  async function fetchAllAuditLogs({ filter, from, to, pageSize } = {}) {\n    let auditLogs = [];\n    let next = undefined;\n\n    const config = { filter, from, to, pageSize };\n    console.log(`Fetching first page...`);\n    const firstresponse = await auditLogsClient.getLogs(config);\n    auditLogs = [...firstresponse.auditLogs];\n    next = firstresponse.nextPageKey;\n\n    let pageCounter = 1;\n    while (next) {\n      console.log(`Fetching page ${++pageCounter}...`);\n      const response = await auditLogsClient.getLogs({ nextPageKey: next });\n      auditLogs = [...auditLogs, ...response.auditLogs];\n      next = response.nextPageKey;\n    }\n\n    return auditLogs;\n  }\n\n  // \ud83e\uddea Ejecuci\u00f3n final\n  const data = await fetchAllAuditLogs({\n    filter: 'eventType(\"CREATE\")', // eventType(\"LOGIN\")\n    from:  $dt_timeframe_from,\n    to: $dt_timeframe_to,\n    pageSize: 5000\n  });\n\n  // \ud83d\udcca Agrupar por campos (con granularidad configurable)\n  const groupedData = buildDataFrameAdvanced(\n    data,\n    ['eventType' ],\n    { timeGranularity: 'day' } // \ud83d\udc48 Pod\u00e9s usar 'minute', 'hour' o 'day'\n  );\n\n  console.log(groupedData);\n  return groupedData;\n}\n",
+        "visualization": "singleValue",
+        "visualizationSettings": {
+          "singleValue": {
+            "labelMode": "none",
+            "label": "element",
+            "recordField": "count",
+            "colorThresholdTarget": "background",
+            "trend": {
+              "isVisible": true
+            }
+          },
+          "autoSelectVisualization": false
+        }
+      },
+      "23": {
+        "title": "",
+        "type": "code",
+        "input": "import { auditLogsClient } from '@dynatrace-sdk/client-classic-environment-v2';\n\nexport default async function () {\n  // \ud83d\udc49 Normaliza timestamp seg\u00fan granularidad (day, hour, minute)\n  function normalizeToGranularity(value, granularity = 'minute') {\n    if (!value) return 'UNKNOWN';\n\n    const date = typeof value === 'number' ? new Date(value) : new Date(value);\n    if (isNaN(date.getTime())) return 'UNKNOWN';\n\n    const year = date.getUTCFullYear();\n    const month = String(date.getUTCMonth() + 1).padStart(2, '0');\n    const day = String(date.getUTCDate()).padStart(2, '0');\n    const hour = String(date.getUTCHours()).padStart(2, '0');\n    const minute = String(date.getUTCMinutes()).padStart(2, '0');\n\n    switch (granularity) {\n      case 'day':\n        return `${year}-${month}-${day}T00:00`;\n      case 'hour':\n        return `${year}-${month}-${day}T${hour}:00`;\n      case 'minute':\n      default:\n        return `${year}-${month}-${day}T${hour}:${minute}`;\n    }\n  }\n\n  // \ud83d\udc49 Inferencia de tipo\n  function inferType(value) {\n    if (typeof value === 'number') return 'long';\n    if (!isNaN(Date.parse(value))) return 'timestamp';\n    return 'string';\n  }\n\n  // \ud83d\udd01 Agrupaci\u00f3n flexible\n  function buildDataFrameAdvanced(data, groupByFields = [], { timeGranularity = 'minute' } = {}) {\n    const grouped = {};\n    const hasNoSystem = groupByFields.includes('no-system');\n\n    const filteredData = hasNoSystem\n      ? data.filter(item => typeof item.user === 'string' && item.user.includes('@'))\n      : data;\n\n    filteredData.forEach(item => {\n      const keyParts = groupByFields\n        .filter(field => field !== 'no-system') // Ignorar 'no-system' como campo real\n        .map(field => {\n          let value = item[field] ?? 'UNKNOWN';\n\n          if (field === 'timestamp') {\n            value = normalizeToGranularity(value, timeGranularity);\n          } else if (field === 'user' && typeof value === 'string' && value.includes('@')) {\n            value = value \n          }\n\n          return value;\n        });\n\n      const key = keyParts.join('|');\n      grouped[key] = (grouped[key] || 0) + 1;\n    });\n\n    const records = Object.entries(grouped)\n      .sort(([, a], [, b]) => b - a)\n      .map(([key, count]) => {\n        const values = key.split('|');\n        const record = {};\n        groupByFields\n          .filter(field => field !== 'no-system')\n          .forEach((field, i) => {\n            record[field] = values[i];\n          });\n        record.count = count;\n        return record;\n      });\n\n    const sample = records[0] || {};\n    const mappings = groupByFields\n      .filter(field => field !== 'no-system')\n      .reduce((acc, field) => {\n        acc[field] = { type: inferType(sample[field]) };\n        return acc;\n      }, { count: { type: 'long' } });\n\n    const types = [{\n      mappings,\n      indexRange: [0, records.length]\n    }];\n\n    return { records, types };\n  }\n\n  // \ud83d\udce5 Fetch paginado de logs\n  async function fetchAllAuditLogs({ filter, from, to, pageSize } = {}) {\n    let auditLogs = [];\n    let next = undefined;\n\n    const config = { filter, from, to, pageSize };\n    console.log(`Fetching first page...`);\n    const firstresponse = await auditLogsClient.getLogs(config);\n    auditLogs = [...firstresponse.auditLogs];\n    next = firstresponse.nextPageKey;\n\n    let pageCounter = 1;\n    while (next) {\n      console.log(`Fetching page ${++pageCounter}...`);\n      const response = await auditLogsClient.getLogs({ nextPageKey: next });\n      auditLogs = [...auditLogs, ...response.auditLogs];\n      next = response.nextPageKey;\n    }\n\n    return auditLogs;\n  }\n\n  // \ud83e\uddea Ejecuci\u00f3n final\n  const data = await fetchAllAuditLogs({\n    filter: 'eventType(\"DELETE\")', // eventType(\"LOGIN\")\n    from:  $dt_timeframe_from,\n    to: $dt_timeframe_to,\n    pageSize: 5000\n  });\n\n  // \ud83d\udcca Agrupar por campos (con granularidad configurable)\n  const groupedData = buildDataFrameAdvanced(\n    data,\n    ['eventType' ],\n    { timeGranularity: 'day' } // \ud83d\udc48 Pod\u00e9s usar 'minute', 'hour' o 'day'\n  );\n\n  console.log(groupedData);\n  return groupedData;\n}\n",
+        "visualization": "singleValue",
+        "visualizationSettings": {
+          "singleValue": {
+            "labelMode": "none",
+            "label": "element",
+            "recordField": "count",
+            "colorThresholdTarget": "background",
+            "trend": {
+              "isVisible": true
+            }
+          },
+          "autoSelectVisualization": false
+        }
+      },
+      "24": {
+        "title": "",
+        "type": "code",
+        "input": "import { auditLogsClient } from '@dynatrace-sdk/client-classic-environment-v2';\n\nexport default async function () {\n  // \ud83d\udc49 Normaliza timestamp seg\u00fan granularidad (day, hour, minute)\n  function normalizeToGranularity(value, granularity = 'minute') {\n    if (!value) return 'UNKNOWN';\n\n    const date = typeof value === 'number' ? new Date(value) : new Date(value);\n    if (isNaN(date.getTime())) return 'UNKNOWN';\n\n    const year = date.getUTCFullYear();\n    const month = String(date.getUTCMonth() + 1).padStart(2, '0');\n    const day = String(date.getUTCDate()).padStart(2, '0');\n    const hour = String(date.getUTCHours()).padStart(2, '0');\n    const minute = String(date.getUTCMinutes()).padStart(2, '0');\n\n    switch (granularity) {\n      case 'day':\n        return `${year}-${month}-${day}T00:00`;\n      case 'hour':\n        return `${year}-${month}-${day}T${hour}:00`;\n      case 'minute':\n      default:\n        return `${year}-${month}-${day}T${hour}:${minute}`;\n    }\n  }\n\n  // \ud83d\udc49 Inferencia de tipo\n  function inferType(value) {\n    if (typeof value === 'number') return 'long';\n    if (!isNaN(Date.parse(value))) return 'timestamp';\n    return 'string';\n  }\n\n  // \ud83d\udd01 Agrupaci\u00f3n flexible\n  function buildDataFrameAdvanced(data, groupByFields = [], { timeGranularity = 'minute' } = {}) {\n    const grouped = {};\n    const hasNoSystem = groupByFields.includes('no-system');\n\n    const filteredData = hasNoSystem\n      ? data.filter(item => typeof item.user === 'string' && item.user.includes('@'))\n      : data;\n\n    filteredData.forEach(item => {\n      const keyParts = groupByFields\n        .filter(field => field !== 'no-system') // Ignorar 'no-system' como campo real\n        .map(field => {\n          let value = item[field] ?? 'UNKNOWN';\n\n          if (field === 'timestamp') {\n            value = normalizeToGranularity(value, timeGranularity);\n          } else if (field === 'user' && typeof value === 'string' && value.includes('@')) {\n            value = value \n          }\n\n          return value;\n        });\n\n      const key = keyParts.join('|');\n      grouped[key] = (grouped[key] || 0) + 1;\n    });\n\n    const records = Object.entries(grouped)\n      .sort(([, a], [, b]) => b - a)\n      .map(([key, count]) => {\n        const values = key.split('|');\n        const record = {};\n        groupByFields\n          .filter(field => field !== 'no-system')\n          .forEach((field, i) => {\n            record[field] = values[i];\n          });\n        record.count = count;\n        return record;\n      });\n\n    const sample = records[0] || {};\n    const mappings = groupByFields\n      .filter(field => field !== 'no-system')\n      .reduce((acc, field) => {\n        acc[field] = { type: inferType(sample[field]) };\n        return acc;\n      }, { count: { type: 'long' } });\n\n    const types = [{\n      mappings,\n      indexRange: [0, records.length]\n    }];\n\n    return { records, types };\n  }\n\n  // \ud83d\udce5 Fetch paginado de logs\n  async function fetchAllAuditLogs({ filter, from, to, pageSize } = {}) {\n    let auditLogs = [];\n    let next = undefined;\n\n    const config = { filter, from, to, pageSize };\n    console.log(`Fetching first page...`);\n    const firstresponse = await auditLogsClient.getLogs(config);\n    auditLogs = [...firstresponse.auditLogs];\n    next = firstresponse.nextPageKey;\n\n    let pageCounter = 1;\n    while (next) {\n      console.log(`Fetching page ${++pageCounter}...`);\n      const response = await auditLogsClient.getLogs({ nextPageKey: next });\n      auditLogs = [...auditLogs, ...response.auditLogs];\n      next = response.nextPageKey;\n    }\n\n    return auditLogs;\n  }\n\n  // \ud83e\uddea Ejecuci\u00f3n final\n  const data = await fetchAllAuditLogs({\n    filter: 'eventType(\"GENERAL\")', // eventType(\"LOGIN\")\n    from:  $dt_timeframe_from,\n    to: $dt_timeframe_to,\n    pageSize: 5000\n  });\n\n  // \ud83d\udcca Agrupar por campos (con granularidad configurable)\n  const groupedData = buildDataFrameAdvanced(\n    data,\n    ['eventType' ],\n    { timeGranularity: 'day' } // \ud83d\udc48 Pod\u00e9s usar 'minute', 'hour' o 'day'\n  );\n\n  console.log(groupedData);\n  return groupedData;\n}\n",
+        "visualization": "singleValue",
+        "visualizationSettings": {
+          "singleValue": {
+            "labelMode": "none",
+            "label": "element",
+            "recordField": "count",
+            "colorThresholdTarget": "background",
+            "trend": {
+              "isVisible": true
+            }
+          },
+          "autoSelectVisualization": false
+        }
+      },
+      "26": {
+        "title": "",
+        "type": "data",
+        "query": "data record( nombre=\"Login\" )",
+        "visualization": "singleValue",
+        "visualizationSettings": {
+          "singleValue": {
+            "labelMode": "none",
+            "label": "a",
+            "recordField": "nombre",
+            "isIconVisible": true,
+            "prefixIcon": "AccountFilledIcon",
+            "colorThresholdTarget": "background",
+            "trend": {
+              "isVisible": true
+            }
+          },
+          "coloring": {
+            "colorRules": [
+              {
+                "value": "0",
+                "comparator": "!=",
+                "field": "nombre",
+                "colorMode": "custom-color",
+                "customColor": {
+                  "Default": "var(--dt-colors-charts-categorical-color-03-default, #2a7453)"
+                }
+              }
+            ]
+          },
+          "autoSelectVisualization": false
+        },
+        "querySettings": {
+          "maxResultRecords": 1000,
+          "defaultScanLimitGbytes": 500,
+          "maxResultMegaBytes": 1,
+          "defaultSamplingRatio": 10,
+          "enableSampling": false
+        },
+        "davis": {
+          "enabled": false,
+          "davisVisualization": {
+            "isAvailable": true
+          }
+        }
+      },
+      "27": {
+        "title": "",
+        "type": "data",
+        "query": "data record( nombre=\"Logout\" )",
+        "visualization": "singleValue",
+        "visualizationSettings": {
+          "singleValue": {
+            "labelMode": "none",
+            "label": "a",
+            "recordField": "nombre",
+            "isIconVisible": true,
+            "prefixIcon": "AccountIcon",
+            "colorThresholdTarget": "background",
+            "trend": {
+              "isVisible": true
+            }
+          },
+          "coloring": {
+            "colorRules": [
+              {
+                "value": "0",
+                "comparator": "!=",
+                "field": "nombre",
+                "colorMode": "custom-color",
+                "customColor": {
+                  "Default": "var(--dt-colors-charts-categorical-color-13-default, #1c520a)"
+                }
+              }
+            ]
+          },
+          "autoSelectVisualization": false
+        },
+        "querySettings": {
+          "maxResultRecords": 1000,
+          "defaultScanLimitGbytes": 500,
+          "maxResultMegaBytes": 1,
+          "defaultSamplingRatio": 10,
+          "enableSampling": false
+        },
+        "davis": {
+          "enabled": false,
+          "davisVisualization": {
+            "isAvailable": true
+          }
+        }
+      },
+      "28": {
+        "title": "",
+        "type": "data",
+        "query": "data record( nombre=\"Updates\" )",
+        "visualization": "singleValue",
+        "visualizationSettings": {
+          "singleValue": {
+            "labelMode": "none",
+            "label": "a",
+            "recordField": "nombre",
+            "isIconVisible": true,
+            "prefixIcon": "CompareIcon",
+            "colorThresholdTarget": "background",
+            "trend": {
+              "isVisible": true
+            }
+          },
+          "coloring": {
+            "colorRules": [
+              {
+                "value": "0",
+                "comparator": "!=",
+                "field": "nombre",
+                "colorMode": "custom-color",
+                "customColor": {
+                  "Default": "var(--dt-colors-charts-loglevel-severe-default, #d56b1a)"
+                }
+              }
+            ]
+          },
+          "autoSelectVisualization": false
+        },
+        "querySettings": {
+          "maxResultRecords": 1000,
+          "defaultScanLimitGbytes": 500,
+          "maxResultMegaBytes": 1,
+          "defaultSamplingRatio": 10,
+          "enableSampling": false
+        },
+        "davis": {
+          "enabled": false,
+          "davisVisualization": {
+            "isAvailable": true
+          }
+        }
+      },
+      "29": {
+        "title": "",
+        "type": "data",
+        "query": "data record( nombre=\"Create\" )",
+        "visualization": "singleValue",
+        "visualizationSettings": {
+          "singleValue": {
+            "labelMode": "none",
+            "label": "a",
+            "recordField": "nombre",
+            "isIconVisible": true,
+            "prefixIcon": "RepairIcon",
+            "colorThresholdTarget": "background",
+            "trend": {
+              "isVisible": true
+            }
+          },
+          "coloring": {
+            "colorRules": [
+              {
+                "value": "0",
+                "comparator": "!=",
+                "field": "nombre",
+                "colorMode": "custom-color",
+                "customColor": {
+                  "Default": "var(--dt-colors-charts-categorical-color-07-default, #438fb1)"
+                }
+              }
+            ]
+          },
+          "autoSelectVisualization": false
+        },
+        "querySettings": {
+          "maxResultRecords": 1000,
+          "defaultScanLimitGbytes": 500,
+          "maxResultMegaBytes": 1,
+          "defaultSamplingRatio": 10,
+          "enableSampling": false
+        },
+        "davis": {
+          "enabled": false,
+          "davisVisualization": {
+            "isAvailable": true
+          }
+        }
+      },
+      "30": {
+        "title": "",
+        "type": "data",
+        "query": "data record( nombre=\"Delete\" )",
+        "visualization": "singleValue",
+        "visualizationSettings": {
+          "singleValue": {
+            "labelMode": "none",
+            "label": "a",
+            "recordField": "nombre",
+            "isIconVisible": true,
+            "prefixIcon": "DeclineIcon",
+            "colorThresholdTarget": "background",
+            "trend": {
+              "isVisible": true
+            }
+          },
+          "coloring": {
+            "colorRules": [
+              {
+                "value": "0",
+                "comparator": "!=",
+                "field": "nombre",
+                "colorMode": "custom-color",
+                "customColor": {
+                  "Default": "var(--dt-colors-charts-loglevel-emergency-default, #ae132d)"
+                }
+              }
+            ]
+          },
+          "autoSelectVisualization": false
+        },
+        "querySettings": {
+          "maxResultRecords": 1000,
+          "defaultScanLimitGbytes": 500,
+          "maxResultMegaBytes": 1,
+          "defaultSamplingRatio": 10,
+          "enableSampling": false
+        },
+        "davis": {
+          "enabled": false,
+          "davisVisualization": {
+            "isAvailable": true
+          }
+        }
+      },
+      "31": {
+        "title": "",
+        "type": "data",
+        "query": "data record( nombre=\"General\" )",
+        "visualization": "singleValue",
+        "visualizationSettings": {
+          "singleValue": {
+            "labelMode": "none",
+            "label": "a",
+            "recordField": "nombre",
+            "isIconVisible": true,
+            "colorThresholdTarget": "background",
+            "trend": {
+              "isVisible": true
+            }
+          },
+          "coloring": {
+            "colorRules": [
+              {
+                "value": "0",
+                "comparator": "!=",
+                "field": "nombre",
+                "colorMode": "custom-color",
+                "customColor": {
+                  "Default": "var(--dt-colors-charts-categorical-color-08-default, #8b6ecf)"
+                }
+              }
+            ]
+          },
+          "autoSelectVisualization": false
+        },
+        "querySettings": {
+          "maxResultRecords": 1000,
+          "defaultScanLimitGbytes": 500,
+          "maxResultMegaBytes": 1,
+          "defaultSamplingRatio": 10,
+          "enableSampling": false
+        },
+        "davis": {
+          "enabled": false,
+          "davisVisualization": {
+            "isAvailable": true
+          }
+        }
+      },
+      "32": {
+        "title": "",
+        "type": "code",
+        "input": "import { auditLogsClient } from '@dynatrace-sdk/client-classic-environment-v2';\n\nexport default async function () {\n  // \ud83d\udc49 Normaliza timestamp seg\u00fan granularidad (day, hour, minute)\n  function normalizeToGranularity(value, granularity = 'minute') {\n    if (!value) return 'UNKNOWN';\n\n    const date = typeof value === 'number' ? new Date(value) : new Date(value);\n    if (isNaN(date.getTime())) return 'UNKNOWN';\n\n    const year = date.getUTCFullYear();\n    const month = String(date.getUTCMonth() + 1).padStart(2, '0');\n    const day = String(date.getUTCDate()).padStart(2, '0');\n    const hour = String(date.getUTCHours()).padStart(2, '0');\n    const minute = String(date.getUTCMinutes()).padStart(2, '0');\n\n    switch (granularity) {\n      case 'day':\n        return `${year}-${month}-${day}T00:00`;\n      case 'hour':\n        return `${year}-${month}-${day}T${hour}:00`;\n      case 'minute':\n      default:\n        return `${year}-${month}-${day}T${hour}:${minute}`;\n    }\n  }\n\n  // \ud83d\udc49 Inferencia de tipo\n  function inferType(value) {\n    if (typeof value === 'number') return 'long';\n    if (!isNaN(Date.parse(value))) return 'timestamp';\n    return 'string';\n  }\n\n  // \ud83d\udd01 Agrupaci\u00f3n flexible\n  function buildDataFrameAdvanced(data, groupByFields = [], { timeGranularity = 'minute' } = {}) {\n    const grouped = {};\n    const hasNoSystem = groupByFields.includes('no-system');\n\n    const filteredData = hasNoSystem\n      ? data.filter(item => typeof item.user === 'string' && item.user.includes('@'))\n      : data;\n\n    filteredData.forEach(item => {\n      const keyParts = groupByFields\n        .filter(field => field !== 'no-system') // Ignorar 'no-system' como campo real\n        .map(field => {\n          let value = item[field] ?? 'UNKNOWN';\n\n          if (field === 'timestamp') {\n            value = normalizeToGranularity(value, timeGranularity);\n          } else if (field === 'user' && typeof value === 'string' && value.includes('@')) {\n            value = value \n          }\n\n          return value;\n        });\n\n      const key = keyParts.join('|');\n      grouped[key] = (grouped[key] || 0) + 1;\n    });\n\n    const records = Object.entries(grouped)\n      .sort(([, a], [, b]) => b - a)\n      .map(([key, count]) => {\n        const values = key.split('|');\n        const record = {};\n        groupByFields\n          .filter(field => field !== 'no-system')\n          .forEach((field, i) => {\n            record[field] = values[i];\n          });\n        record.count = count;\n        return record;\n      });\n\n    const sample = records[0] || {};\n    const mappings = groupByFields\n      .filter(field => field !== 'no-system')\n      .reduce((acc, field) => {\n        acc[field] = { type: inferType(sample[field]) };\n        return acc;\n      }, { count: { type: 'long' } });\n\n    const types = [{\n      mappings,\n      indexRange: [0, records.length]\n    }];\n\n    return { records, types };\n  }\n\n  // \ud83d\udce5 Fetch paginado de logs\n  async function fetchAllAuditLogs({ filter, from, to, pageSize } = {}) {\n    let auditLogs = [];\n    let next = undefined;\n\n    const config = { filter, from, to, pageSize };\n    console.log(`Fetching first page...`);\n    const firstresponse = await auditLogsClient.getLogs(config);\n    auditLogs = [...firstresponse.auditLogs];\n    next = firstresponse.nextPageKey;\n\n    let pageCounter = 1;\n    while (next) {\n      console.log(`Fetching page ${++pageCounter}...`);\n      const response = await auditLogsClient.getLogs({ nextPageKey: next });\n      auditLogs = [...auditLogs, ...response.auditLogs];\n      next = response.nextPageKey;\n    }\n\n    return auditLogs;\n  }\n\n  // \ud83e\uddea Ejecuci\u00f3n final\n  const data = await fetchAllAuditLogs({\n    filter: '', // eventType(\"LOGIN\")\n    from:  $dt_timeframe_from,\n    to: $dt_timeframe_to,\n    pageSize: 5000\n  });\n\n  // \ud83d\udcca Agrupar por campos (con granularidad configurable)\n  const groupedData = buildDataFrameAdvanced(\n    data,\n    ['user' ],\n    { timeGranularity: 'day' } // \ud83d\udc48 Pod\u00e9s usar 'minute', 'hour' o 'day'\n  );\n\n  console.log(groupedData);\n  return groupedData;\n}\n",
+        "visualization": "categoricalBarChart",
+        "visualizationSettings": {
+          "autoSelectVisualization": false,
+          "chartSettings": {
+            "legend": {
+              "hidden": true
+            },
+            "categoricalBarChartSettings": {
+              "categoryAxisLabel": "user",
+              "categoryAxis": [
+                "user"
+              ],
+              "valueAxis": [
+                "count"
+              ],
+              "valueAxisLabel": "count",
+              "isValueLabelVisible": false
+            }
+          },
+          "legend": {
+            "ratio": 24
+          }
+        }
+      },
+      "33": {
+        "title": "",
+        "type": "code",
+        "input": "import { auditLogsClient } from '@dynatrace-sdk/client-classic-environment-v2';\n\nexport default async function () {\n  // \ud83d\udc49 Normaliza timestamp seg\u00fan granularidad (day, hour, minute)\n  function normalizeToGranularity(value, granularity = 'minute') {\n    if (!value) return 'UNKNOWN';\n\n    const date = typeof value === 'number' ? new Date(value) : new Date(value);\n    if (isNaN(date.getTime())) return 'UNKNOWN';\n\n    const year = date.getUTCFullYear();\n    const month = String(date.getUTCMonth() + 1).padStart(2, '0');\n    const day = String(date.getUTCDate()).padStart(2, '0');\n    const hour = String(date.getUTCHours()).padStart(2, '0');\n    const minute = String(date.getUTCMinutes()).padStart(2, '0');\n\n    switch (granularity) {\n      case 'day':\n        return `${year}-${month}-${day}T00:00`;\n      case 'hour':\n        return `${year}-${month}-${day}T${hour}:00`;\n      case 'minute':\n      default:\n        return `${year}-${month}-${day}T${hour}:${minute}`;\n    }\n  }\n\n  // \ud83d\udc49 Inferencia de tipo\n  function inferType(value) {\n    if (typeof value === 'number') return 'long';\n    if (!isNaN(Date.parse(value))) return 'timestamp';\n    return 'string';\n  }\n\n  // \ud83d\udd01 Agrupaci\u00f3n flexible\n  function buildDataFrameAdvanced(data, groupByFields = [], { timeGranularity = 'minute' } = {}) {\n    const grouped = {};\n    const hasNoSystem = groupByFields.includes('no-system');\n\n    const filteredData = hasNoSystem\n      ? data.filter(item => typeof item.user === 'string' && item.user.includes('@'))\n      : data;\n\n    filteredData.forEach(item => {\n      const keyParts = groupByFields\n        .filter(field => field !== 'no-system') // Ignorar 'no-system' como campo real\n        .map(field => {\n          let value = item[field] ?? 'UNKNOWN';\n\n          if (field === 'timestamp') {\n            value = normalizeToGranularity(value, timeGranularity);\n          } else if (field === 'user' && typeof value === 'string' && value.includes('@')) {\n            value = value \n          }\n\n          return value;\n        });\n\n      const key = keyParts.join('|');\n      grouped[key] = (grouped[key] || 0) + 1;\n    });\n\n    const records = Object.entries(grouped)\n      .sort(([, a], [, b]) => b - a)\n      .map(([key, count]) => {\n        const values = key.split('|');\n        const record = {};\n        groupByFields\n          .filter(field => field !== 'no-system')\n          .forEach((field, i) => {\n            record[field] = values[i];\n          });\n        record.count = count;\n        return record;\n      });\n\n    const sample = records[0] || {};\n    const mappings = groupByFields\n      .filter(field => field !== 'no-system')\n      .reduce((acc, field) => {\n        acc[field] = { type: inferType(sample[field]) };\n        return acc;\n      }, { count: { type: 'long' } });\n\n    const types = [{\n      mappings,\n      indexRange: [0, records.length]\n    }];\n\n    return { records, types };\n  }\n\n  // \ud83d\udce5 Fetch paginado de logs\n  async function fetchAllAuditLogs({ filter, from, to, pageSize } = {}) {\n    let auditLogs = [];\n    let next = undefined;\n\n    const config = { filter, from, to, pageSize };\n    console.log(`Fetching first page...`);\n    const firstresponse = await auditLogsClient.getLogs(config);\n    auditLogs = [...firstresponse.auditLogs];\n    next = firstresponse.nextPageKey;\n\n    let pageCounter = 1;\n    while (next) {\n      console.log(`Fetching page ${++pageCounter}...`);\n      const response = await auditLogsClient.getLogs({ nextPageKey: next });\n      auditLogs = [...auditLogs, ...response.auditLogs];\n      next = response.nextPageKey;\n    }\n\n    return auditLogs;\n  }\n\n  // \ud83e\uddea Ejecuci\u00f3n final\n  const data = await fetchAllAuditLogs({\n    filter: '', // eventType(\"LOGIN\")\n    from:  $dt_timeframe_from,\n    to: $dt_timeframe_to,\n    pageSize: 5000\n  });\n\n  // \ud83d\udcca Agrupar por campos (con granularidad configurable)\n  const groupedData = buildDataFrameAdvanced(\n    data,\n    ['eventType', 'timestamp' ],\n    { timeGranularity: $Tiempo } // \ud83d\udc48 Pod\u00e9s usar 'minute', 'hour' o 'day'\n  );\n\n  console.log(groupedData);\n  return groupedData;\n}\n",
+        "visualization": "lineChart",
+        "visualizationSettings": {
+          "chartSettings": {
+            "xAxisLabel": "timestamp",
+            "xAxisScaling": "auto",
+            "fieldMapping": {
+              "leftAxisValues": [
+                "count"
+              ],
+              "timestamp": "timestamp"
+            },
+            "gapPolicy": "connect"
+          },
+          "dataMapping": {
+            "displayedFields": [
+              "eventType"
+            ]
+          },
+          "legend": {
+            "ratio": 24
+          },
+          "autoSelectVisualization": false
+        }
+      },
+      "34": {
+        "title": "",
+        "type": "code",
+        "input": "import { auditLogsClient } from '@dynatrace-sdk/client-classic-environment-v2';\n\nexport default async function () {\n  // \ud83d\udc49 Normaliza timestamp seg\u00fan granularidad (day, hour, minute)\n  function normalizeToGranularity(value, granularity = 'minute') {\n    if (!value) return 'UNKNOWN';\n\n    const date = typeof value === 'number' ? new Date(value) : new Date(value);\n    if (isNaN(date.getTime())) return 'UNKNOWN';\n\n    const year = date.getUTCFullYear();\n    const month = String(date.getUTCMonth() + 1).padStart(2, '0');\n    const day = String(date.getUTCDate()).padStart(2, '0');\n    const hour = String(date.getUTCHours()).padStart(2, '0');\n    const minute = String(date.getUTCMinutes()).padStart(2, '0');\n\n    switch (granularity) {\n      case 'day':\n        return `${year}-${month}-${day}T00:00`;\n      case 'hour':\n        return `${year}-${month}-${day}T${hour}:00`;\n      case 'minute':\n      default:\n        return `${year}-${month}-${day}T${hour}:${minute}`;\n    }\n  }\n\n  // \ud83d\udc49 Inferencia de tipo\n  function inferType(value) {\n    if (typeof value === 'number') return 'long';\n    if (!isNaN(Date.parse(value))) return 'timestamp';\n    return 'string';\n  }\n\n  // \ud83d\udd01 Agrupaci\u00f3n flexible\n  function buildDataFrameAdvanced(data, groupByFields = [], { timeGranularity = 'minute' } = {}) {\n    const grouped = {};\n    const hasNoSystem = groupByFields.includes('no-system');\n\n    const filteredData = hasNoSystem\n      ? data.filter(item => typeof item.user === 'string' && item.user.includes('@'))\n      : data;\n\n    filteredData.forEach(item => {\n      const keyParts = groupByFields\n        .filter(field => field !== 'no-system') // Ignorar 'no-system' como campo real\n        .map(field => {\n          let value = item[field] ?? 'UNKNOWN';\n\n          if (field === 'timestamp') {\n            value = normalizeToGranularity(value, timeGranularity);\n          } else if (field === 'user' && typeof value === 'string' && value.includes('@')) {\n            value = value \n            // value = value.split('@')[1]; // solo el dominio\n          }\n\n          return value;\n        });\n\n      const key = keyParts.join('|');\n      grouped[key] = (grouped[key] || 0) + 1;\n    });\n\n    const records = Object.entries(grouped)\n      .sort(([, a], [, b]) => b - a)\n      .map(([key, count]) => {\n        const values = key.split('|');\n        const record = {};\n        groupByFields\n          .filter(field => field !== 'no-system')\n          .forEach((field, i) => {\n            record[field] = values[i];\n          });\n        record.count = count;\n        return record;\n      });\n\n    const sample = records[0] || {};\n    const mappings = groupByFields\n      .filter(field => field !== 'no-system')\n      .reduce((acc, field) => {\n        acc[field] = { type: inferType(sample[field]) };\n        return acc;\n      }, { count: { type: 'long' } });\n\n    const types = [{\n      mappings,\n      indexRange: [0, records.length]\n    }];\n\n    return { records, types };\n  }\n\n  // \ud83d\udce5 Fetch paginado de logs\n  async function fetchAllAuditLogs({ filter, from, to, pageSize } = {}) {\n    let auditLogs = [];\n    let next = undefined;\n\n    const config = { filter, from, to, pageSize };\n    console.log(`Fetching first page...`);\n    const firstresponse = await auditLogsClient.getLogs(config);\n    auditLogs = [...firstresponse.auditLogs];\n    next = firstresponse.nextPageKey;\n\n    let pageCounter = 1;\n    while (next) {\n      console.log(`Fetching page ${++pageCounter}...`);\n      const response = await auditLogsClient.getLogs({ nextPageKey: next });\n      auditLogs = [...auditLogs, ...response.auditLogs];\n      next = response.nextPageKey;\n    }\n\n    return auditLogs;\n  }\n\n  // \ud83e\uddea Ejecuci\u00f3n final\n  const data = await fetchAllAuditLogs({\n    filter: '', // eventType(\"LOGIN\")\n    from:  $dt_timeframe_from,\n    to: $dt_timeframe_to,\n    pageSize: 5000\n  });\n\n  // \ud83d\udcca Agrupar por campos (con granularidad configurable)\n  const groupedData = buildDataFrameAdvanced(\n    data,\n    ['user', 'timestamp' ],\n    { timeGranularity: $Tiempo } // \ud83d\udc48 Pod\u00e9s usar 'minute', 'hour' o 'day'\n  );\n\n  console.log(groupedData);\n  return groupedData;\n}\n",
+        "visualization": "lineChart",
+        "visualizationSettings": {
+          "chartSettings": {
+            "legend": {
+              "hidden": true
+            },
+            "xAxisLabel": "timestamp",
+            "xAxisScaling": "auto",
+            "fieldMapping": {
+              "leftAxisValues": [
+                "count"
+              ],
+              "timestamp": "timestamp"
+            },
+            "gapPolicy": "connect"
+          },
+          "dataMapping": {
+            "displayedFields": [
+              "user"
+            ]
+          },
+          "legend": {
+            "ratio": 24
+          },
+          "autoSelectVisualization": false
+        }
+      },
+      "35": {
+        "title": "",
+        "type": "data",
+        "query": "data record( nombre=\"By type of Event / Day\" )",
+        "visualization": "singleValue",
+        "visualizationSettings": {
+          "singleValue": {
+            "labelMode": "none",
+            "label": "a",
+            "recordField": "nombre",
+            "isIconVisible": true,
+            "alignment": "start",
+            "colorThresholdTarget": "background",
+            "trend": {
+              "isVisible": true
+            }
+          },
+          "coloring": {
+            "colorRules": [
+              {
+                "value": "0",
+                "comparator": "!=",
+                "field": "nombre",
+                "colorMode": "custom-color",
+                "customColor": {
+                  "Default": "var(--dt-colors-charts-categorical-color-02-default, #2c2f3f)"
+                }
+              }
+            ]
+          },
+          "autoSelectVisualization": false
+        },
+        "querySettings": {
+          "maxResultRecords": 1000,
+          "defaultScanLimitGbytes": 500,
+          "maxResultMegaBytes": 1,
+          "defaultSamplingRatio": 10,
+          "enableSampling": false
+        },
+        "davis": {
+          "enabled": false,
+          "davisVisualization": {
+            "isAvailable": true
+          }
+        }
+      },
+      "36": {
+        "title": "",
+        "type": "data",
+        "query": "data record( nombre=\"By type Domain / Day\" )",
+        "visualization": "singleValue",
+        "visualizationSettings": {
+          "singleValue": {
+            "labelMode": "none",
+            "label": "a",
+            "recordField": "nombre",
+            "isIconVisible": true,
+            "alignment": "start",
+            "colorThresholdTarget": "background",
+            "trend": {
+              "isVisible": true
+            }
+          },
+          "coloring": {
+            "colorRules": [
+              {
+                "value": "0",
+                "comparator": "!=",
+                "field": "nombre",
+                "colorMode": "custom-color",
+                "customColor": {
+                  "Default": "var(--dt-colors-charts-categorical-color-02-default, #2c2f3f)"
+                }
+              }
+            ]
+          },
+          "autoSelectVisualization": false
+        },
+        "querySettings": {
+          "maxResultRecords": 1000,
+          "defaultScanLimitGbytes": 500,
+          "maxResultMegaBytes": 1,
+          "defaultSamplingRatio": 10,
+          "enableSampling": false
+        },
+        "davis": {
+          "enabled": false,
+          "davisVisualization": {
+            "isAvailable": true
+          }
+        }
+      },
+      "37": {
+        "title": "",
+        "type": "data",
+        "query": "data record( nombre=\"Per User / Day\" )",
+        "visualization": "singleValue",
+        "visualizationSettings": {
+          "singleValue": {
+            "labelMode": "none",
+            "label": "a",
+            "recordField": "nombre",
+            "isIconVisible": true,
+            "alignment": "start",
+            "colorThresholdTarget": "background",
+            "trend": {
+              "isVisible": true
+            }
+          },
+          "coloring": {
+            "colorRules": [
+              {
+                "value": "0",
+                "comparator": "!=",
+                "field": "nombre",
+                "colorMode": "custom-color",
+                "customColor": {
+                  "Default": "var(--dt-colors-charts-categorical-color-02-default, #2c2f3f)"
+                }
+              }
+            ]
+          },
+          "autoSelectVisualization": false
+        },
+        "querySettings": {
+          "maxResultRecords": 1000,
+          "defaultScanLimitGbytes": 500,
+          "maxResultMegaBytes": 1,
+          "defaultSamplingRatio": 10,
+          "enableSampling": false
+        },
+        "davis": {
+          "enabled": false,
+          "davisVisualization": {
+            "isAvailable": true
+          }
+        }
+      },
+      "38": {
+        "title": "",
+        "type": "data",
+        "query": "data record( nombre=\"By Category / Day\" )",
+        "visualization": "singleValue",
+        "visualizationSettings": {
+          "singleValue": {
+            "labelMode": "none",
+            "label": "a",
+            "recordField": "nombre",
+            "isIconVisible": true,
+            "alignment": "start",
+            "colorThresholdTarget": "background",
+            "trend": {
+              "isVisible": true
+            }
+          },
+          "coloring": {
+            "colorRules": [
+              {
+                "value": "0",
+                "comparator": "!=",
+                "field": "nombre",
+                "colorMode": "custom-color",
+                "customColor": {
+                  "Default": "var(--dt-colors-charts-categorical-color-02-default, #2c2f3f)"
+                }
+              }
+            ]
+          },
+          "autoSelectVisualization": false
+        },
+        "querySettings": {
+          "maxResultRecords": 1000,
+          "defaultScanLimitGbytes": 500,
+          "maxResultMegaBytes": 1,
+          "defaultSamplingRatio": 10,
+          "enableSampling": false
+        },
+        "davis": {
+          "enabled": false,
+          "davisVisualization": {
+            "isAvailable": true
+          }
+        }
+      },
+      "39": {
+        "title": "",
+        "type": "code",
+        "input": "import { auditLogsClient } from '@dynatrace-sdk/client-classic-environment-v2';\n\nexport default async function () {\n  // \ud83d\udc49 Normaliza timestamp seg\u00fan granularidad (day, hour, minute)\n  function normalizeToGranularity(value, granularity = 'minute') {\n    if (!value) return 'UNKNOWN';\n\n    const date = typeof value === 'number' ? new Date(value) : new Date(value);\n    if (isNaN(date.getTime())) return 'UNKNOWN';\n\n    const year = date.getUTCFullYear();\n    const month = String(date.getUTCMonth() + 1).padStart(2, '0');\n    const day = String(date.getUTCDate()).padStart(2, '0');\n    const hour = String(date.getUTCHours()).padStart(2, '0');\n    const minute = String(date.getUTCMinutes()).padStart(2, '0');\n\n    switch (granularity) {\n      case 'day':\n        return `${year}-${month}-${day}T00:00`;\n      case 'hour':\n        return `${year}-${month}-${day}T${hour}:00`;\n      case 'minute':\n      default:\n        return `${year}-${month}-${day}T${hour}:${minute}`;\n    }\n  }\n\n  // \ud83d\udc49 Inferencia de tipo\n  function inferType(value) {\n    if (typeof value === 'number') return 'long';\n    if (!isNaN(Date.parse(value))) return 'timestamp';\n    return 'string';\n  }\n\n  // \ud83d\udd01 Agrupaci\u00f3n flexible\n  function buildDataFrameAdvanced(data, groupByFields = [], { timeGranularity = 'minute' } = {}) {\n    const grouped = {};\n    const hasNoSystem = groupByFields.includes('no-system');\n\n    const filteredData = hasNoSystem\n      ? data.filter(item => typeof item.user === 'string' && item.user.includes('@'))\n      : data;\n\n    filteredData.forEach(item => {\n      const keyParts = groupByFields\n        .filter(field => field !== 'no-system') // Ignorar 'no-system' como campo real\n        .map(field => {\n          let value = item[field] ?? 'UNKNOWN';\n\n          if (field === 'timestamp') {\n            value = normalizeToGranularity(value, timeGranularity);\n          } else if (field === 'user' && typeof value === 'string' && value.includes('@')) {\n            value = value \n            // value = value.split('@')[1]; // solo el dominio\n          }\n\n          return value;\n        });\n\n      const key = keyParts.join('|');\n      grouped[key] = (grouped[key] || 0) + 1;\n    });\n\n    const records = Object.entries(grouped)\n      .sort(([, a], [, b]) => b - a)\n      .map(([key, count]) => {\n        const values = key.split('|');\n        const record = {};\n        groupByFields\n          .filter(field => field !== 'no-system')\n          .forEach((field, i) => {\n            record[field] = values[i];\n          });\n        record.count = count;\n        return record;\n      });\n\n    const sample = records[0] || {};\n    const mappings = groupByFields\n      .filter(field => field !== 'no-system')\n      .reduce((acc, field) => {\n        acc[field] = { type: inferType(sample[field]) };\n        return acc;\n      }, { count: { type: 'long' } });\n\n    const types = [{\n      mappings,\n      indexRange: [0, records.length]\n    }];\n\n    return { records, types };\n  }\n\n  // \ud83d\udce5 Fetch paginado de logs\n  async function fetchAllAuditLogs({ filter, from, to, pageSize } = {}) {\n    let auditLogs = [];\n    let next = undefined;\n\n    const config = { filter, from, to, pageSize };\n    console.log(`Fetching first page...`);\n    const firstresponse = await auditLogsClient.getLogs(config);\n    auditLogs = [...firstresponse.auditLogs];\n    next = firstresponse.nextPageKey;\n\n    let pageCounter = 1;\n    while (next) {\n      console.log(`Fetching page ${++pageCounter}...`);\n      const response = await auditLogsClient.getLogs({ nextPageKey: next });\n      auditLogs = [...auditLogs, ...response.auditLogs];\n      next = response.nextPageKey;\n    }\n\n    return auditLogs;\n  }\n\n  // \ud83e\uddea Ejecuci\u00f3n final\n  const data = await fetchAllAuditLogs({\n    filter: '', // eventType(\"LOGIN\")\n    from:  $dt_timeframe_from,\n    to: $dt_timeframe_to,\n    pageSize: 5000\n  });\n\n  // \ud83d\udcca Agrupar por campos (con granularidad configurable)\n  const groupedData = buildDataFrameAdvanced(\n    data,\n    ['category', 'timestamp' ],\n    { timeGranularity: $Tiempo } // \ud83d\udc48 Pod\u00e9s usar 'minute', 'hour' o 'day'\n  );\n\n  console.log(groupedData);\n  return groupedData;\n}\n",
+        "visualization": "lineChart",
+        "visualizationSettings": {
+          "chartSettings": {
+            "legend": {
+              "hidden": true
+            },
+            "xAxisLabel": "timestamp",
+            "xAxisScaling": "auto",
+            "fieldMapping": {
+              "leftAxisValues": [
+                "count"
+              ],
+              "timestamp": "timestamp"
+            },
+            "gapPolicy": "connect"
+          },
+          "dataMapping": {
+            "displayedFields": [
+              "category"
+            ]
+          },
+          "legend": {
+            "ratio": 24
+          },
+          "autoSelectVisualization": false
+        }
+      },
+      "41": {
+        "title": "",
+        "type": "data",
+        "query": "data record( nombre=\"By userOrigin / Day\" )",
+        "visualization": "singleValue",
+        "visualizationSettings": {
+          "singleValue": {
+            "labelMode": "none",
+            "label": "a",
+            "recordField": "nombre",
+            "isIconVisible": true,
+            "alignment": "start",
+            "colorThresholdTarget": "background",
+            "trend": {
+              "isVisible": true
+            }
+          },
+          "coloring": {
+            "colorRules": [
+              {
+                "value": "0",
+                "comparator": "!=",
+                "field": "nombre",
+                "colorMode": "custom-color",
+                "customColor": {
+                  "Default": "var(--dt-colors-charts-categorical-color-02-default, #2c2f3f)"
+                }
+              }
+            ]
+          },
+          "autoSelectVisualization": false
+        },
+        "querySettings": {
+          "maxResultRecords": 1000,
+          "defaultScanLimitGbytes": 500,
+          "maxResultMegaBytes": 1,
+          "defaultSamplingRatio": 10,
+          "enableSampling": false
+        },
+        "davis": {
+          "enabled": false,
+          "davisVisualization": {
+            "isAvailable": true
+          }
+        }
+      },
+      "42": {
+        "title": "",
+        "type": "code",
+        "input": "import { auditLogsClient } from '@dynatrace-sdk/client-classic-environment-v2';\n\nexport default async function () {\n  // \ud83d\udc49 Normaliza timestamp seg\u00fan granularidad (day, hour, minute)\n  function normalizeToGranularity(value, granularity = 'minute') {\n    if (!value) return 'UNKNOWN';\n\n    const date = typeof value === 'number' ? new Date(value) : new Date(value);\n    if (isNaN(date.getTime())) return 'UNKNOWN';\n\n    const year = date.getUTCFullYear();\n    const month = String(date.getUTCMonth() + 1).padStart(2, '0');\n    const day = String(date.getUTCDate()).padStart(2, '0');\n    const hour = String(date.getUTCHours()).padStart(2, '0');\n    const minute = String(date.getUTCMinutes()).padStart(2, '0');\n\n    switch (granularity) {\n      case 'day':\n        return `${year}-${month}-${day}T00:00`;\n      case 'hour':\n        return `${year}-${month}-${day}T${hour}:00`;\n      case 'minute':\n      default:\n        return `${year}-${month}-${day}T${hour}:${minute}`;\n    }\n  }\n\n  // \ud83d\udc49 Inferencia de tipo\n  function inferType(value) {\n    if (typeof value === 'number') return 'long';\n    if (!isNaN(Date.parse(value))) return 'timestamp';\n    return 'string';\n  }\n\n  // \ud83d\udd01 Agrupaci\u00f3n flexible\n  function buildDataFrameAdvanced(data, groupByFields = [], { timeGranularity = 'minute' } = {}) {\n    const grouped = {};\n    const hasNoSystem = groupByFields.includes('no-system');\n\n    const filteredData = hasNoSystem\n      ? data.filter(item => typeof item.user === 'string' && item.user.includes('@'))\n      : data;\n\n    filteredData.forEach(item => {\n      const keyParts = groupByFields\n        .filter(field => field !== 'no-system') // Ignorar 'no-system' como campo real\n        .map(field => {\n          let value = item[field] ?? 'UNKNOWN';\n\n          if (field === 'timestamp') {\n            value = normalizeToGranularity(value, timeGranularity);\n          } else if (field === 'user' && typeof value === 'string' && value.includes('@')) {\n            value = value \n            // value = value.split('@')[1]; // solo el dominio\n          }\n\n          return value;\n        });\n\n      const key = keyParts.join('|');\n      grouped[key] = (grouped[key] || 0) + 1;\n    });\n\n    const records = Object.entries(grouped)\n      .sort(([, a], [, b]) => b - a)\n      .map(([key, count]) => {\n        const values = key.split('|');\n        const record = {};\n        groupByFields\n          .filter(field => field !== 'no-system')\n          .forEach((field, i) => {\n            record[field] = values[i];\n          });\n        record.count = count;\n        return record;\n      });\n\n    const sample = records[0] || {};\n    const mappings = groupByFields\n      .filter(field => field !== 'no-system')\n      .reduce((acc, field) => {\n        acc[field] = { type: inferType(sample[field]) };\n        return acc;\n      }, { count: { type: 'long' } });\n\n    const types = [{\n      mappings,\n      indexRange: [0, records.length]\n    }];\n\n    return { records, types };\n  }\n\n  // \ud83d\udce5 Fetch paginado de logs\n  async function fetchAllAuditLogs({ filter, from, to, pageSize } = {}) {\n    let auditLogs = [];\n    let next = undefined;\n\n    const config = { filter, from, to, pageSize };\n    console.log(`Fetching first page...`);\n    const firstresponse = await auditLogsClient.getLogs(config);\n    auditLogs = [...firstresponse.auditLogs];\n    next = firstresponse.nextPageKey;\n\n    let pageCounter = 1;\n    while (next) {\n      console.log(`Fetching page ${++pageCounter}...`);\n      const response = await auditLogsClient.getLogs({ nextPageKey: next });\n      auditLogs = [...auditLogs, ...response.auditLogs];\n      next = response.nextPageKey;\n    }\n\n    return auditLogs;\n  }\n\n  // \ud83e\uddea Ejecuci\u00f3n final\n  const data = await fetchAllAuditLogs({\n    filter: '', // eventType(\"LOGIN\")\n    from:  $dt_timeframe_from,\n    to: $dt_timeframe_to,\n    pageSize: 5000\n  });\n\n  // \ud83d\udcca Agrupar por campos (con granularidad configurable)\n  const groupedData = buildDataFrameAdvanced(\n    data,\n    ['userOrigin', 'timestamp' ],\n    { timeGranularity: $Tiempo } // \ud83d\udc48 Pod\u00e9s usar 'minute', 'hour' o 'day'\n  );\n\n  console.log(groupedData);\n  return groupedData;\n}\n",
+        "visualization": "lineChart",
+        "visualizationSettings": {
+          "chartSettings": {
+            "legend": {
+              "hidden": true
+            },
+            "xAxisLabel": "timestamp",
+            "xAxisScaling": "auto",
+            "fieldMapping": {
+              "leftAxisValues": [
+                "count"
+              ],
+              "timestamp": "timestamp"
+            },
+            "gapPolicy": "connect"
+          },
+          "dataMapping": {
+            "displayedFields": [
+              "userOrigin"
+            ]
+          },
+          "legend": {
+            "ratio": 24
+          },
+          "autoSelectVisualization": false
+        }
+      },
+      "43": {
+        "title": "",
+        "type": "code",
+        "input": "import { auditLogsClient } from '@dynatrace-sdk/client-classic-environment-v2';\n\nexport default async function () {\n  // \ud83d\udc49 Normaliza timestamp seg\u00fan granularidad (day, hour, minute)\n  function normalizeToGranularity(value, granularity = 'minute') {\n    if (!value) return 'UNKNOWN';\n\n    const date = typeof value === 'number' ? new Date(value) : new Date(value);\n    if (isNaN(date.getTime())) return 'UNKNOWN';\n\n    const year = date.getUTCFullYear();\n    const month = String(date.getUTCMonth() + 1).padStart(2, '0');\n    const day = String(date.getUTCDate()).padStart(2, '0');\n    const hour = String(date.getUTCHours()).padStart(2, '0');\n    const minute = String(date.getUTCMinutes()).padStart(2, '0');\n\n    switch (granularity) {\n      case 'day':\n        return `${year}-${month}-${day}T00:00`;\n      case 'hour':\n        return `${year}-${month}-${day}T${hour}:00`;\n      case 'minute':\n      default:\n        return `${year}-${month}-${day}T${hour}:${minute}`;\n    }\n  }\n\n  // \ud83d\udc49 Inferencia de tipo\n  function inferType(value) {\n    if (typeof value === 'number') return 'long';\n    if (!isNaN(Date.parse(value))) return 'timestamp';\n    return 'string';\n  }\n\n  // \ud83d\udd01 Agrupaci\u00f3n flexible\n  function buildDataFrameAdvanced(data, groupByFields = [], { timeGranularity = 'minute' } = {}) {\n    const grouped = {};\n    const hasNoSystem = groupByFields.includes('no-system');\n\n    const filteredData = hasNoSystem\n      ? data.filter(item => typeof item.user === 'string' && item.user.includes('@'))\n      : data;\n\n    filteredData.forEach(item => {\n      const keyParts = groupByFields\n        .filter(field => field !== 'no-system') // Ignorar 'no-system' como campo real\n        .map(field => {\n          let value = item[field] ?? 'UNKNOWN';\n\n          if (field === 'timestamp') {\n            value = normalizeToGranularity(value, timeGranularity);\n          } else if (field === 'user' && typeof value === 'string' && value.includes('@')) {\n            value = value \n          }\n\n          return value;\n        });\n\n      const key = keyParts.join('|');\n      grouped[key] = (grouped[key] || 0) + 1;\n    });\n\n    const records = Object.entries(grouped)\n      .sort(([, a], [, b]) => b - a)\n      .map(([key, count]) => {\n        const values = key.split('|');\n        const record = {};\n        groupByFields\n          .filter(field => field !== 'no-system')\n          .forEach((field, i) => {\n            record[field] = values[i];\n          });\n        record.count = count;\n        return record;\n      });\n\n    const sample = records[0] || {};\n    const mappings = groupByFields\n      .filter(field => field !== 'no-system')\n      .reduce((acc, field) => {\n        acc[field] = { type: inferType(sample[field]) };\n        return acc;\n      }, { count: { type: 'long' } });\n\n    const types = [{\n      mappings,\n      indexRange: [0, records.length]\n    }];\n\n    return { records, types };\n  }\n\n  // \ud83d\udce5 Fetch paginado de logs\n  async function fetchAllAuditLogs({ filter, from, to, pageSize } = {}) {\n    let auditLogs = [];\n    let next = undefined;\n\n    const config = { filter, from, to, pageSize };\n    console.log(`Fetching first page...`);\n    const firstresponse = await auditLogsClient.getLogs(config);\n    auditLogs = [...firstresponse.auditLogs];\n    next = firstresponse.nextPageKey;\n\n    let pageCounter = 1;\n    while (next) {\n      console.log(`Fetching page ${++pageCounter}...`);\n      const response = await auditLogsClient.getLogs({ nextPageKey: next });\n      auditLogs = [...auditLogs, ...response.auditLogs];\n      next = response.nextPageKey;\n    }\n\n    return auditLogs;\n  }\n\n  // \ud83e\uddea Ejecuci\u00f3n final\n  const data = await fetchAllAuditLogs({\n    filter: '', // eventType(\"LOGIN\")\n    from:  $dt_timeframe_from,\n    to: $dt_timeframe_to,\n    pageSize: 5000\n  });\n\n  // \ud83d\udcca Agrupar por campos (con granularidad configurable)\n  const groupedData = buildDataFrameAdvanced(\n    data,\n    ['userOrigin' ],\n    { timeGranularity: 'day' } // \ud83d\udc48 Pod\u00e9s usar 'minute', 'hour' o 'day'\n  );\n\n  console.log(groupedData);\n  return groupedData;\n}\n",
+        "visualization": "categoricalBarChart",
+        "visualizationSettings": {
+          "autoSelectVisualization": false,
+          "chartSettings": {
+            "legend": {
+              "hidden": true
+            },
+            "categoricalBarChartSettings": {
+              "categoryAxisLabel": "userOrigin",
+              "categoryAxis": [
+                "userOrigin"
+              ],
+              "valueAxis": [
+                "count"
+              ],
+              "valueAxisLabel": "count",
+              "isValueLabelVisible": false
+            }
+          },
+          "legend": {
+            "ratio": 24
+          }
+        }
+      },
+      "44": {
+        "title": "",
+        "type": "data",
+        "query": "data record( nombre=\"By entityId / Day\" )",
+        "visualization": "singleValue",
+        "visualizationSettings": {
+          "singleValue": {
+            "labelMode": "none",
+            "label": "a",
+            "recordField": "nombre",
+            "isIconVisible": true,
+            "alignment": "start",
+            "colorThresholdTarget": "background",
+            "trend": {
+              "isVisible": true
+            }
+          },
+          "coloring": {
+            "colorRules": [
+              {
+                "value": "0",
+                "comparator": "!=",
+                "field": "nombre",
+                "colorMode": "custom-color",
+                "customColor": {
+                  "Default": "var(--dt-colors-charts-categorical-color-02-default, #2c2f3f)"
+                }
+              }
+            ]
+          },
+          "autoSelectVisualization": false
+        },
+        "querySettings": {
+          "maxResultRecords": 1000,
+          "defaultScanLimitGbytes": 500,
+          "maxResultMegaBytes": 1,
+          "defaultSamplingRatio": 10,
+          "enableSampling": false
+        },
+        "davis": {
+          "enabled": false,
+          "davisVisualization": {
+            "isAvailable": true
+          }
+        }
+      },
+      "45": {
+        "title": "",
+        "type": "code",
+        "input": "import { auditLogsClient } from '@dynatrace-sdk/client-classic-environment-v2';\n\nexport default async function () {\n  // \ud83d\udc49 Normaliza timestamp seg\u00fan granularidad (day, hour, minute)\n  function normalizeToGranularity(value, granularity = 'minute') {\n    if (!value) return 'UNKNOWN';\n\n    const date = typeof value === 'number' ? new Date(value) : new Date(value);\n    if (isNaN(date.getTime())) return 'UNKNOWN';\n\n    const year = date.getUTCFullYear();\n    const month = String(date.getUTCMonth() + 1).padStart(2, '0');\n    const day = String(date.getUTCDate()).padStart(2, '0');\n    const hour = String(date.getUTCHours()).padStart(2, '0');\n    const minute = String(date.getUTCMinutes()).padStart(2, '0');\n\n    switch (granularity) {\n      case 'day':\n        return `${year}-${month}-${day}T00:00`;\n      case 'hour':\n        return `${year}-${month}-${day}T${hour}:00`;\n      case 'minute':\n      default:\n        return `${year}-${month}-${day}T${hour}:${minute}`;\n    }\n  }\n\n  // \ud83d\udc49 Inferencia de tipo\n  function inferType(value) {\n    if (typeof value === 'number') return 'long';\n    if (!isNaN(Date.parse(value))) return 'timestamp';\n    return 'string';\n  }\n\n  // \ud83d\udd01 Agrupaci\u00f3n flexible\n  function buildDataFrameAdvanced(data, groupByFields = [], { timeGranularity = 'minute' } = {}) {\n    const grouped = {};\n    const hasNoSystem = groupByFields.includes('no-system');\n\n    const filteredData = hasNoSystem\n      ? data.filter(item => typeof item.user === 'string' && item.user.includes('@'))\n      : data;\n\n    filteredData.forEach(item => {\n      const keyParts = groupByFields\n        .filter(field => field !== 'no-system') // Ignorar 'no-system' como campo real\n        .map(field => {\n          let value = item[field] ?? 'UNKNOWN';\n\n          if (field === 'timestamp') {\n            value = normalizeToGranularity(value, timeGranularity);\n          } else if (field === 'user' && typeof value === 'string' && value.includes('@')) {\n            value = value \n            // value = value.split('@')[1]; // solo el dominio\n          }\n\n          return value;\n        });\n\n      const key = keyParts.join('|');\n      grouped[key] = (grouped[key] || 0) + 1;\n    });\n\n    const records = Object.entries(grouped)\n      .sort(([, a], [, b]) => b - a)\n      .map(([key, count]) => {\n        const values = key.split('|');\n        const record = {};\n        groupByFields\n          .filter(field => field !== 'no-system')\n          .forEach((field, i) => {\n            record[field] = values[i];\n          });\n        record.count = count;\n        return record;\n      });\n\n    const sample = records[0] || {};\n    const mappings = groupByFields\n      .filter(field => field !== 'no-system')\n      .reduce((acc, field) => {\n        acc[field] = { type: inferType(sample[field]) };\n        return acc;\n      }, { count: { type: 'long' } });\n\n    const types = [{\n      mappings,\n      indexRange: [0, records.length]\n    }];\n\n    return { records, types };\n  }\n\n  // \ud83d\udce5 Fetch paginado de logs\n  async function fetchAllAuditLogs({ filter, from, to, pageSize } = {}) {\n    let auditLogs = [];\n    let next = undefined;\n\n    const config = { filter, from, to, pageSize };\n    console.log(`Fetching first page...`);\n    const firstresponse = await auditLogsClient.getLogs(config);\n    auditLogs = [...firstresponse.auditLogs];\n    next = firstresponse.nextPageKey;\n\n    let pageCounter = 1;\n    while (next) {\n      console.log(`Fetching page ${++pageCounter}...`);\n      const response = await auditLogsClient.getLogs({ nextPageKey: next });\n      auditLogs = [...auditLogs, ...response.auditLogs];\n      next = response.nextPageKey;\n    }\n\n    return auditLogs;\n  }\n\n  // \ud83e\uddea Ejecuci\u00f3n final\n  const data = await fetchAllAuditLogs({\n    filter: '', // eventType(\"LOGIN\")\n    from:  $dt_timeframe_from,\n    to: $dt_timeframe_to,\n    pageSize: 5000\n  });\n\n  // \ud83d\udcca Agrupar por campos (con granularidad configurable)\n  const groupedData = buildDataFrameAdvanced(\n    data,\n    ['entityId','eventType', 'timestamp' ],\n    { timeGranularity: $Tiempo } // \ud83d\udc48 Pod\u00e9s usar 'minute', 'hour' o 'day'\n  );\n\n  console.log(groupedData);\n  return groupedData;\n}\n",
+        "visualization": "lineChart",
+        "visualizationSettings": {
+          "chartSettings": {
+            "legend": {
+              "hidden": true
+            },
+            "xAxisLabel": "timestamp",
+            "xAxisScaling": "auto",
+            "fieldMapping": {
+              "leftAxisValues": [
+                "count"
+              ],
+              "timestamp": "timestamp"
+            },
+            "gapPolicy": "connect"
+          },
+          "dataMapping": {
+            "displayedFields": [
+              "entityId",
+              "eventType"
+            ]
+          },
+          "legend": {
+            "ratio": 24
+          },
+          "autoSelectVisualization": false
+        }
+      },
+      "47": {
+        "title": "",
+        "type": "data",
+        "query": "data record( nombre=\"By userType / Day\" )",
+        "visualization": "singleValue",
+        "visualizationSettings": {
+          "singleValue": {
+            "labelMode": "none",
+            "label": "a",
+            "recordField": "nombre",
+            "isIconVisible": true,
+            "alignment": "start",
+            "colorThresholdTarget": "background",
+            "trend": {
+              "isVisible": true
+            }
+          },
+          "coloring": {
+            "colorRules": [
+              {
+                "value": "0",
+                "comparator": "!=",
+                "field": "nombre",
+                "colorMode": "custom-color",
+                "customColor": {
+                  "Default": "var(--dt-colors-charts-categorical-color-02-default, #2c2f3f)"
+                }
+              }
+            ]
+          },
+          "autoSelectVisualization": false
+        },
+        "querySettings": {
+          "maxResultRecords": 1000,
+          "defaultScanLimitGbytes": 500,
+          "maxResultMegaBytes": 1,
+          "defaultSamplingRatio": 10,
+          "enableSampling": false
+        },
+        "davis": {
+          "enabled": false,
+          "davisVisualization": {
+            "isAvailable": true
+          }
+        }
+      },
+      "49": {
+        "title": "",
+        "type": "code",
+        "input": "import { auditLogsClient } from '@dynatrace-sdk/client-classic-environment-v2';\n\nexport default async function () {\n  // \ud83d\udc49 Normaliza timestamp seg\u00fan granularidad (day, hour, minute)\n  function normalizeToGranularity(value, granularity = 'minute') {\n    if (!value) return 'UNKNOWN';\n\n    const date = typeof value === 'number' ? new Date(value) : new Date(value);\n    if (isNaN(date.getTime())) return 'UNKNOWN';\n\n    const year = date.getUTCFullYear();\n    const month = String(date.getUTCMonth() + 1).padStart(2, '0');\n    const day = String(date.getUTCDate()).padStart(2, '0');\n    const hour = String(date.getUTCHours()).padStart(2, '0');\n    const minute = String(date.getUTCMinutes()).padStart(2, '0');\n\n    switch (granularity) {\n      case 'day':\n        return `${year}-${month}-${day}T00:00`;\n      case 'hour':\n        return `${year}-${month}-${day}T${hour}:00`;\n      case 'minute':\n      default:\n        return `${year}-${month}-${day}T${hour}:${minute}`;\n    }\n  }\n\n  // \ud83d\udc49 Inferencia de tipo\n  function inferType(value) {\n    if (typeof value === 'number') return 'long';\n    if (!isNaN(Date.parse(value))) return 'timestamp';\n    return 'string';\n  }\n\n  // \ud83d\udd01 Agrupaci\u00f3n flexible\n  function buildDataFrameAdvanced(data, groupByFields = [], { timeGranularity = 'minute' } = {}) {\n    const grouped = {};\n    const hasNoSystem = groupByFields.includes('no-system');\n\n    const filteredData = hasNoSystem\n      ? data.filter(item => typeof item.user === 'string' && item.user.includes('@'))\n      : data;\n\n    filteredData.forEach(item => {\n      const keyParts = groupByFields\n        .filter(field => field !== 'no-system') // Ignorar 'no-system' como campo real\n        .map(field => {\n          let value = item[field] ?? 'UNKNOWN';\n\n          if (field === 'timestamp') {\n            value = normalizeToGranularity(value, timeGranularity);\n          } else if (field === 'user' && typeof value === 'string' && value.includes('@')) {\n            value = value \n            // value = value.split('@')[1]; // solo el dominio\n          }\n\n          return value;\n        });\n\n      const key = keyParts.join('|');\n      grouped[key] = (grouped[key] || 0) + 1;\n    });\n\n    const records = Object.entries(grouped)\n      .sort(([, a], [, b]) => b - a)\n      .map(([key, count]) => {\n        const values = key.split('|');\n        const record = {};\n        groupByFields\n          .filter(field => field !== 'no-system')\n          .forEach((field, i) => {\n            record[field] = values[i];\n          });\n        record.count = count;\n        return record;\n      });\n\n    const sample = records[0] || {};\n    const mappings = groupByFields\n      .filter(field => field !== 'no-system')\n      .reduce((acc, field) => {\n        acc[field] = { type: inferType(sample[field]) };\n        return acc;\n      }, { count: { type: 'long' } });\n\n    const types = [{\n      mappings,\n      indexRange: [0, records.length]\n    }];\n\n    return { records, types };\n  }\n\n  // \ud83d\udce5 Fetch paginado de logs\n  async function fetchAllAuditLogs({ filter, from, to, pageSize } = {}) {\n    let auditLogs = [];\n    let next = undefined;\n\n    const config = { filter, from, to, pageSize };\n    console.log(`Fetching first page...`);\n    const firstresponse = await auditLogsClient.getLogs(config);\n    auditLogs = [...firstresponse.auditLogs];\n    next = firstresponse.nextPageKey;\n\n    let pageCounter = 1;\n    while (next) {\n      console.log(`Fetching page ${++pageCounter}...`);\n      const response = await auditLogsClient.getLogs({ nextPageKey: next });\n      auditLogs = [...auditLogs, ...response.auditLogs];\n      next = response.nextPageKey;\n    }\n\n    return auditLogs;\n  }\n\n  // \ud83e\uddea Ejecuci\u00f3n final\n  const data = await fetchAllAuditLogs({\n    filter: '', // eventType(\"LOGIN\")\n    from:  $dt_timeframe_from,\n    to: $dt_timeframe_to,\n    pageSize: 5000\n  });\n\n  // \ud83d\udcca Agrupar por campos (con granularidad configurable)\n  const groupedData = buildDataFrameAdvanced(\n    data,\n    ['userType','eventType', 'timestamp' ],\n    { timeGranularity: $Tiempo } // \ud83d\udc48 Pod\u00e9s usar 'minute', 'hour' o 'day'\n  );\n\n  console.log(groupedData);\n  return groupedData;\n}\n",
+        "visualization": "lineChart",
+        "visualizationSettings": {
+          "chartSettings": {
+            "legend": {
+              "hidden": true
+            },
+            "xAxisLabel": "timestamp",
+            "xAxisScaling": "auto",
+            "fieldMapping": {
+              "leftAxisValues": [
+                "count"
+              ],
+              "timestamp": "timestamp"
+            },
+            "gapPolicy": "connect"
+          },
+          "dataMapping": {
+            "displayedFields": [
+              "userType",
+              "eventType"
+            ]
+          },
+          "legend": {
+            "ratio": 24
+          },
+          "autoSelectVisualization": false
+        }
+      },
+      "50": {
+        "title": "",
+        "type": "code",
+        "input": "import { auditLogsClient } from '@dynatrace-sdk/client-classic-environment-v2';\n\nexport default async function () {\n  // \ud83d\udc49 Normaliza timestamp seg\u00fan granularidad (day, hour, minute)\n  function normalizeToGranularity(value, granularity = 'minute') {\n    if (!value) return 'UNKNOWN';\n\n    const date = typeof value === 'number' ? new Date(value) : new Date(value);\n    if (isNaN(date.getTime())) return 'UNKNOWN';\n\n    const year = date.getUTCFullYear();\n    const month = String(date.getUTCMonth() + 1).padStart(2, '0');\n    const day = String(date.getUTCDate()).padStart(2, '0');\n    const hour = String(date.getUTCHours()).padStart(2, '0');\n    const minute = String(date.getUTCMinutes()).padStart(2, '0');\n\n    switch (granularity) {\n      case 'day':\n        return `${year}-${month}-${day}T00:00`;\n      case 'hour':\n        return `${year}-${month}-${day}T${hour}:00`;\n      case 'minute':\n      default:\n        return `${year}-${month}-${day}T${hour}:${minute}`;\n    }\n  }\n\n  // \ud83d\udc49 Inferencia de tipo\n  function inferType(value) {\n    if (typeof value === 'number') return 'long';\n    if (!isNaN(Date.parse(value))) return 'timestamp';\n    return 'string';\n  }\n\n  // \ud83d\udd01 Agrupaci\u00f3n flexible\n  function buildDataFrameAdvanced(data, groupByFields = [], { timeGranularity = 'minute' } = {}) {\n    const grouped = {};\n    const hasNoSystem = groupByFields.includes('no-system');\n\n    const filteredData = hasNoSystem\n      ? data.filter(item => typeof item.user === 'string' && item.user.includes('@'))\n      : data;\n\n    filteredData.forEach(item => {\n      const keyParts = groupByFields\n        .filter(field => field !== 'no-system') // Ignorar 'no-system' como campo real\n        .map(field => {\n          let value = item[field] ?? 'UNKNOWN';\n\n          if (field === 'timestamp') {\n            value = normalizeToGranularity(value, timeGranularity);\n          } else if (field === 'user' && typeof value === 'string' && value.includes('@')) {\n            value = value \n            // value = value.split('@')[1]; // solo el dominio\n          }\n\n          return value;\n        });\n\n      const key = keyParts.join('|');\n      grouped[key] = (grouped[key] || 0) + 1;\n    });\n\n    const records = Object.entries(grouped)\n      .sort(([, a], [, b]) => b - a)\n      .map(([key, count]) => {\n        const values = key.split('|');\n        const record = {};\n        groupByFields\n          .filter(field => field !== 'no-system')\n          .forEach((field, i) => {\n            record[field] = values[i];\n          });\n        record.count = count;\n        return record;\n      });\n\n    const sample = records[0] || {};\n    const mappings = groupByFields\n      .filter(field => field !== 'no-system')\n      .reduce((acc, field) => {\n        acc[field] = { type: inferType(sample[field]) };\n        return acc;\n      }, { count: { type: 'long' } });\n\n    const types = [{\n      mappings,\n      indexRange: [0, records.length]\n    }];\n\n    return { records, types };\n  }\n\n  // \ud83d\udce5 Fetch paginado de logs\n  async function fetchAllAuditLogs({ filter, from, to, pageSize } = {}) {\n    let auditLogs = [];\n    let next = undefined;\n\n    const config = { filter, from, to, pageSize };\n    console.log(`Fetching first page...`);\n    const firstresponse = await auditLogsClient.getLogs(config);\n    auditLogs = [...firstresponse.auditLogs];\n    next = firstresponse.nextPageKey;\n\n    let pageCounter = 1;\n    while (next) {\n      console.log(`Fetching page ${++pageCounter}...`);\n      const response = await auditLogsClient.getLogs({ nextPageKey: next });\n      auditLogs = [...auditLogs, ...response.auditLogs];\n      next = response.nextPageKey;\n    }\n\n    return auditLogs;\n  }\n\n  // \ud83e\uddea Ejecuci\u00f3n final\n  const data = await fetchAllAuditLogs({\n    filter: 'eventType(\"DELETE\")', // eventType(\"LOGIN\")\n    from:  $dt_timeframe_from,\n    to: $dt_timeframe_to,\n    pageSize: 5000\n  });\n\n  // \ud83d\udcca Agrupar por campos (con granularidad configurable)\n  const groupedData = buildDataFrameAdvanced(\n    data,\n    ['user', 'timestamp' ],\n    { timeGranularity: $Tiempo } // \ud83d\udc48 Pod\u00e9s usar 'minute', 'hour' o 'day'\n  );\n\n  console.log(groupedData);\n  return groupedData;\n}\n",
+        "visualization": "lineChart",
+        "visualizationSettings": {
+          "chartSettings": {
+            "legend": {
+              "hidden": true
+            },
+            "xAxisLabel": "timestamp",
+            "xAxisScaling": "auto",
+            "fieldMapping": {
+              "leftAxisValues": [
+                "count"
+              ],
+              "timestamp": "timestamp"
+            },
+            "gapPolicy": "connect"
+          },
+          "dataMapping": {
+            "displayedFields": [
+              "user",
+              "timestamp"
+            ]
+          },
+          "legend": {
+            "ratio": 24
+          },
+          "autoSelectVisualization": false
+        }
+      },
+      "51": {
+        "title": "",
+        "type": "code",
+        "input": "import { auditLogsClient } from '@dynatrace-sdk/client-classic-environment-v2';\n\nexport default async function () {\n  // \ud83d\udc49 Normaliza timestamp seg\u00fan granularidad (day, hour, minute)\n  function normalizeToGranularity(value, granularity = 'minute') {\n    if (!value) return 'UNKNOWN';\n\n    const date = typeof value === 'number' ? new Date(value) : new Date(value);\n    if (isNaN(date.getTime())) return 'UNKNOWN';\n\n    const year = date.getUTCFullYear();\n    const month = String(date.getUTCMonth() + 1).padStart(2, '0');\n    const day = String(date.getUTCDate()).padStart(2, '0');\n    const hour = String(date.getUTCHours()).padStart(2, '0');\n    const minute = String(date.getUTCMinutes()).padStart(2, '0');\n\n    switch (granularity) {\n      case 'day':\n        return `${year}-${month}-${day}T00:00`;\n      case 'hour':\n        return `${year}-${month}-${day}T${hour}:00`;\n      case 'minute':\n      default:\n        return `${year}-${month}-${day}T${hour}:${minute}`;\n    }\n  }\n\n  // \ud83d\udc49 Inferencia de tipo\n  function inferType(value) {\n    if (typeof value === 'number') return 'long';\n    if (!isNaN(Date.parse(value))) return 'timestamp';\n    return 'string';\n  }\n\n  // \ud83d\udd01 Agrupaci\u00f3n flexible\n  function buildDataFrameAdvanced(data, groupByFields = [], { timeGranularity = 'minute' } = {}) {\n    const grouped = {};\n    const hasNoSystem = groupByFields.includes('no-system');\n\n    const filteredData = hasNoSystem\n      ? data.filter(item => typeof item.user === 'string' && item.user.includes('@'))\n      : data;\n\n    filteredData.forEach(item => {\n      const keyParts = groupByFields\n        .filter(field => field !== 'no-system') // Ignorar 'no-system' como campo real\n        .map(field => {\n          let value = item[field] ?? 'UNKNOWN';\n\n          if (field === 'timestamp') {\n            value = normalizeToGranularity(value, timeGranularity);\n          } else if (field === 'user' && typeof value === 'string' && value.includes('@')) {\n            value = value \n          }\n\n          return value;\n        });\n\n      const key = keyParts.join('|');\n      grouped[key] = (grouped[key] || 0) + 1;\n    });\n\n    const records = Object.entries(grouped)\n      .sort(([, a], [, b]) => b - a)\n      .map(([key, count]) => {\n        const values = key.split('|');\n        const record = {};\n        groupByFields\n          .filter(field => field !== 'no-system')\n          .forEach((field, i) => {\n            record[field] = values[i];\n          });\n        record.count = count;\n        return record;\n      });\n\n    const sample = records[0] || {};\n    const mappings = groupByFields\n      .filter(field => field !== 'no-system')\n      .reduce((acc, field) => {\n        acc[field] = { type: inferType(sample[field]) };\n        return acc;\n      }, { count: { type: 'long' } });\n\n    const types = [{\n      mappings,\n      indexRange: [0, records.length]\n    }];\n\n    return { records, types };\n  }\n\n  // \ud83d\udce5 Fetch paginado de logs\n  async function fetchAllAuditLogs({ filter, from, to, pageSize } = {}) {\n    let auditLogs = [];\n    let next = undefined;\n\n    const config = { filter, from, to, pageSize };\n    console.log(`Fetching first page...`);\n    const firstresponse = await auditLogsClient.getLogs(config);\n    auditLogs = [...firstresponse.auditLogs];\n    next = firstresponse.nextPageKey;\n\n    let pageCounter = 1;\n    while (next) {\n      console.log(`Fetching page ${++pageCounter}...`);\n      const response = await auditLogsClient.getLogs({ nextPageKey: next });\n      auditLogs = [...auditLogs, ...response.auditLogs];\n      next = response.nextPageKey;\n    }\n\n    return auditLogs;\n  }\n\n  // \ud83e\uddea Ejecuci\u00f3n final\n  const data = await fetchAllAuditLogs({\n    filter: 'eventType(\"DELETE\")', // eventType(\"LOGIN\")\n    from:  $dt_timeframe_from,\n    to: $dt_timeframe_to,\n    pageSize: 5000\n  });\n\n  // \ud83d\udcca Agrupar por campos (con granularidad configurable)\n  const groupedData = buildDataFrameAdvanced(\n    data,\n    ['user' ],\n    { timeGranularity: 'day' } // \ud83d\udc48 Pod\u00e9s usar 'minute', 'hour' o 'day'\n  );\n\n  console.log(groupedData);\n  return groupedData;\n}\n",
+        "visualization": "categoricalBarChart",
+        "visualizationSettings": {
+          "autoSelectVisualization": false,
+          "chartSettings": {
+            "legend": {
+              "hidden": true
+            },
+            "categoricalBarChartSettings": {
+              "categoryAxisLabel": "user",
+              "categoryAxis": [
+                "user"
+              ],
+              "valueAxis": [
+                "count"
+              ],
+              "valueAxisLabel": "count",
+              "isValueLabelVisible": false
+            }
+          },
+          "legend": {
+            "ratio": 24
+          }
+        }
+      },
+      "52": {
+        "title": "",
+        "type": "data",
+        "query": "data record( nombre=\"Deletions Per User / Day\" )",
+        "visualization": "singleValue",
+        "visualizationSettings": {
+          "singleValue": {
+            "labelMode": "none",
+            "label": "a",
+            "recordField": "nombre",
+            "isIconVisible": true,
+            "alignment": "start",
+            "colorThresholdTarget": "background",
+            "trend": {
+              "isVisible": true
+            }
+          },
+          "coloring": {
+            "colorRules": [
+              {
+                "value": "0",
+                "comparator": "!=",
+                "field": "nombre",
+                "colorMode": "custom-color",
+                "customColor": {
+                  "Default": "var(--dt-colors-charts-security-risk-level-high-default, #cd3741)"
+                }
+              }
+            ]
+          },
+          "autoSelectVisualization": false
+        },
+        "querySettings": {
+          "maxResultRecords": 1000,
+          "defaultScanLimitGbytes": 500,
+          "maxResultMegaBytes": 1,
+          "defaultSamplingRatio": 10,
+          "enableSampling": false
+        },
+        "davis": {
+          "enabled": false,
+          "davisVisualization": {
+            "isAvailable": true
+          }
+        }
+      },
+      "53": {
+        "title": "",
+        "type": "data",
+        "query": "data record( nombre=\"Updates Per User / Day\" )",
+        "visualization": "singleValue",
+        "visualizationSettings": {
+          "singleValue": {
+            "labelMode": "none",
+            "label": "a",
+            "recordField": "nombre",
+            "isIconVisible": true,
+            "alignment": "start",
+            "colorThresholdTarget": "background",
+            "trend": {
+              "isVisible": true
+            }
+          },
+          "coloring": {
+            "colorRules": [
+              {
+                "value": "0",
+                "comparator": "!=",
+                "field": "nombre",
+                "colorMode": "custom-color",
+                "customColor": {
+                  "Default": "var(--dt-colors-charts-loglevel-severe-default, #d56b1a)"
+                }
+              }
+            ]
+          },
+          "autoSelectVisualization": false
+        },
+        "querySettings": {
+          "maxResultRecords": 1000,
+          "defaultScanLimitGbytes": 500,
+          "maxResultMegaBytes": 1,
+          "defaultSamplingRatio": 10,
+          "enableSampling": false
+        },
+        "davis": {
+          "enabled": false,
+          "davisVisualization": {
+            "isAvailable": true
+          }
+        }
+      },
+      "54": {
+        "title": "",
+        "type": "code",
+        "input": "import { auditLogsClient } from '@dynatrace-sdk/client-classic-environment-v2';\n\nexport default async function () {\n  // \ud83d\udc49 Normaliza timestamp seg\u00fan granularidad (day, hour, minute)\n  function normalizeToGranularity(value, granularity = 'minute') {\n    if (!value) return 'UNKNOWN';\n\n    const date = typeof value === 'number' ? new Date(value) : new Date(value);\n    if (isNaN(date.getTime())) return 'UNKNOWN';\n\n    const year = date.getUTCFullYear();\n    const month = String(date.getUTCMonth() + 1).padStart(2, '0');\n    const day = String(date.getUTCDate()).padStart(2, '0');\n    const hour = String(date.getUTCHours()).padStart(2, '0');\n    const minute = String(date.getUTCMinutes()).padStart(2, '0');\n\n    switch (granularity) {\n      case 'day':\n        return `${year}-${month}-${day}T00:00`;\n      case 'hour':\n        return `${year}-${month}-${day}T${hour}:00`;\n      case 'minute':\n      default:\n        return `${year}-${month}-${day}T${hour}:${minute}`;\n    }\n  }\n\n  // \ud83d\udc49 Inferencia de tipo\n  function inferType(value) {\n    if (typeof value === 'number') return 'long';\n    if (!isNaN(Date.parse(value))) return 'timestamp';\n    return 'string';\n  }\n\n  // \ud83d\udd01 Agrupaci\u00f3n flexible\n  function buildDataFrameAdvanced(data, groupByFields = [], { timeGranularity = 'minute' } = {}) {\n    const grouped = {};\n    const hasNoSystem = groupByFields.includes('no-system');\n\n    const filteredData = hasNoSystem\n      ? data.filter(item => typeof item.user === 'string' && item.user.includes('@'))\n      : data;\n\n    filteredData.forEach(item => {\n      const keyParts = groupByFields\n        .filter(field => field !== 'no-system') // Ignorar 'no-system' como campo real\n        .map(field => {\n          let value = item[field] ?? 'UNKNOWN';\n\n          if (field === 'timestamp') {\n            value = normalizeToGranularity(value, timeGranularity);\n          } else if (field === 'user' && typeof value === 'string' && value.includes('@')) {\n            value = value \n            // value = value.split('@')[1]; // solo el dominio\n          }\n\n          return value;\n        });\n\n      const key = keyParts.join('|');\n      grouped[key] = (grouped[key] || 0) + 1;\n    });\n\n    const records = Object.entries(grouped)\n      .sort(([, a], [, b]) => b - a)\n      .map(([key, count]) => {\n        const values = key.split('|');\n        const record = {};\n        groupByFields\n          .filter(field => field !== 'no-system')\n          .forEach((field, i) => {\n            record[field] = values[i];\n          });\n        record.count = count;\n        return record;\n      });\n\n    const sample = records[0] || {};\n    const mappings = groupByFields\n      .filter(field => field !== 'no-system')\n      .reduce((acc, field) => {\n        acc[field] = { type: inferType(sample[field]) };\n        return acc;\n      }, { count: { type: 'long' } });\n\n    const types = [{\n      mappings,\n      indexRange: [0, records.length]\n    }];\n\n    return { records, types };\n  }\n\n  // \ud83d\udce5 Fetch paginado de logs\n  async function fetchAllAuditLogs({ filter, from, to, pageSize } = {}) {\n    let auditLogs = [];\n    let next = undefined;\n\n    const config = { filter, from, to, pageSize };\n    console.log(`Fetching first page...`);\n    const firstresponse = await auditLogsClient.getLogs(config);\n    auditLogs = [...firstresponse.auditLogs];\n    next = firstresponse.nextPageKey;\n\n    let pageCounter = 1;\n    while (next) {\n      console.log(`Fetching page ${++pageCounter}...`);\n      const response = await auditLogsClient.getLogs({ nextPageKey: next });\n      auditLogs = [...auditLogs, ...response.auditLogs];\n      next = response.nextPageKey;\n    }\n\n    return auditLogs;\n  }\n\n  // \ud83e\uddea Ejecuci\u00f3n final\n  const data = await fetchAllAuditLogs({\n    filter: 'eventType(\"UPDATE\")', // eventType(\"LOGIN\")\n    from:  $dt_timeframe_from,\n    to: $dt_timeframe_to,\n    pageSize: 5000\n  });\n\n  // \ud83d\udcca Agrupar por campos (con granularidad configurable)\n  const groupedData = buildDataFrameAdvanced(\n    data,\n    ['user',  'timestamp' ],\n    { timeGranularity: $Tiempo } // \ud83d\udc48 Pod\u00e9s usar 'minute', 'hour' o 'day'\n  );\n\n  console.log(groupedData);\n  return groupedData;\n}\n",
+        "visualization": "lineChart",
+        "visualizationSettings": {
+          "chartSettings": {
+            "legend": {
+              "hidden": true
+            },
+            "xAxisLabel": "timestamp",
+            "xAxisScaling": "auto",
+            "fieldMapping": {
+              "leftAxisValues": [
+                "count"
+              ],
+              "timestamp": "timestamp"
+            },
+            "gapPolicy": "connect"
+          },
+          "dataMapping": {
+            "displayedFields": [
+              "user",
+              "timestamp"
+            ]
+          },
+          "legend": {
+            "ratio": 24
+          },
+          "autoSelectVisualization": false
+        }
+      },
+      "55": {
+        "title": "",
+        "type": "code",
+        "input": "import { auditLogsClient } from '@dynatrace-sdk/client-classic-environment-v2';\n\nexport default async function () {\n  // \ud83d\udc49 Normaliza timestamp seg\u00fan granularidad (day, hour, minute)\n  function normalizeToGranularity(value, granularity = 'minute') {\n    if (!value) return 'UNKNOWN';\n\n    const date = typeof value === 'number' ? new Date(value) : new Date(value);\n    if (isNaN(date.getTime())) return 'UNKNOWN';\n\n    const year = date.getUTCFullYear();\n    const month = String(date.getUTCMonth() + 1).padStart(2, '0');\n    const day = String(date.getUTCDate()).padStart(2, '0');\n    const hour = String(date.getUTCHours()).padStart(2, '0');\n    const minute = String(date.getUTCMinutes()).padStart(2, '0');\n\n    switch (granularity) {\n      case 'day':\n        return `${year}-${month}-${day}T00:00`;\n      case 'hour':\n        return `${year}-${month}-${day}T${hour}:00`;\n      case 'minute':\n      default:\n        return `${year}-${month}-${day}T${hour}:${minute}`;\n    }\n  }\n\n  // \ud83d\udc49 Inferencia de tipo\n  function inferType(value) {\n    if (typeof value === 'number') return 'long';\n    if (!isNaN(Date.parse(value))) return 'timestamp';\n    return 'string';\n  }\n\n  // \ud83d\udd01 Agrupaci\u00f3n flexible\n  function buildDataFrameAdvanced(data, groupByFields = [], { timeGranularity = 'minute' } = {}) {\n    const grouped = {};\n    const hasNoSystem = groupByFields.includes('no-system');\n\n    const filteredData = hasNoSystem\n      ? data.filter(item => typeof item.user === 'string' && item.user.includes('@'))\n      : data;\n\n    filteredData.forEach(item => {\n      const keyParts = groupByFields\n        .filter(field => field !== 'no-system') // Ignorar 'no-system' como campo real\n        .map(field => {\n          let value = item[field] ?? 'UNKNOWN';\n\n          if (field === 'timestamp') {\n            value = normalizeToGranularity(value, timeGranularity);\n          } else if (field === 'user' && typeof value === 'string' && value.includes('@')) {\n            value = value \n          }\n\n          return value;\n        });\n\n      const key = keyParts.join('|');\n      grouped[key] = (grouped[key] || 0) + 1;\n    });\n\n    const records = Object.entries(grouped)\n      .sort(([, a], [, b]) => b - a)\n      .map(([key, count]) => {\n        const values = key.split('|');\n        const record = {};\n        groupByFields\n          .filter(field => field !== 'no-system')\n          .forEach((field, i) => {\n            record[field] = values[i];\n          });\n        record.count = count;\n        return record;\n      });\n\n    const sample = records[0] || {};\n    const mappings = groupByFields\n      .filter(field => field !== 'no-system')\n      .reduce((acc, field) => {\n        acc[field] = { type: inferType(sample[field]) };\n        return acc;\n      }, { count: { type: 'long' } });\n\n    const types = [{\n      mappings,\n      indexRange: [0, records.length]\n    }];\n\n    return { records, types };\n  }\n\n  // \ud83d\udce5 Fetch paginado de logs\n  async function fetchAllAuditLogs({ filter, from, to, pageSize } = {}) {\n    let auditLogs = [];\n    let next = undefined;\n\n    const config = { filter, from, to, pageSize };\n    console.log(`Fetching first page...`);\n    const firstresponse = await auditLogsClient.getLogs(config);\n    auditLogs = [...firstresponse.auditLogs];\n    next = firstresponse.nextPageKey;\n\n    let pageCounter = 1;\n    while (next) {\n      console.log(`Fetching page ${++pageCounter}...`);\n      const response = await auditLogsClient.getLogs({ nextPageKey: next });\n      auditLogs = [...auditLogs, ...response.auditLogs];\n      next = response.nextPageKey;\n    }\n\n    return auditLogs;\n  }\n\n  // \ud83e\uddea Ejecuci\u00f3n final\n  const data = await fetchAllAuditLogs({\n    filter: 'eventType(\"UPDATE\")', // eventType(\"LOGIN\")\n    from:  $dt_timeframe_from,\n    to: $dt_timeframe_to,\n    pageSize: 5000\n  });\n\n  // \ud83d\udcca Agrupar por campos (con granularidad configurable)\n  const groupedData = buildDataFrameAdvanced(\n    data,\n    ['user' ],\n    { timeGranularity: 'day' } // \ud83d\udc48 Pod\u00e9s usar 'minute', 'hour' o 'day'\n  );\n\n  console.log(groupedData);\n  return groupedData;\n}\n",
+        "visualization": "categoricalBarChart",
+        "visualizationSettings": {
+          "autoSelectVisualization": false,
+          "chartSettings": {
+            "legend": {
+              "hidden": true
+            },
+            "categoricalBarChartSettings": {
+              "categoryAxisLabel": "user",
+              "categoryAxis": [
+                "user"
+              ],
+              "valueAxis": [
+                "count"
+              ],
+              "valueAxisLabel": "count",
+              "isValueLabelVisible": false
+            }
+          },
+          "legend": {
+            "ratio": 24
+          }
+        }
+      },
+      "56": {
+        "title": "",
+        "type": "code",
+        "input": "import { queryExecutionClient } from '@dynatrace-sdk/client-query';\n\nexport default async function () {\n  // Escape values so quotes/backslashes don't break the query\n  const esc = (s: any) => String(s).replace(/\\\\/g, '\\\\\\\\').replace(/\"/g, '\\\\\"');\n\n  const toArrayMax5 = (v: any) => {\n    if (!v) return [];\n    const arr = Array.isArray(v) ? v : [v];\n    return arr.slice(0, 5);\n  };\n\n  // Build OR group: (field == \"a\" or field == \"b\")\n  const orGroup = (field: string, values: any[]) => {\n    const vals = values.filter(x => x !== null && x !== undefined && String(x).length > 0);\n    if (vals.length === 0) return '';\n    return `(${vals.map(v => `${field} == \"${esc(v)}\"`).join(' or ')})`;\n  };\n\n  const filters: string[] = [];\n\n  // User\n  const users = toArrayMax5($User);\n  if (Array.isArray($User) && $User.length > 5) console.log('More than 5 users selected; only first 5 will be used.');\n  if (!Array.isArray($User) && users.length > 0) { /* ok */ }\n  if (users.length > 0) filters.push(orGroup('user', users));\n\n  // EventType\n  const eventTypes = toArrayMax5($EventType);\n  if (Array.isArray($EventType) && $EventType.length > 5) console.log('More than 5 eventTypes selected; only first 5 will be used.');\n  if (eventTypes.length > 0) filters.push(orGroup('eventType', eventTypes));\n\n  // Category\n  const categories = toArrayMax5($Category);\n  if (Array.isArray($Category) && $Category.length > 5) console.log('More than 5 categories selected; only first 5 will be used.');\n  if (categories.length > 0) filters.push(orGroup('category', categories));\n\n  // EntityId\n  const entityIds = toArrayMax5($EntityId);\n  if (Array.isArray($EntityId) && $EntityId.length > 5) console.log('More than 5 entityIds selected; only first 5 will be used.');\n  if (entityIds.length > 0) filters.push(orGroup('entityId', entityIds));\n\n  const extraFilterLine = filters.length > 0 ? `| filter ${filters.join(' and ')}` : '';\n\n  const query = `\nfetch dt.system.events, timeframe:\"${$dt_timeframe_from}/${$dt_timeframe_to}\"\n| filter event.kind == \"AUDIT_EVENT\"\n${extraFilterLine}\n| summarize Total = count()\n  `.trim();\n\n  const response = await queryExecutionClient.queryExecute({\n    body: { query },\n  });\n\n  const records = response?.result?.records ?? [];\n  const total = records[0]?.Total ?? 0;\n\n  const types = [\n    {\n      mappings: { Total: { type: 'integer' } },\n      indexRange: [0, 1],\n    },\n  ];\n\n  const dataFrame = {\n    types,\n    records: [{ Total: total }],\n  };\n\n  return dataFrame;\n}",
+        "visualization": "table",
+        "visualizationSettings": {
+          "table": {
+            "columnWidths": {
+              "[\"eventType\"]": 78
+            }
+          },
+          "autoSelectVisualization": false
+        }
+      },
+      "57": {
+        "title": "",
+        "type": "data",
+        "query": "data record( nombre=\"LogAudit\" )",
+        "visualization": "singleValue",
+        "visualizationSettings": {
+          "singleValue": {
+            "labelMode": "none",
+            "label": "a",
+            "recordField": "nombre",
+            "isIconVisible": true,
+            "prefixIcon": "AbcIcon",
+            "alignment": "start",
+            "colorThresholdTarget": "background",
+            "trend": {
+              "isVisible": true
+            }
+          },
+          "coloring": {
+            "colorRules": [
+              {
+                "value": "0",
+                "comparator": "!=",
+                "field": "nombre",
+                "colorMode": "custom-color",
+                "customColor": {
+                  "Default": "var(--dt-colors-charts-categorical-themed-fireplace-color-06-default, #9033a3)"
+                }
+              }
+            ]
+          },
+          "autoSelectVisualization": false
+        },
+        "querySettings": {
+          "maxResultRecords": 1000,
+          "defaultScanLimitGbytes": 500,
+          "maxResultMegaBytes": 1,
+          "defaultSamplingRatio": 10,
+          "enableSampling": false
+        },
+        "davis": {
+          "enabled": false,
+          "davisVisualization": {
+            "isAvailable": true
+          }
+        }
+      },
+      "58": {
+        "title": "",
+        "type": "code",
+        "input": "import { auditLogsClient } from '@dynatrace-sdk/client-classic-environment-v2';\n\nexport default async function () {\n  // \ud83d\udc49 Normaliza timestamp seg\u00fan granularidad (day, hour, minute)\n  function normalizeToGranularity(value, granularity = 'minute') {\n    if (!value) return 'UNKNOWN';\n\n    const date = typeof value === 'number' ? new Date(value) : new Date(value);\n    if (isNaN(date.getTime())) return 'UNKNOWN';\n\n    const year = date.getUTCFullYear();\n    const month = String(date.getUTCMonth() + 1).padStart(2, '0');\n    const day = String(date.getUTCDate()).padStart(2, '0');\n    const hour = String(date.getUTCHours()).padStart(2, '0');\n    const minute = String(date.getUTCMinutes()).padStart(2, '0');\n\n    switch (granularity) {\n      case 'day':\n        return `${year}-${month}-${day}T00:00`;\n      case 'hour':\n        return `${year}-${month}-${day}T${hour}:00`;\n      case 'minute':\n      default:\n        return `${year}-${month}-${day}T${hour}:${minute}`;\n    }\n  }\n\n  // \ud83d\udc49 Inferencia de tipo\n  function inferType(value) {\n    if (typeof value === 'number') return 'long';\n    if (!isNaN(Date.parse(value))) return 'timestamp';\n    return 'string';\n  }\n\n  // \ud83d\udd01 Agrupaci\u00f3n flexible\n  function buildDataFrameAdvanced(data, groupByFields = [], { timeGranularity = 'minute' } = {}) {\n    const grouped = {};\n    const hasNoSystem = groupByFields.includes('no-system');\n\n    const filteredData = hasNoSystem\n      ? data.filter(item => typeof item.user === 'string' && item.user.includes('@'))\n      : data;\n\n    filteredData.forEach(item => {\n      const keyParts = groupByFields\n        .filter(field => field !== 'no-system') // Ignorar 'no-system' como campo real\n        .map(field => {\n          let value = item[field] ?? 'UNKNOWN';\n\n          if (field === 'timestamp') {\n            value = normalizeToGranularity(value, timeGranularity);\n          } else if (field === 'user' && typeof value === 'string' && value.includes('@')) {\n            value = value \n            // value = value.split('@')[1]; // solo el dominio\n          }\n\n          return value;\n        });\n\n      const key = keyParts.join('|');\n      grouped[key] = (grouped[key] || 0) + 1;\n    });\n\n    const records = Object.entries(grouped)\n      .sort(([, a], [, b]) => b - a)\n      .map(([key, count]) => {\n        const values = key.split('|');\n        const record = {};\n        groupByFields\n          .filter(field => field !== 'no-system')\n          .forEach((field, i) => {\n            record[field] = values[i];\n          });\n        record.count = count;\n        return record;\n      });\n\n    const sample = records[0] || {};\n    const mappings = groupByFields\n      .filter(field => field !== 'no-system')\n      .reduce((acc, field) => {\n        acc[field] = { type: inferType(sample[field]) };\n        return acc;\n      }, { count: { type: 'long' } });\n\n    const types = [{\n      mappings,\n      indexRange: [0, records.length]\n    }];\n\n    return { records, types };\n  }\n\n  // \ud83d\udce5 Fetch paginado de logs\n  async function fetchAllAuditLogs({ filter, from, to, pageSize } = {}) {\n    let auditLogs = [];\n    let next = undefined;\n\n    const config = { filter, from, to, pageSize };\n    console.log(`Fetching first page...`);\n    const firstresponse = await auditLogsClient.getLogs(config);\n    auditLogs = [...firstresponse.auditLogs];\n    next = firstresponse.nextPageKey;\n\n    let pageCounter = 1;\n    while (next) {\n      console.log(`Fetching page ${++pageCounter}...`);\n      const response = await auditLogsClient.getLogs({ nextPageKey: next });\n      auditLogs = [...auditLogs, ...response.auditLogs];\n      next = response.nextPageKey;\n    }\n\n    return auditLogs;\n  }\n\n  // \ud83e\uddea Ejecuci\u00f3n final\n  const data = await fetchAllAuditLogs({\n    filter: '', // eventType(\"LOGIN\")\n    from:  $dt_timeframe_from,\n    to: $dt_timeframe_to,\n    pageSize: 5000\n  });\n\n  // \ud83d\udcca Agrupar por campos (con granularidad configurable)\n  const groupedData = buildDataFrameAdvanced(\n    data,\n    ['category'],\n    { timeGranularity: 'day' } // \ud83d\udc48 Pod\u00e9s usar 'minute', 'hour' o 'day'\n  );\n\n  console.log(groupedData);\n  return groupedData;\n}\n",
+        "visualization": "categoricalBarChart",
+        "visualizationSettings": {
+          "autoSelectVisualization": false,
+          "chartSettings": {
+            "legend": {
+              "hidden": true
+            },
+            "categoricalBarChartSettings": {
+              "categoryAxisLabel": "category",
+              "categoryAxis": [
+                "category"
+              ],
+              "valueAxis": [
+                "count"
+              ],
+              "valueAxisLabel": "count"
+            }
+          },
+          "legend": {
+            "ratio": 24
+          }
+        }
+      },
+      "59": {
+        "title": "",
+        "type": "code",
+        "input": "import { auditLogsClient } from '@dynatrace-sdk/client-classic-environment-v2';\n\nexport default async function () {\n  // \ud83d\udc49 Normaliza timestamp seg\u00fan granularidad (day, hour, minute)\n  function normalizeToGranularity(value, granularity = 'minute') {\n    if (!value) return 'UNKNOWN';\n\n    const date = typeof value === 'number' ? new Date(value) : new Date(value);\n    if (isNaN(date.getTime())) return 'UNKNOWN';\n\n    const year = date.getUTCFullYear();\n    const month = String(date.getUTCMonth() + 1).padStart(2, '0');\n    const day = String(date.getUTCDate()).padStart(2, '0');\n    const hour = String(date.getUTCHours()).padStart(2, '0');\n    const minute = String(date.getUTCMinutes()).padStart(2, '0');\n\n    switch (granularity) {\n      case 'day':\n        return `${year}-${month}-${day}T00:00`;\n      case 'hour':\n        return `${year}-${month}-${day}T${hour}:00`;\n      case 'minute':\n      default:\n        return `${year}-${month}-${day}T${hour}:${minute}`;\n    }\n  }\n\n  // \ud83d\udc49 Inferencia de tipo\n  function inferType(value) {\n    if (typeof value === 'number') return 'long';\n    if (!isNaN(Date.parse(value))) return 'timestamp';\n    return 'string';\n  }\n\n  // \ud83d\udd01 Agrupaci\u00f3n flexible\n  function buildDataFrameAdvanced(data, groupByFields = [], { timeGranularity = 'minute' } = {}) {\n    const grouped = {};\n    const hasNoSystem = groupByFields.includes('no-system');\n\n    const filteredData = hasNoSystem\n      ? data.filter(item => typeof item.user === 'string' && item.user.includes('@'))\n      : data;\n\n    filteredData.forEach(item => {\n      const keyParts = groupByFields\n        .filter(field => field !== 'no-system') // Ignorar 'no-system' como campo real\n        .map(field => {\n          let value = item[field] ?? 'UNKNOWN';\n\n          if (field === 'timestamp') {\n            value = normalizeToGranularity(value, timeGranularity);\n          } else if (field === 'user' && typeof value === 'string' && value.includes('@')) {\n            value = value \n            // value = value.split('@')[1]; // solo el dominio\n          }\n\n          return value;\n        });\n\n      const key = keyParts.join('|');\n      grouped[key] = (grouped[key] || 0) + 1;\n    });\n\n    const records = Object.entries(grouped)\n      .sort(([, a], [, b]) => b - a)\n      .map(([key, count]) => {\n        const values = key.split('|');\n        const record = {};\n        groupByFields\n          .filter(field => field !== 'no-system')\n          .forEach((field, i) => {\n            record[field] = values[i];\n          });\n        record.count = count;\n        return record;\n      });\n\n    const sample = records[0] || {};\n    const mappings = groupByFields\n      .filter(field => field !== 'no-system')\n      .reduce((acc, field) => {\n        acc[field] = { type: inferType(sample[field]) };\n        return acc;\n      }, { count: { type: 'long' } });\n\n    const types = [{\n      mappings,\n      indexRange: [0, records.length]\n    }];\n\n    return { records, types };\n  }\n\n  // \ud83d\udce5 Fetch paginado de logs\n  async function fetchAllAuditLogs({ filter, from, to, pageSize } = {}) {\n    let auditLogs = [];\n    let next = undefined;\n\n    const config = { filter, from, to, pageSize };\n    console.log(`Fetching first page...`);\n    const firstresponse = await auditLogsClient.getLogs(config);\n    auditLogs = [...firstresponse.auditLogs];\n    next = firstresponse.nextPageKey;\n\n    let pageCounter = 1;\n    while (next) {\n      console.log(`Fetching page ${++pageCounter}...`);\n      const response = await auditLogsClient.getLogs({ nextPageKey: next });\n      auditLogs = [...auditLogs, ...response.auditLogs];\n      next = response.nextPageKey;\n    }\n\n    return auditLogs;\n  }\n\n  // \ud83e\uddea Ejecuci\u00f3n final\n  const data = await fetchAllAuditLogs({\n    filter: '', // eventType(\"LOGIN\")\n    from:  $dt_timeframe_from,\n    to: $dt_timeframe_to,\n    pageSize: 5000\n  });\n\n  // \ud83d\udcca Agrupar por campos (con granularidad configurable)\n  const groupedData = buildDataFrameAdvanced(\n    data,\n    ['userType' ],\n    { timeGranularity: 'day' } // \ud83d\udc48 Pod\u00e9s usar 'minute', 'hour' o 'day'\n  );\n\n  console.log(groupedData);\n  return groupedData;\n}\n",
+        "visualization": "categoricalBarChart",
+        "visualizationSettings": {
+          "autoSelectVisualization": false,
+          "chartSettings": {
+            "legend": {
+              "hidden": true
+            },
+            "categoricalBarChartSettings": {
+              "categoryAxisLabel": "entityId",
+              "categoryAxis": [
+                "entityId"
+              ],
+              "valueAxis": [
+                "count"
+              ],
+              "valueAxisLabel": "count"
+            }
+          },
+          "legend": {
+            "ratio": 24
+          }
+        }
+      },
+      "60": {
+        "title": "",
+        "type": "code",
+        "input": "import { auditLogsClient } from '@dynatrace-sdk/client-classic-environment-v2';\n\nexport default async function () {\n  // \ud83d\udc49 Normaliza timestamp seg\u00fan granularidad (day, hour, minute)\n  function normalizeToGranularity(value, granularity = 'minute') {\n    if (!value) return 'UNKNOWN';\n\n    const date = typeof value === 'number' ? new Date(value) : new Date(value);\n    if (isNaN(date.getTime())) return 'UNKNOWN';\n\n    const year = date.getUTCFullYear();\n    const month = String(date.getUTCMonth() + 1).padStart(2, '0');\n    const day = String(date.getUTCDate()).padStart(2, '0');\n    const hour = String(date.getUTCHours()).padStart(2, '0');\n    const minute = String(date.getUTCMinutes()).padStart(2, '0');\n\n    switch (granularity) {\n      case 'day':\n        return `${year}-${month}-${day}T00:00`;\n      case 'hour':\n        return `${year}-${month}-${day}T${hour}:00`;\n      case 'minute':\n      default:\n        return `${year}-${month}-${day}T${hour}:${minute}`;\n    }\n  }\n\n  // \ud83d\udc49 Inferencia de tipo\n  function inferType(value) {\n    if (typeof value === 'number') return 'long';\n    if (!isNaN(Date.parse(value))) return 'timestamp';\n    return 'string';\n  }\n\n  // \ud83d\udd01 Agrupaci\u00f3n flexible\n  function buildDataFrameAdvanced(data, groupByFields = [], { timeGranularity = 'minute' } = {}) {\n    const grouped = {};\n    const hasNoSystem = groupByFields.includes('no-system');\n\n    const filteredData = hasNoSystem\n      ? data.filter(item => typeof item.user === 'string' && item.user.includes('@'))\n      : data;\n\n    filteredData.forEach(item => {\n      const keyParts = groupByFields\n        .filter(field => field !== 'no-system') // Ignorar 'no-system' como campo real\n        .map(field => {\n          let value = item[field] ?? 'UNKNOWN';\n\n          if (field === 'timestamp') {\n            value = normalizeToGranularity(value, timeGranularity);\n          } else if (field === 'user' && typeof value === 'string' && value.includes('@')) {\n            value = value \n            // value = value.split('@')[1]; // solo el dominio\n          }\n\n          return value;\n        });\n\n      const key = keyParts.join('|');\n      grouped[key] = (grouped[key] || 0) + 1;\n    });\n\n    const records = Object.entries(grouped)\n      .sort(([, a], [, b]) => b - a)\n      .map(([key, count]) => {\n        const values = key.split('|');\n        const record = {};\n        groupByFields\n          .filter(field => field !== 'no-system')\n          .forEach((field, i) => {\n            record[field] = values[i];\n          });\n        record.count = count;\n        return record;\n      });\n\n    const sample = records[0] || {};\n    const mappings = groupByFields\n      .filter(field => field !== 'no-system')\n      .reduce((acc, field) => {\n        acc[field] = { type: inferType(sample[field]) };\n        return acc;\n      }, { count: { type: 'long' } });\n\n    const types = [{\n      mappings,\n      indexRange: [0, records.length]\n    }];\n\n    return { records, types };\n  }\n\n  // \ud83d\udce5 Fetch paginado de logs\n  async function fetchAllAuditLogs({ filter, from, to, pageSize } = {}) {\n    let auditLogs = [];\n    let next = undefined;\n\n    const config = { filter, from, to, pageSize };\n    console.log(`Fetching first page...`);\n    const firstresponse = await auditLogsClient.getLogs(config);\n    auditLogs = [...firstresponse.auditLogs];\n    next = firstresponse.nextPageKey;\n\n    let pageCounter = 1;\n    while (next) {\n      console.log(`Fetching page ${++pageCounter}...`);\n      const response = await auditLogsClient.getLogs({ nextPageKey: next });\n      auditLogs = [...auditLogs, ...response.auditLogs];\n      next = response.nextPageKey;\n    }\n\n    return auditLogs;\n  }\n\n  // \ud83e\uddea Ejecuci\u00f3n final\n  const data = await fetchAllAuditLogs({\n    filter: '', // eventType(\"LOGIN\")\n    from:  $dt_timeframe_from,\n    to: $dt_timeframe_to,\n    pageSize: 5000\n  });\n\n  // \ud83d\udcca Agrupar por campos (con granularidad configurable)\n  const groupedData = buildDataFrameAdvanced(\n    data,\n    ['entityId' ],\n    { timeGranularity: 'day' } // \ud83d\udc48 Pod\u00e9s usar 'minute', 'hour' o 'day'\n  );\n\n  console.log(groupedData);\n  return groupedData;\n}\n",
+        "visualization": "categoricalBarChart",
+        "visualizationSettings": {
+          "autoSelectVisualization": false,
+          "chartSettings": {
+            "legend": {
+              "hidden": true
+            },
+            "categoricalBarChartSettings": {
+              "categoryAxisLabel": "entityId",
+              "categoryAxis": [
+                "entityId"
+              ],
+              "valueAxis": [
+                "count"
+              ],
+              "valueAxisLabel": "count"
+            }
+          },
+          "legend": {
+            "ratio": 24
+          }
+        }
+      },
+      "61": {
+        "title": "",
+        "type": "data",
+        "query": "data record( nombre=\"\nLogins Per User / Day\" )",
+        "visualization": "singleValue",
+        "visualizationSettings": {
+          "singleValue": {
+            "labelMode": "none",
+            "label": "a",
+            "recordField": "nombre",
+            "isIconVisible": true,
+            "alignment": "start",
+            "colorThresholdTarget": "background",
+            "trend": {
+              "isVisible": true
+            }
+          },
+          "coloring": {
+            "colorRules": [
+              {
+                "value": "0",
+                "comparator": "!=",
+                "field": "nombre",
+                "colorMode": "custom-color",
+                "customColor": {
+                  "Default": "var(--dt-colors-charts-categorical-color-13-default, #1c520a)"
+                }
+              }
+            ]
+          },
+          "autoSelectVisualization": false
+        },
+        "querySettings": {
+          "maxResultRecords": 1000,
+          "defaultScanLimitGbytes": 500,
+          "maxResultMegaBytes": 1,
+          "defaultSamplingRatio": 10,
+          "enableSampling": false
+        },
+        "davis": {
+          "enabled": false,
+          "davisVisualization": {
+            "isAvailable": true
+          }
+        }
+      },
+      "62": {
+        "title": "",
+        "type": "code",
+        "input": "import { auditLogsClient } from '@dynatrace-sdk/client-classic-environment-v2';\n\nexport default async function () {\n  // \ud83d\udc49 Normaliza timestamp seg\u00fan granularidad (day, hour, minute)\n  function normalizeToGranularity(value, granularity = 'minute') {\n    if (!value) return 'UNKNOWN';\n\n    const date = typeof value === 'number' ? new Date(value) : new Date(value);\n    if (isNaN(date.getTime())) return 'UNKNOWN';\n\n    const year = date.getUTCFullYear();\n    const month = String(date.getUTCMonth() + 1).padStart(2, '0');\n    const day = String(date.getUTCDate()).padStart(2, '0');\n    const hour = String(date.getUTCHours()).padStart(2, '0');\n    const minute = String(date.getUTCMinutes()).padStart(2, '0');\n\n    switch (granularity) {\n      case 'day':\n        return `${year}-${month}-${day}T00:00`;\n      case 'hour':\n        return `${year}-${month}-${day}T${hour}:00`;\n      case 'minute':\n      default:\n        return `${year}-${month}-${day}T${hour}:${minute}`;\n    }\n  }\n\n  // \ud83d\udc49 Inferencia de tipo\n  function inferType(value) {\n    if (typeof value === 'number') return 'long';\n    if (!isNaN(Date.parse(value))) return 'timestamp';\n    return 'string';\n  }\n\n  // \ud83d\udd01 Agrupaci\u00f3n flexible\n  function buildDataFrameAdvanced(data, groupByFields = [], { timeGranularity = 'minute' } = {}) {\n    const grouped = {};\n    const hasNoSystem = groupByFields.includes('no-system');\n\n    const filteredData = hasNoSystem\n      ? data.filter(item => typeof item.user === 'string' && item.user.includes('@'))\n      : data;\n\n    filteredData.forEach(item => {\n      const keyParts = groupByFields\n        .filter(field => field !== 'no-system') // Ignorar 'no-system' como campo real\n        .map(field => {\n          let value = item[field] ?? 'UNKNOWN';\n\n          if (field === 'timestamp') {\n            value = normalizeToGranularity(value, timeGranularity);\n          } else if (field === 'user' && typeof value === 'string' && value.includes('@')) {\n            value = value \n            // value = value.split('@')[1]; // solo el dominio\n          }\n\n          return value;\n        });\n\n      const key = keyParts.join('|');\n      grouped[key] = (grouped[key] || 0) + 1;\n    });\n\n    const records = Object.entries(grouped)\n      .sort(([, a], [, b]) => b - a)\n      .map(([key, count]) => {\n        const values = key.split('|');\n        const record = {};\n        groupByFields\n          .filter(field => field !== 'no-system')\n          .forEach((field, i) => {\n            record[field] = values[i];\n          });\n        record.count = count;\n        return record;\n      });\n\n    const sample = records[0] || {};\n    const mappings = groupByFields\n      .filter(field => field !== 'no-system')\n      .reduce((acc, field) => {\n        acc[field] = { type: inferType(sample[field]) };\n        return acc;\n      }, { count: { type: 'long' } });\n\n    const types = [{\n      mappings,\n      indexRange: [0, records.length]\n    }];\n\n    return { records, types };\n  }\n\n  // \ud83d\udce5 Fetch paginado de logs\n  async function fetchAllAuditLogs({ filter, from, to, pageSize } = {}) {\n    let auditLogs = [];\n    let next = undefined;\n\n    const config = { filter, from, to, pageSize };\n    console.log(`Fetching first page...`);\n    const firstresponse = await auditLogsClient.getLogs(config);\n    auditLogs = [...firstresponse.auditLogs];\n    next = firstresponse.nextPageKey;\n\n    let pageCounter = 1;\n    while (next) {\n      console.log(`Fetching page ${++pageCounter}...`);\n      const response = await auditLogsClient.getLogs({ nextPageKey: next });\n      auditLogs = [...auditLogs, ...response.auditLogs];\n      next = response.nextPageKey;\n    }\n\n    return auditLogs;\n  }\n\n  // \ud83e\uddea Ejecuci\u00f3n final\n  const data = await fetchAllAuditLogs({\n    filter: 'eventType(\"LOGIN\")', // eventType(\"LOGIN\")\n    from:  $dt_timeframe_from,\n    to: $dt_timeframe_to,\n    pageSize: 5000\n  });\n\n  // \ud83d\udcca Agrupar por campos (con granularidad configurable)\n  const groupedData = buildDataFrameAdvanced(\n    data,\n    ['user', 'timestamp' ],\n    { timeGranularity: $Tiempo } // \ud83d\udc48 Pod\u00e9s usar 'minute', 'hour' o 'day'\n  );\n\n  console.log(groupedData);\n  return groupedData;\n}\n",
+        "visualization": "lineChart",
+        "visualizationSettings": {
+          "chartSettings": {
+            "legend": {
+              "hidden": true
+            },
+            "xAxisLabel": "timestamp",
+            "xAxisScaling": "auto",
+            "fieldMapping": {
+              "leftAxisValues": [
+                "count"
+              ],
+              "timestamp": "timestamp"
+            },
+            "gapPolicy": "connect"
+          },
+          "dataMapping": {
+            "displayedFields": [
+              "user"
+            ]
+          },
+          "legend": {
+            "ratio": 24
+          },
+          "autoSelectVisualization": false
+        }
+      },
+      "63": {
+        "title": "",
+        "type": "code",
+        "input": "import { auditLogsClient } from '@dynatrace-sdk/client-classic-environment-v2';\n\nexport default async function () {\n  // \ud83d\udc49 Normaliza timestamp seg\u00fan granularidad (day, hour, minute)\n  function normalizeToGranularity(value, granularity = 'minute') {\n    if (!value) return 'UNKNOWN';\n\n    const date = typeof value === 'number' ? new Date(value) : new Date(value);\n    if (isNaN(date.getTime())) return 'UNKNOWN';\n\n    const year = date.getUTCFullYear();\n    const month = String(date.getUTCMonth() + 1).padStart(2, '0');\n    const day = String(date.getUTCDate()).padStart(2, '0');\n    const hour = String(date.getUTCHours()).padStart(2, '0');\n    const minute = String(date.getUTCMinutes()).padStart(2, '0');\n\n    switch (granularity) {\n      case 'day':\n        return `${year}-${month}-${day}T00:00`;\n      case 'hour':\n        return `${year}-${month}-${day}T${hour}:00`;\n      case 'minute':\n      default:\n        return `${year}-${month}-${day}T${hour}:${minute}`;\n    }\n  }\n\n  // \ud83d\udc49 Inferencia de tipo\n  function inferType(value) {\n    if (typeof value === 'number') return 'long';\n    if (!isNaN(Date.parse(value))) return 'timestamp';\n    return 'string';\n  }\n\n  // \ud83d\udd01 Agrupaci\u00f3n flexible\n  function buildDataFrameAdvanced(data, groupByFields = [], { timeGranularity = 'minute' } = {}) {\n    const grouped = {};\n    const hasNoSystem = groupByFields.includes('no-system');\n\n    const filteredData = hasNoSystem\n      ? data.filter(item => typeof item.user === 'string' && item.user.includes('@'))\n      : data;\n\n    filteredData.forEach(item => {\n      const keyParts = groupByFields\n        .filter(field => field !== 'no-system') // Ignorar 'no-system' como campo real\n        .map(field => {\n          let value = item[field] ?? 'UNKNOWN';\n\n          if (field === 'timestamp') {\n            value = normalizeToGranularity(value, timeGranularity);\n          } else if (field === 'user' && typeof value === 'string' && value.includes('@')) {\n            value = value \n          }\n\n          return value;\n        });\n\n      const key = keyParts.join('|');\n      grouped[key] = (grouped[key] || 0) + 1;\n    });\n\n    const records = Object.entries(grouped)\n      .sort(([, a], [, b]) => b - a)\n      .map(([key, count]) => {\n        const values = key.split('|');\n        const record = {};\n        groupByFields\n          .filter(field => field !== 'no-system')\n          .forEach((field, i) => {\n            record[field] = values[i];\n          });\n        record.count = count;\n        return record;\n      });\n\n    const sample = records[0] || {};\n    const mappings = groupByFields\n      .filter(field => field !== 'no-system')\n      .reduce((acc, field) => {\n        acc[field] = { type: inferType(sample[field]) };\n        return acc;\n      }, { count: { type: 'long' } });\n\n    const types = [{\n      mappings,\n      indexRange: [0, records.length]\n    }];\n\n    return { records, types };\n  }\n\n  // \ud83d\udce5 Fetch paginado de logs\n  async function fetchAllAuditLogs({ filter, from, to, pageSize } = {}) {\n    let auditLogs = [];\n    let next = undefined;\n\n    const config = { filter, from, to, pageSize };\n    console.log(`Fetching first page...`);\n    const firstresponse = await auditLogsClient.getLogs(config);\n    auditLogs = [...firstresponse.auditLogs];\n    next = firstresponse.nextPageKey;\n\n    let pageCounter = 1;\n    while (next) {\n      console.log(`Fetching page ${++pageCounter}...`);\n      const response = await auditLogsClient.getLogs({ nextPageKey: next });\n      auditLogs = [...auditLogs, ...response.auditLogs];\n      next = response.nextPageKey;\n    }\n\n    return auditLogs;\n  }\n\n  // \ud83e\uddea Ejecuci\u00f3n final\n  const data = await fetchAllAuditLogs({\n    filter: 'eventType(\"LOGIN\")', // eventType(\"LOGIN\")\n    from:  $dt_timeframe_from,\n    to: $dt_timeframe_to,\n    pageSize: 5000\n  });\n\n  // \ud83d\udcca Agrupar por campos (con granularidad configurable)\n  const groupedData = buildDataFrameAdvanced(\n    data,\n    ['user' ],\n    { timeGranularity: 'day' } // \ud83d\udc48 Pod\u00e9s usar 'minute', 'hour' o 'day'\n  );\n\n  console.log(groupedData);\n  return groupedData;\n}\n",
+        "visualization": "categoricalBarChart",
+        "visualizationSettings": {
+          "autoSelectVisualization": false,
+          "chartSettings": {
+            "legend": {
+              "hidden": true
+            },
+            "categoricalBarChartSettings": {
+              "categoryAxisLabel": "user",
+              "categoryAxis": [
+                "user"
+              ],
+              "valueAxis": [
+                "count"
+              ],
+              "valueAxisLabel": "count",
+              "isValueLabelVisible": false
+            }
+          },
+          "legend": {
+            "ratio": 24
+          }
+        }
+      }
+    },
+    "layouts": {
+      "9": {
+        "x": 0,
+        "y": 11,
+        "w": 12,
+        "h": 5
+      },
+      "17": {
+        "x": 12,
+        "y": 17,
+        "w": 12,
+        "h": 6
+      },
+      "18": {
+        "x": 0,
+        "y": 17,
+        "w": 12,
+        "h": 6
+      },
+      "19": {
+        "x": 0,
+        "y": 8,
+        "w": 4,
+        "h": 2
+      },
+      "20": {
+        "x": 4,
+        "y": 8,
+        "w": 4,
+        "h": 2
+      },
+      "21": {
+        "x": 8,
+        "y": 8,
+        "w": 4,
+        "h": 2
+      },
+      "22": {
+        "x": 12,
+        "y": 8,
+        "w": 4,
+        "h": 2
+      },
+      "23": {
+        "x": 16,
+        "y": 8,
+        "w": 4,
+        "h": 2
+      },
+      "24": {
+        "x": 20,
+        "y": 8,
+        "w": 4,
+        "h": 2
+      },
+      "26": {
+        "x": 0,
+        "y": 7,
+        "w": 4,
+        "h": 1
+      },
+      "27": {
+        "x": 4,
+        "y": 7,
+        "w": 4,
+        "h": 1
+      },
+      "28": {
+        "x": 8,
+        "y": 7,
+        "w": 4,
+        "h": 1
+      },
+      "29": {
+        "x": 12,
+        "y": 7,
+        "w": 4,
+        "h": 1
+      },
+      "30": {
+        "x": 16,
+        "y": 7,
+        "w": 4,
+        "h": 1
+      },
+      "31": {
+        "x": 20,
+        "y": 7,
+        "w": 4,
+        "h": 1
+      },
+      "32": {
+        "x": 0,
+        "y": 24,
+        "w": 12,
+        "h": 5
+      },
+      "33": {
+        "x": 12,
+        "y": 11,
+        "w": 12,
+        "h": 5
+      },
+      "34": {
+        "x": 12,
+        "y": 24,
+        "w": 12,
+        "h": 5
+      },
+      "35": {
+        "x": 0,
+        "y": 10,
+        "w": 24,
+        "h": 1
+      },
+      "36": {
+        "x": 0,
+        "y": 16,
+        "w": 24,
+        "h": 1
+      },
+      "37": {
+        "x": 0,
+        "y": 23,
+        "w": 24,
+        "h": 1
+      },
+      "38": {
+        "x": 0,
+        "y": 47,
+        "w": 24,
+        "h": 1
+      },
+      "39": {
+        "x": 12,
+        "y": 48,
+        "w": 12,
+        "h": 5
+      },
+      "41": {
+        "x": 0,
+        "y": 53,
+        "w": 24,
+        "h": 1
+      },
+      "42": {
+        "x": 12,
+        "y": 54,
+        "w": 12,
+        "h": 5
+      },
+      "43": {
+        "x": 0,
+        "y": 54,
+        "w": 12,
+        "h": 5
+      },
+      "44": {
+        "x": 0,
+        "y": 59,
+        "w": 24,
+        "h": 1
+      },
+      "45": {
+        "x": 12,
+        "y": 60,
+        "w": 12,
+        "h": 5
+      },
+      "47": {
+        "x": 0,
+        "y": 65,
+        "w": 24,
+        "h": 1
+      },
+      "49": {
+        "x": 12,
+        "y": 66,
+        "w": 12,
+        "h": 5
+      },
+      "50": {
+        "x": 12,
+        "y": 36,
+        "w": 12,
+        "h": 5
+      },
+      "51": {
+        "x": 1,
+        "y": 36,
+        "w": 11,
+        "h": 5
+      },
+      "52": {
+        "x": 1,
+        "y": 35,
+        "w": 23,
+        "h": 1
+      },
+      "53": {
+        "x": 1,
+        "y": 41,
+        "w": 23,
+        "h": 1
+      },
+      "54": {
+        "x": 12,
+        "y": 42,
+        "w": 12,
+        "h": 5
+      },
+      "55": {
+        "x": 1,
+        "y": 42,
+        "w": 11,
+        "h": 5
+      },
+      "56": {
+        "x": 0,
+        "y": 1,
+        "w": 24,
+        "h": 6
+      },
+      "57": {
+        "x": 0,
+        "y": 0,
+        "w": 24,
+        "h": 1
+      },
+      "58": {
+        "x": 0,
+        "y": 48,
+        "w": 12,
+        "h": 5
+      },
+      "59": {
+        "x": 0,
+        "y": 66,
+        "w": 12,
+        "h": 5
+      },
+      "60": {
+        "x": 0,
+        "y": 60,
+        "w": 12,
+        "h": 5
+      },
+      "61": {
+        "x": 1,
+        "y": 29,
+        "w": 23,
+        "h": 1
+      },
+      "62": {
+        "x": 12,
+        "y": 30,
+        "w": 12,
+        "h": 5
+      },
+      "63": {
+        "x": 1,
+        "y": 30,
+        "w": 11,
+        "h": 5
+      }
+    },
+    "importedWithCode": true,
+    "settings": {},
+    "annotations": []
+  }
+}

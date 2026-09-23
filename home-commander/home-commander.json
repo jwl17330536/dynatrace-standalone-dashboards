@@ -1,0 +1,439 @@
+{
+  "name": "Home Commander v2",
+  "type": "dashboard",
+  "owner": "<YOUR_DYNATRACE_USER_ID>",
+  "isPrivate": true,
+  "description": "commander.lindleyhome.com \u2014 fleet sync, CMDB, workflows, nginx RED, host resources; EdgeConnect via dt01.",
+  "version": 4,
+  "modificationInfo": {
+    "createdBy": "",
+    "createdTime": "",
+    "lastModifiedBy": "",
+    "lastModifiedTime": ""
+  },
+  "content": {
+    "annotations": [],
+    "layouts": {
+      "0": {
+        "h": 4,
+        "w": 24,
+        "x": 0,
+        "y": 0
+      },
+      "1": {
+        "h": 4,
+        "w": 6,
+        "x": 0,
+        "y": 4
+      },
+      "2": {
+        "h": 4,
+        "w": 6,
+        "x": 6,
+        "y": 4
+      },
+      "3": {
+        "h": 4,
+        "w": 6,
+        "x": 12,
+        "y": 4
+      },
+      "4": {
+        "h": 4,
+        "w": 6,
+        "x": 18,
+        "y": 4
+      },
+      "5": {
+        "h": 4,
+        "w": 6,
+        "x": 0,
+        "y": 8
+      },
+      "6": {
+        "h": 4,
+        "w": 6,
+        "x": 6,
+        "y": 8
+      },
+      "7": {
+        "h": 4,
+        "w": 6,
+        "x": 12,
+        "y": 8
+      },
+      "8": {
+        "h": 4,
+        "w": 6,
+        "x": 18,
+        "y": 8
+      },
+      "9": {
+        "h": 8,
+        "w": 12,
+        "x": 0,
+        "y": 12
+      },
+      "10": {
+        "h": 8,
+        "w": 12,
+        "x": 12,
+        "y": 12
+      },
+      "11": {
+        "h": 8,
+        "w": 12,
+        "x": 0,
+        "y": 20
+      },
+      "12": {
+        "h": 8,
+        "w": 12,
+        "x": 12,
+        "y": 20
+      },
+      "13": {
+        "h": 10,
+        "w": 12,
+        "x": 0,
+        "y": 28
+      },
+      "14": {
+        "h": 10,
+        "w": 12,
+        "x": 12,
+        "y": 28
+      }
+    },
+    "settings": {
+      "defaultTimeframe": {
+        "enabled": true,
+        "value": {
+          "from": "now()-24h",
+          "to": "now()"
+        }
+      }
+    },
+    "tiles": {
+      "0": {
+        "content": "# Home Commander v2\n\nHost **commander.lindleyhome.com** \u2014 Home Commander API behind nginx.\n\n**Routes:** `/api/fleet/*` (host-facts sync), `/api/cmdb/*`, `/api/workflows/*`.\n\n**Path:** Dynatrace workflows \u2192 EdgeConnect on **dt01** \u2192 HTTPS commander.\n\n**Automation:** OneAgent \u00b7 CMDB Sync WFs \u00b7 nginx silence + fleet-sync silence detectors.",
+        "title": "",
+        "type": "markdown"
+      },
+      "1": {
+        "davis": {
+          "davisVisualization": {
+            "isAvailable": true
+          },
+          "enabled": false
+        },
+        "query": "fetch logs\n| filter host.name == \"commander.lindleyhome.com\" and log.source == \"/var/log/nginx/access.log\"\n| summarize requests = count()",
+        "querySettings": {
+          "defaultSamplingRatio": 10,
+          "defaultScanLimitGbytes": 500,
+          "enableSampling": false,
+          "maxResultMegaBytes": 10,
+          "maxResultRecords": 1000
+        },
+        "title": "Nginx requests",
+        "type": "data",
+        "visualization": "singleValue",
+        "visualizationSettings": {
+          "singleValue": {
+            "recordField": "requests"
+          }
+        }
+      },
+      "2": {
+        "davis": {
+          "davisVisualization": {
+            "isAvailable": true
+          },
+          "enabled": false
+        },
+        "query": "fetch logs\n| filter host.name == \"commander.lindleyhome.com\" and log.source == \"/var/log/nginx/access.log\"\n| filter contains(content, \"/api/fleet/\")\n| summarize hits = count()",
+        "querySettings": {
+          "defaultSamplingRatio": 10,
+          "defaultScanLimitGbytes": 500,
+          "enableSampling": false,
+          "maxResultMegaBytes": 10,
+          "maxResultRecords": 1000
+        },
+        "title": "Fleet sync hits",
+        "type": "data",
+        "visualization": "singleValue",
+        "visualizationSettings": {
+          "singleValue": {
+            "recordField": "hits"
+          }
+        }
+      },
+      "3": {
+        "davis": {
+          "davisVisualization": {
+            "isAvailable": true
+          },
+          "enabled": false
+        },
+        "query": "fetch logs\n| filter host.name == \"commander.lindleyhome.com\" and log.source == \"/var/log/nginx/access.log\"\n| filter contains(content, \"/api/cmdb/\")\n| summarize hits = count()",
+        "querySettings": {
+          "defaultSamplingRatio": 10,
+          "defaultScanLimitGbytes": 500,
+          "enableSampling": false,
+          "maxResultMegaBytes": 10,
+          "maxResultRecords": 1000
+        },
+        "title": "CMDB API hits",
+        "type": "data",
+        "visualization": "singleValue",
+        "visualizationSettings": {
+          "singleValue": {
+            "recordField": "hits"
+          }
+        }
+      },
+      "4": {
+        "davis": {
+          "davisVisualization": {
+            "isAvailable": true
+          },
+          "enabled": false
+        },
+        "query": "fetch logs\n| filter host.name == \"commander.lindleyhome.com\" and log.source == \"/var/log/nginx/access.log\"\n| filter contains(content, \"/api/workflows/\")\n| summarize hits = count()",
+        "querySettings": {
+          "defaultSamplingRatio": 10,
+          "defaultScanLimitGbytes": 500,
+          "enableSampling": false,
+          "maxResultMegaBytes": 10,
+          "maxResultRecords": 1000
+        },
+        "title": "Workflow API hits",
+        "type": "data",
+        "visualization": "singleValue",
+        "visualizationSettings": {
+          "singleValue": {
+            "recordField": "hits"
+          }
+        }
+      },
+      "5": {
+        "davis": {
+          "davisVisualization": {
+            "isAvailable": true
+          },
+          "enabled": false
+        },
+        "query": "fetch logs\n| filter host.name == \"commander.lindleyhome.com\" and log.source == \"/var/log/nginx/access.log\"\n| filter contains(content, \"HTTP/1.1\\\" 5\") or contains(content, \"HTTP/1.0\\\" 5\")\n| summarize errors = count()",
+        "querySettings": {
+          "defaultSamplingRatio": 10,
+          "defaultScanLimitGbytes": 500,
+          "enableSampling": false,
+          "maxResultMegaBytes": 10,
+          "maxResultRecords": 1000
+        },
+        "title": "HTTP 5xx-ish",
+        "type": "data",
+        "visualization": "singleValue",
+        "visualizationSettings": {
+          "singleValue": {
+            "recordField": "errors"
+          }
+        }
+      },
+      "6": {
+        "davis": {
+          "davisVisualization": {
+            "isAvailable": true
+          },
+          "enabled": false
+        },
+        "query": "timeseries avg(dt.host.cpu.usage), filter:{host.name == \"commander.lindleyhome.com\"}\n| fieldsAdd `CPU %` = arrayAvg(`avg(dt.host.cpu.usage)`)\n| fields `CPU %`",
+        "querySettings": {
+          "defaultSamplingRatio": 10,
+          "defaultScanLimitGbytes": 500,
+          "enableSampling": false,
+          "maxResultMegaBytes": 10,
+          "maxResultRecords": 1000
+        },
+        "title": "CPU % (avg)",
+        "type": "data",
+        "visualization": "singleValue",
+        "visualizationSettings": {
+          "singleValue": {
+            "recordField": "CPU %"
+          }
+        }
+      },
+      "7": {
+        "davis": {
+          "davisVisualization": {
+            "isAvailable": true
+          },
+          "enabled": false
+        },
+        "query": "timeseries avg(dt.host.memory.usage), filter:{host.name == \"commander.lindleyhome.com\"}\n| fieldsAdd `Memory %` = arrayAvg(`avg(dt.host.memory.usage)`)\n| fields `Memory %`",
+        "querySettings": {
+          "defaultSamplingRatio": 10,
+          "defaultScanLimitGbytes": 500,
+          "enableSampling": false,
+          "maxResultMegaBytes": 10,
+          "maxResultRecords": 1000
+        },
+        "title": "Memory % (avg)",
+        "type": "data",
+        "visualization": "singleValue",
+        "visualizationSettings": {
+          "singleValue": {
+            "recordField": "Memory %"
+          }
+        }
+      },
+      "8": {
+        "davis": {
+          "davisVisualization": {
+            "isAvailable": true
+          },
+          "enabled": false
+        },
+        "query": "fetch logs\n| filter host.name == \"commander.lindleyhome.com\" and log.source == \"/var/log/nginx/access.log\"\n| filter contains(content, \"/api/cmdb/health\")\n| summarize hits = count()",
+        "querySettings": {
+          "defaultSamplingRatio": 10,
+          "defaultScanLimitGbytes": 500,
+          "enableSampling": false,
+          "maxResultMegaBytes": 10,
+          "maxResultRecords": 1000
+        },
+        "title": "CMDB health hits",
+        "type": "data",
+        "visualization": "singleValue",
+        "visualizationSettings": {
+          "singleValue": {
+            "recordField": "hits"
+          }
+        }
+      },
+      "9": {
+        "davis": {
+          "davisVisualization": {
+            "isAvailable": true
+          },
+          "enabled": false
+        },
+        "query": "fetch logs\n| filter host.name == \"commander.lindleyhome.com\" and log.source == \"/var/log/nginx/access.log\"\n| fieldsAdd route = if(contains(content, \"/api/fleet/\"), then:\"fleet\", else:if(contains(content, \"/api/cmdb/\"), then:\"cmdb\", else:if(contains(content, \"/api/workflows/\"), then:\"workflows\", else:\"other\")))\n| summarize reqs=count(), by:{route}\n| sort reqs desc",
+        "querySettings": {
+          "defaultSamplingRatio": 10,
+          "defaultScanLimitGbytes": 2000,
+          "enableSampling": false,
+          "maxResultMegaBytes": 10,
+          "maxResultRecords": 5000
+        },
+        "title": "Requests by route family",
+        "type": "data",
+        "visualization": "categoricalBarChart",
+        "visualizationSettings": {}
+      },
+      "10": {
+        "davis": {
+          "davisVisualization": {
+            "isAvailable": true
+          },
+          "enabled": false
+        },
+        "query": "fetch logs\n| filter host.name == \"commander.lindleyhome.com\" and log.source == \"/var/log/nginx/access.log\"\n| makeTimeseries requests=count(), interval:5m",
+        "querySettings": {
+          "defaultSamplingRatio": 10,
+          "defaultScanLimitGbytes": 2000,
+          "enableSampling": false,
+          "maxResultMegaBytes": 10,
+          "maxResultRecords": 5000
+        },
+        "title": "Nginx request volume",
+        "type": "data",
+        "visualization": "lineChart",
+        "visualizationSettings": {}
+      },
+      "11": {
+        "davis": {
+          "davisVisualization": {
+            "isAvailable": true
+          },
+          "enabled": false
+        },
+        "query": "fetch logs\n| filter host.name == \"commander.lindleyhome.com\" and log.source == \"/var/log/nginx/access.log\"\n| filter contains(content, \"/api/fleet/\")\n| makeTimeseries syncs=count(), interval:5m",
+        "querySettings": {
+          "defaultSamplingRatio": 10,
+          "defaultScanLimitGbytes": 2000,
+          "enableSampling": false,
+          "maxResultMegaBytes": 10,
+          "maxResultRecords": 5000
+        },
+        "title": "Fleet sync volume",
+        "type": "data",
+        "visualization": "lineChart",
+        "visualizationSettings": {}
+      },
+      "12": {
+        "davis": {
+          "davisVisualization": {
+            "isAvailable": true
+          },
+          "enabled": false
+        },
+        "query": "timeseries avg(dt.host.cpu.usage), filter:{host.name == \"commander.lindleyhome.com\"}",
+        "querySettings": {
+          "defaultSamplingRatio": 10,
+          "defaultScanLimitGbytes": 2000,
+          "enableSampling": false,
+          "maxResultMegaBytes": 10,
+          "maxResultRecords": 5000
+        },
+        "title": "Host CPU",
+        "type": "data",
+        "visualization": "lineChart",
+        "visualizationSettings": {}
+      },
+      "13": {
+        "davis": {
+          "davisVisualization": {
+            "isAvailable": true
+          },
+          "enabled": false
+        },
+        "query": "fetch logs\n| filter host.name == \"commander.lindleyhome.com\" and log.source == \"/var/log/nginx/access.log\"\n| fields timestamp, content\n| sort timestamp desc\n| limit 40",
+        "querySettings": {
+          "defaultSamplingRatio": 10,
+          "defaultScanLimitGbytes": 2000,
+          "enableSampling": false,
+          "maxResultMegaBytes": 10,
+          "maxResultRecords": 5000
+        },
+        "title": "Recent nginx access",
+        "type": "data",
+        "visualization": "table",
+        "visualizationSettings": {}
+      },
+      "14": {
+        "davis": {
+          "davisVisualization": {
+            "isAvailable": true
+          },
+          "enabled": false
+        },
+        "query": "fetch logs\n| filter host.name == \"commander.lindleyhome.com\"\n| filter log.source == \"/var/log/daemon.log\" or log.source == \"Journald\"\n| filter contains(lower(content), \"error\") or contains(lower(content), \"fail\")\n| fields timestamp, log.source, content\n| sort timestamp desc\n| limit 40",
+        "querySettings": {
+          "defaultSamplingRatio": 10,
+          "defaultScanLimitGbytes": 2000,
+          "enableSampling": false,
+          "maxResultMegaBytes": 10,
+          "maxResultRecords": 5000
+        },
+        "title": "Daemon / error-ish lines",
+        "type": "data",
+        "visualization": "table",
+        "visualizationSettings": {}
+      }
+    },
+    "variables": [],
+    "version": 21
+  }
+}

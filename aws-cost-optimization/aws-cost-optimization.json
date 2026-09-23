@@ -1,0 +1,127 @@
+{
+  "name": "AWS Cost Optimization",
+  "type": "dashboard",
+  "owner": "<YOUR_DYNATRACE_USER_ID>",
+  "isPrivate": true,
+  "version": 2,
+  "modificationInfo": {
+    "createdBy": "",
+    "createdTime": "",
+    "lastModifiedBy": "",
+    "lastModifiedTime": ""
+  },
+  "content": {
+    "layouts": {
+      "0": {
+        "h": 2,
+        "w": 20,
+        "x": 0,
+        "y": 0
+      },
+      "1": {
+        "h": 1,
+        "w": 20,
+        "x": 0,
+        "y": 2
+      },
+      "2": {
+        "h": 8,
+        "w": 12,
+        "x": 0,
+        "y": 3
+      },
+      "3": {
+        "h": 8,
+        "w": 8,
+        "x": 12,
+        "y": 3
+      },
+      "4": {
+        "h": 1,
+        "w": 20,
+        "x": 0,
+        "y": 11
+      },
+      "5": {
+        "h": 8,
+        "w": 12,
+        "x": 0,
+        "y": 12
+      },
+      "6": {
+        "h": 8,
+        "w": 8,
+        "x": 12,
+        "y": 12
+      },
+      "7": {
+        "h": 1,
+        "w": 20,
+        "x": 0,
+        "y": 20
+      },
+      "8": {
+        "h": 7,
+        "w": 20,
+        "x": 0,
+        "y": 21
+      }
+    },
+    "tiles": {
+      "0": {
+        "content": "## \u2601\ufe0f AWS Cost Optimization\n**Account:** `971937022656` &nbsp;|&nbsp; **Region:** `us-east-1`\n\nTrack underutilized EC2 instances and idle EBS volumes. Use the time picker to adjust the analysis window \u2014 wider windows surface sustained waste.",
+        "type": "markdown"
+      },
+      "1": {
+        "content": "### \ud83d\udda5\ufe0f EC2 Compute \u2014 Utilization",
+        "type": "markdown"
+      },
+      "2": {
+        "query": "timeseries cpu=avg(cloud.aws.ec2.CPUUtilization.By.InstanceId), by:{InstanceId}, interval:1h",
+        "querySettings": {},
+        "title": "EC2 CPU Utilization by Instance (%)",
+        "type": "data",
+        "visualization": "lineChart",
+        "visualizationSettings": {}
+      },
+      "3": {
+        "query": "timeseries cpu=avg(cloud.aws.ec2.CPUUtilization.By.InstanceId), by:{InstanceId}, interval:1h | fieldsAdd avg_cpu=arrayAvg(cpu) | fields InstanceId, avg_cpu | sort avg_cpu asc",
+        "querySettings": {},
+        "title": "EC2 Average CPU per Instance \u2014 sorted lowest first",
+        "type": "data",
+        "visualization": "table",
+        "visualizationSettings": {}
+      },
+      "4": {
+        "content": "### \ud83d\udcbe EBS Storage \u2014 Volume Activity",
+        "type": "markdown"
+      },
+      "5": {
+        "query": "timeseries idle=avg(cloud.aws.ebs.VolumeIdleTime.By.VolumeId), by:{VolumeId}, interval:1h",
+        "querySettings": {},
+        "title": "EBS Volume Idle Time (seconds/min \u2014 max 60 = 100% idle)",
+        "type": "data",
+        "visualization": "areaChart",
+        "visualizationSettings": {}
+      },
+      "6": {
+        "query": "timeseries reads=avg(cloud.aws.ebs.VolumeReadBytes.By.VolumeId), writes=avg(cloud.aws.ebs.VolumeWriteBytes.By.VolumeId), idle=avg(cloud.aws.ebs.VolumeIdleTime.By.VolumeId), by:{VolumeId}, interval:1h | fieldsAdd avg_reads=arrayAvg(reads), avg_writes=arrayAvg(writes), idle_pct=arrayAvg(idle)/60*100 | fields VolumeId, idle_pct, avg_reads, avg_writes | sort idle_pct desc",
+        "querySettings": {},
+        "title": "EBS Volume Summary \u2014 Idle % and I/O",
+        "type": "data",
+        "visualization": "table",
+        "visualizationSettings": {}
+      },
+      "7": {
+        "content": "### \ud83d\udca1 Cost Optimization Recommendations",
+        "type": "markdown"
+      },
+      "8": {
+        "content": "| Priority | Resource | Finding | Recommended Action | Est. Savings |\n|----------|----------|---------|-------------------|---------------|\n| \ud83d\udd34 High | EC2 `i-041bf6822056e4e5c` | ~2.5% avg CPU | Downsize 2 tiers (e.g. m5.large \u2192 t3.small) | 50\u201370% compute cost |\n| \ud83d\udd34 High | EC2 `i-099682b0640af8cd9` | ~2.6% avg CPU | Downsize 2 tiers | 50\u201370% compute cost |\n| \ud83d\udfe1 Medium | EBS `vol-07305728e7b420ccc` | ~100% idle, 122 KB/s writes | Migrate gp2 \u2192 gp3 (20% cheaper); confirm still attached and needed | ~20% storage |\n| \ud83d\udfe1 Medium | EBS `vol-0209a60da8758773e` | ~100% idle, minimal I/O | Migrate gp2 \u2192 gp3; snapshot + delete if unused | ~20\u2013100% storage |\n| \ud83d\udfe1 Medium | EBS `vol-0d89eab9fb9edf722` | ~100% idle, low reads | Migrate gp2 \u2192 gp3 | ~20% storage |\n| \ud83d\udfe1 Medium | EBS `vol-02aafd339edf2a56c` | ~100% idle, low I/O | Migrate gp2 \u2192 gp3 | ~20% storage |\n| \ud83d\udd35 Low | Both EC2 instances | Sustained low utilization | Buy 1-yr Convertible Reserved Instances | 30\u201340% vs On-Demand |\n\n**How to use this dashboard:** Adjust the time picker to 7d or 30d to see sustained waste vs spiky workloads. Instances consistently below 10% CPU are prime right-sizing targets. EBS volumes with idle_pct near 100 are costing money while doing nothing \u2014 snapshot them and delete, or migrate volume type.",
+        "type": "markdown"
+      }
+    },
+    "variables": [],
+    "version": 21
+  }
+}

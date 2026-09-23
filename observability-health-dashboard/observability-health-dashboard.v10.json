@@ -1,0 +1,338 @@
+{
+  "name": "Observability Health Dashboard v10",
+  "type": "dashboard",
+  "owner": "<YOUR_DYNATRACE_USER_ID>",
+  "isPrivate": true,
+  "description": "CMDB apps via cmdb_businessapp + host dt.cost.product join; Commander/Powderkeg pending lookup rows enriched inline.",
+  "version": 4,
+  "modificationInfo": {
+    "createdBy": "",
+    "createdTime": "",
+    "lastModifiedBy": "",
+    "lastModifiedTime": ""
+  },
+  "content": {
+    "annotations": [],
+    "importedWithCode": false,
+    "layouts": {
+      "0": {
+        "h": 4,
+        "w": 24,
+        "x": 0,
+        "y": 0
+      },
+      "1": {
+        "h": 4,
+        "w": 6,
+        "x": 0,
+        "y": 4
+      },
+      "2": {
+        "h": 4,
+        "w": 6,
+        "x": 6,
+        "y": 4
+      },
+      "3": {
+        "h": 4,
+        "w": 6,
+        "x": 12,
+        "y": 4
+      },
+      "4": {
+        "h": 4,
+        "w": 6,
+        "x": 18,
+        "y": 4
+      },
+      "5": {
+        "h": 2,
+        "w": 24,
+        "x": 0,
+        "y": 8
+      },
+      "6": {
+        "h": 10,
+        "w": 24,
+        "x": 0,
+        "y": 10
+      },
+      "7": {
+        "h": 1,
+        "w": 24,
+        "x": 0,
+        "y": 20
+      },
+      "8": {
+        "h": 12,
+        "w": 24,
+        "x": 0,
+        "y": 21
+      },
+      "9": {
+        "h": 1,
+        "w": 24,
+        "x": 0,
+        "y": 33
+      },
+      "10": {
+        "h": 8,
+        "w": 12,
+        "x": 0,
+        "y": 34
+      },
+      "11": {
+        "h": 8,
+        "w": 12,
+        "x": 12,
+        "y": 34
+      },
+      "12": {
+        "h": 1,
+        "w": 24,
+        "x": 0,
+        "y": 42
+      },
+      "13": {
+        "h": 12,
+        "w": 24,
+        "x": 0,
+        "y": 43
+      }
+    },
+    "settings": {
+      "defaultTimeframe": {
+        "enabled": true,
+        "value": {
+          "from": "now()-24h",
+          "to": "now()"
+        }
+      }
+    },
+    "tiles": {
+      "0": {
+        "content": "# Observability Health Dashboard v10\n\nCMDB apps (`/lookups/cmdb_businessapp`) joined to OneAgent hosts via tag **`dt.cost.product`** = `application_id`.\n\n**Pending lookup rows:** Home Commander (`7654`), Powderkeg Web (`jira`) \u2014 enriched inline until CMDB Sync adds them.\n\n**Automation:** CMDB Sync workflows + host product tags.",
+        "title": "",
+        "type": "markdown"
+      },
+      "1": {
+        "davis": {
+          "davisVisualization": {
+            "isAvailable": true
+          },
+          "enabled": false
+        },
+        "query": "smartscapeNodes HOST\n| fields tags\n| fieldsAdd application_id = toString(tags[`dt.cost.product`])\n| lookup [load \"/lookups/cmdb_businessapp\"], sourceField:application_id, lookupField:application_id, fields:{application_name}\n| fieldsAdd `Application` = coalesce(application_name, if(application_id == \"7654\", then:\"Home Commander\", else:if(application_id == \"jira\", then:\"Powderkeg Web\", else:concat(\"Unmapped:\", application_id))))\n| summarize `Total Applications` = countDistinct(`Application`)",
+        "querySettings": {
+          "defaultSamplingRatio": 10,
+          "defaultScanLimitGbytes": 500,
+          "enableSampling": false,
+          "maxResultMegaBytes": 1,
+          "maxResultRecords": 1000
+        },
+        "title": "Total Applications",
+        "type": "data",
+        "visualization": "singleValue",
+        "visualizationSettings": {
+          "singleValue": {
+            "recordField": "Total Applications"
+          }
+        }
+      },
+      "2": {
+        "davis": {
+          "davisVisualization": {
+            "isAvailable": true
+          },
+          "enabled": false
+        },
+        "query": "smartscapeNodes HOST\n| fields id, name\n| summarize `Monitored Hosts` = count()",
+        "querySettings": {
+          "defaultSamplingRatio": 10,
+          "defaultScanLimitGbytes": 500,
+          "enableSampling": false,
+          "maxResultMegaBytes": 1,
+          "maxResultRecords": 1000
+        },
+        "title": "Monitored Hosts",
+        "type": "data",
+        "visualization": "singleValue",
+        "visualizationSettings": {
+          "singleValue": {
+            "recordField": "Monitored Hosts"
+          }
+        }
+      },
+      "3": {
+        "davis": {
+          "davisVisualization": {
+            "isAvailable": true
+          },
+          "enabled": false
+        },
+        "query": "smartscapeNodes HOST\n| fields tags\n| fieldsAdd application_id = toString(tags[`dt.cost.product`])\n| lookup [load \"/lookups/cmdb_businessapp\"], sourceField:application_id, lookupField:application_id, fields:{application_name}\n| fieldsAdd mapped = isNotNull(application_name)\n| summarize total = count(), mapped = countIf(mapped)\n| fieldsAdd `Coverage %` = round(100.0 * mapped / total)\n| fields `Coverage %`",
+        "querySettings": {
+          "defaultSamplingRatio": 10,
+          "defaultScanLimitGbytes": 500,
+          "enableSampling": false,
+          "maxResultMegaBytes": 1,
+          "maxResultRecords": 1000
+        },
+        "title": "CMDB Tag Coverage %",
+        "type": "data",
+        "visualization": "singleValue",
+        "visualizationSettings": {
+          "singleValue": {
+            "recordField": "Coverage %"
+          }
+        }
+      },
+      "4": {
+        "davis": {
+          "davisVisualization": {
+            "isAvailable": true
+          },
+          "enabled": false
+        },
+        "query": "smartscapeNodes HOST\n| fields name, tags\n| fieldsAdd application_id = toString(tags[`dt.cost.product`])\n| lookup [load \"/lookups/cmdb_businessapp\"], sourceField:application_id, lookupField:application_id, fields:{application_name}\n| filter isNull(application_name)\n| summarize `Unmapped Hosts` = count()",
+        "querySettings": {
+          "defaultSamplingRatio": 10,
+          "defaultScanLimitGbytes": 500,
+          "enableSampling": false,
+          "maxResultMegaBytes": 1,
+          "maxResultRecords": 1000
+        },
+        "title": "Unmapped Hosts",
+        "type": "data",
+        "visualization": "singleValue",
+        "visualizationSettings": {
+          "singleValue": {
+            "recordField": "Unmapped Hosts"
+          }
+        }
+      },
+      "5": {
+        "content": "## Application inventory\nHosts rolled up by CMDB application (inline pending for Commander / Powderkeg).",
+        "title": "",
+        "type": "markdown"
+      },
+      "6": {
+        "davis": {
+          "davisVisualization": {
+            "isAvailable": true
+          },
+          "enabled": false
+        },
+        "query": "smartscapeNodes HOST\n| fields id, name, tags\n| fieldsAdd application_id = toString(tags[`dt.cost.product`])\n| lookup [load \"/lookups/cmdb_businessapp\"], sourceField:application_id, lookupField:application_id, fields:{application_name, cmdb_owner, tier}\n| fieldsAdd `Application` = coalesce(application_name, if(application_id == \"7654\", then:\"Home Commander\", else:if(application_id == \"jira\", then:\"Powderkeg Web\", else:concat(\"Unmapped:\", application_id))))\n| fieldsAdd cmdb_owner = coalesce(cmdb_owner, \"John\"), tier = coalesce(tier, \"?\")\n| fieldsAdd `In Lookup` = if(isNotNull(application_name), then:\"Yes\", else:if(application_id == \"7654\" OR application_id == \"jira\", then:\"Pending\", else:\"No\"))\n| summarize `Hosts` = count(), by:{application_id, `Application`, cmdb_owner, tier, `In Lookup`}\n| fields `Application`, tier, Owner = cmdb_owner, `Product ID` = application_id, `Hosts`, `In Lookup`\n| sort `Application` asc",
+        "querySettings": {
+          "defaultSamplingRatio": 10,
+          "defaultScanLimitGbytes": 5000,
+          "enableSampling": false,
+          "maxResultMegaBytes": 100,
+          "maxResultRecords": 10000
+        },
+        "title": "Application Inventory",
+        "type": "data",
+        "visualization": "table",
+        "visualizationSettings": {}
+      },
+      "7": {
+        "content": "## Host detail",
+        "title": "",
+        "type": "markdown"
+      },
+      "8": {
+        "davis": {
+          "davisVisualization": {
+            "isAvailable": true
+          },
+          "enabled": false
+        },
+        "query": "smartscapeNodes HOST\n| fields id, name, tags\n| fieldsAdd application_id = toString(tags[`dt.cost.product`])\n| lookup [load \"/lookups/cmdb_businessapp\"], sourceField:application_id, lookupField:application_id, fields:{application_name, cmdb_owner, tier}\n| fieldsAdd `Application` = coalesce(application_name, if(application_id == \"7654\", then:\"Home Commander\", else:if(application_id == \"jira\", then:\"Powderkeg Web\", else:concat(\"Unmapped:\", application_id))))\n| fieldsAdd cmdb_owner = coalesce(cmdb_owner, \"John\"), tier = coalesce(tier, \"?\")\n| fieldsAdd `In Lookup` = if(isNotNull(application_name), then:\"Yes\", else:if(application_id == \"7654\" OR application_id == \"jira\", then:\"Pending\", else:\"No\"))\n| fields Host = name, `Application`, `Product ID` = application_id, Owner = cmdb_owner, tier, `In Lookup`\n| sort `Application` asc, Host asc",
+        "querySettings": {
+          "defaultSamplingRatio": 10,
+          "defaultScanLimitGbytes": 5000,
+          "enableSampling": false,
+          "maxResultMegaBytes": 100,
+          "maxResultRecords": 10000
+        },
+        "title": "Hosts by Application",
+        "type": "data",
+        "visualization": "table",
+        "visualizationSettings": {}
+      },
+      "9": {
+        "content": "## Problems (Davis)",
+        "title": "",
+        "type": "markdown"
+      },
+      "10": {
+        "davis": {
+          "davisVisualization": {
+            "isAvailable": true
+          },
+          "enabled": false
+        },
+        "query": "smartscapeNodes HOST\n| fields id, name, tags\n| fieldsAdd host_id = id\n| fieldsAdd application_id = toString(tags[`dt.cost.product`])\n| lookup [load \"/lookups/cmdb_businessapp\"], sourceField:application_id, lookupField:application_id, fields:{application_name, cmdb_owner, tier}\n| fieldsAdd `Application` = coalesce(application_name, if(application_id == \"7654\", then:\"Home Commander\", else:if(application_id == \"jira\", then:\"Powderkeg Web\", else:concat(\"Unmapped:\", application_id))))\n| fieldsAdd cmdb_owner = coalesce(cmdb_owner, \"John\"), tier = coalesce(tier, \"?\")\n| fieldsAdd `In Lookup` = if(isNotNull(application_name), then:\"Yes\", else:if(application_id == \"7654\" OR application_id == \"jira\", then:\"Pending\", else:\"No\"))\n| lookup [\n  fetch events\n  | filter event.kind == \"DAVIS_PROBLEM\" AND event.status == \"ACTIVE\"\n  | expand affected_entity_id = affected_entity_ids\n  | filter startsWith(affected_entity_id, \"HOST-\")\n  | summarize active_problems = countDistinct(event.id), by:{host_id = affected_entity_id}\n], sourceField:host_id, lookupField:host_id, fields:{active_problems}\n| fieldsAdd active_problems = coalesce(active_problems, 0)\n| summarize `Active Problems` = sum(active_problems), by:{`Application`}\n| filter `Active Problems` > 0\n| sort `Active Problems` desc",
+        "querySettings": {
+          "defaultSamplingRatio": 10,
+          "defaultScanLimitGbytes": 5000,
+          "enableSampling": false,
+          "maxResultMegaBytes": 100,
+          "maxResultRecords": 10000
+        },
+        "title": "Active Problems by Application",
+        "type": "data",
+        "visualization": "table",
+        "visualizationSettings": {}
+      },
+      "11": {
+        "davis": {
+          "davisVisualization": {
+            "isAvailable": true
+          },
+          "enabled": false
+        },
+        "query": "smartscapeNodes HOST\n| fields id, name, tags\n| fieldsAdd host_id = id\n| fieldsAdd application_id = toString(tags[`dt.cost.product`])\n| lookup [load \"/lookups/cmdb_businessapp\"], sourceField:application_id, lookupField:application_id, fields:{application_name, cmdb_owner, tier}\n| fieldsAdd `Application` = coalesce(application_name, if(application_id == \"7654\", then:\"Home Commander\", else:if(application_id == \"jira\", then:\"Powderkeg Web\", else:concat(\"Unmapped:\", application_id))))\n| fieldsAdd cmdb_owner = coalesce(cmdb_owner, \"John\"), tier = coalesce(tier, \"?\")\n| fieldsAdd `In Lookup` = if(isNotNull(application_name), then:\"Yes\", else:if(application_id == \"7654\" OR application_id == \"jira\", then:\"Pending\", else:\"No\"))\n| lookup [\n  fetch events\n  | filter event.kind == \"DAVIS_PROBLEM\"\n  | expand affected_entity_id = affected_entity_ids\n  | filter startsWith(affected_entity_id, \"HOST-\")\n  | summarize total_problems = countDistinct(event.id), by:{host_id = affected_entity_id}\n], sourceField:host_id, lookupField:host_id, fields:{total_problems}\n| fieldsAdd total_problems = coalesce(total_problems, 0)\n| summarize `Total Problems` = sum(total_problems), by:{`Application`}\n| filter `Total Problems` > 0\n| sort `Total Problems` desc",
+        "querySettings": {
+          "defaultSamplingRatio": 10,
+          "defaultScanLimitGbytes": 5000,
+          "enableSampling": false,
+          "maxResultMegaBytes": 100,
+          "maxResultRecords": 10000
+        },
+        "title": "Problems (dashboard timeframe) by Application",
+        "type": "data",
+        "visualization": "table",
+        "visualizationSettings": {}
+      },
+      "12": {
+        "content": "## OneAgent versions",
+        "title": "",
+        "type": "markdown"
+      },
+      "13": {
+        "davis": {
+          "davisVisualization": {
+            "isAvailable": true
+          },
+          "enabled": false
+        },
+        "query": "smartscapeNodes HOST\n| fields id, name, tags, installerVersion\n| fieldsAdd application_id = toString(tags[`dt.cost.product`])\n| lookup [load \"/lookups/cmdb_businessapp\"], sourceField:application_id, lookupField:application_id, fields:{application_name, cmdb_owner, tier}\n| fieldsAdd `Application` = coalesce(application_name, if(application_id == \"7654\", then:\"Home Commander\", else:if(application_id == \"jira\", then:\"Powderkeg Web\", else:concat(\"Unmapped:\", application_id))))\n| fieldsAdd cmdb_owner = coalesce(cmdb_owner, \"John\"), tier = coalesce(tier, \"?\")\n| fieldsAdd `In Lookup` = if(isNotNull(application_name), then:\"Yes\", else:if(application_id == \"7654\" OR application_id == \"jira\", then:\"Pending\", else:\"No\"))\n| fields Host = name, `Application`, `OneAgent Version` = coalesce(installerVersion, \"Unknown\")\n| sort `Application` asc, Host asc",
+        "querySettings": {
+          "defaultSamplingRatio": 10,
+          "defaultScanLimitGbytes": 5000,
+          "enableSampling": false,
+          "maxResultMegaBytes": 100,
+          "maxResultRecords": 10000
+        },
+        "title": "OneAgent Deployment by Application",
+        "type": "data",
+        "visualization": "table",
+        "visualizationSettings": {}
+      }
+    },
+    "variables": [],
+    "version": 21
+  }
+}

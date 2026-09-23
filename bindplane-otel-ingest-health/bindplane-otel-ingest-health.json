@@ -1,0 +1,293 @@
+{
+  "name": "Bindplane / OTel Ingest Health",
+  "type": "dashboard",
+  "owner": "<YOUR_DYNATRACE_USER_ID>",
+  "isPrivate": true,
+  "description": "observiq-otel-collector on dt02/dt03 + OTLP log volume by edge host (utility*, ansible20, nslb-pi, \u2026).",
+  "version": 2,
+  "modificationInfo": {
+    "createdBy": "",
+    "createdTime": "",
+    "lastModifiedBy": "",
+    "lastModifiedTime": ""
+  },
+  "content": {
+    "annotations": [],
+    "layouts": {
+      "0": {
+        "h": 3,
+        "w": 24,
+        "x": 0,
+        "y": 0
+      },
+      "1": {
+        "h": 4,
+        "w": 6,
+        "x": 0,
+        "y": 3
+      },
+      "2": {
+        "h": 4,
+        "w": 6,
+        "x": 6,
+        "y": 3
+      },
+      "3": {
+        "h": 4,
+        "w": 6,
+        "x": 12,
+        "y": 3
+      },
+      "4": {
+        "h": 4,
+        "w": 6,
+        "x": 18,
+        "y": 3
+      },
+      "5": {
+        "h": 8,
+        "w": 12,
+        "x": 0,
+        "y": 7
+      },
+      "6": {
+        "h": 8,
+        "w": 12,
+        "x": 12,
+        "y": 7
+      },
+      "7": {
+        "h": 8,
+        "w": 12,
+        "x": 0,
+        "y": 15
+      },
+      "8": {
+        "h": 8,
+        "w": 12,
+        "x": 12,
+        "y": 15
+      },
+      "9": {
+        "h": 10,
+        "w": 24,
+        "x": 0,
+        "y": 23
+      }
+    },
+    "settings": {
+      "defaultTimeframe": {
+        "enabled": true,
+        "value": {
+          "from": "now()-24h",
+          "to": "now()"
+        }
+      }
+    },
+    "tiles": {
+      "0": {
+        "content": "# Bindplane / OTel Ingest Health\n\nCollectors on **dt02** / **dt03** (`/opt/observiq-otel-collector/log/collector.log`). Edge hosts ship via **OTLP** (`/api/v2/otlp/v1/logs`).\n\n**Watch for:** collector silence, OTLP host silence (utility01/02, ansible20, nslb-pi).",
+        "title": "",
+        "type": "markdown"
+      },
+      "1": {
+        "davis": {
+          "davisVisualization": {
+            "isAvailable": true
+          },
+          "enabled": false
+        },
+        "query": "fetch logs\n| filter log.source == \"/opt/observiq-otel-collector/log/collector.log\"\n| summarize lines = count()",
+        "querySettings": {
+          "defaultSamplingRatio": 10,
+          "defaultScanLimitGbytes": 500,
+          "enableSampling": false,
+          "maxResultMegaBytes": 10,
+          "maxResultRecords": 1000
+        },
+        "title": "Collector log lines",
+        "type": "data",
+        "visualization": "singleValue",
+        "visualizationSettings": {
+          "singleValue": {
+            "recordField": "lines"
+          }
+        }
+      },
+      "2": {
+        "davis": {
+          "davisVisualization": {
+            "isAvailable": true
+          },
+          "enabled": false
+        },
+        "query": "fetch logs\n| filter dt.openpipeline.source == \"/api/v2/otlp/v1/logs\"\n| summarize lines = count()",
+        "querySettings": {
+          "defaultSamplingRatio": 10,
+          "defaultScanLimitGbytes": 500,
+          "enableSampling": false,
+          "maxResultMegaBytes": 10,
+          "maxResultRecords": 1000
+        },
+        "title": "OTLP ingest lines",
+        "type": "data",
+        "visualization": "singleValue",
+        "visualizationSettings": {
+          "singleValue": {
+            "recordField": "lines"
+          }
+        }
+      },
+      "3": {
+        "davis": {
+          "davisVisualization": {
+            "isAvailable": true
+          },
+          "enabled": false
+        },
+        "query": "fetch logs\n| filter dt.openpipeline.source == \"/api/v2/otlp/v1/logs\"\n| summarize hosts = countDistinct(host.name)",
+        "querySettings": {
+          "defaultSamplingRatio": 10,
+          "defaultScanLimitGbytes": 500,
+          "enableSampling": false,
+          "maxResultMegaBytes": 10,
+          "maxResultRecords": 1000
+        },
+        "title": "OTLP edge hosts",
+        "type": "data",
+        "visualization": "singleValue",
+        "visualizationSettings": {
+          "singleValue": {
+            "recordField": "hosts"
+          }
+        }
+      },
+      "4": {
+        "davis": {
+          "davisVisualization": {
+            "isAvailable": true
+          },
+          "enabled": false
+        },
+        "query": "fetch logs\n| filter log.source == \"/opt/observiq-otel-collector/log/collector.log\"\n| filter contains(lower(content), \"error\") or contains(lower(content), \"warn\")\n| summarize lines = count()",
+        "querySettings": {
+          "defaultSamplingRatio": 10,
+          "defaultScanLimitGbytes": 500,
+          "enableSampling": false,
+          "maxResultMegaBytes": 10,
+          "maxResultRecords": 1000
+        },
+        "title": "Collector error/warn lines",
+        "type": "data",
+        "visualization": "singleValue",
+        "visualizationSettings": {
+          "singleValue": {
+            "recordField": "lines"
+          }
+        }
+      },
+      "5": {
+        "davis": {
+          "davisVisualization": {
+            "isAvailable": true
+          },
+          "enabled": false
+        },
+        "query": "fetch logs\n| filter log.source == \"/opt/observiq-otel-collector/log/collector.log\"\n| makeTimeseries lines=count(), by:{host.name}, interval:5m",
+        "querySettings": {
+          "defaultSamplingRatio": 10,
+          "defaultScanLimitGbytes": 2000,
+          "enableSampling": false,
+          "maxResultMegaBytes": 10,
+          "maxResultRecords": 5000
+        },
+        "title": "Collector log volume by host",
+        "type": "data",
+        "visualization": "lineChart",
+        "visualizationSettings": {}
+      },
+      "6": {
+        "davis": {
+          "davisVisualization": {
+            "isAvailable": true
+          },
+          "enabled": false
+        },
+        "query": "fetch logs\n| filter dt.openpipeline.source == \"/api/v2/otlp/v1/logs\"\n| makeTimeseries lines=count(), by:{host.name}, interval:5m",
+        "querySettings": {
+          "defaultSamplingRatio": 10,
+          "defaultScanLimitGbytes": 2000,
+          "enableSampling": false,
+          "maxResultMegaBytes": 10,
+          "maxResultRecords": 5000
+        },
+        "title": "OTLP ingest by host",
+        "type": "data",
+        "visualization": "lineChart",
+        "visualizationSettings": {}
+      },
+      "7": {
+        "davis": {
+          "davisVisualization": {
+            "isAvailable": true
+          },
+          "enabled": false
+        },
+        "query": "fetch logs\n| filter dt.openpipeline.source == \"/api/v2/otlp/v1/logs\"\n| summarize lines=count(), by:{host.name}\n| sort lines desc",
+        "querySettings": {
+          "defaultSamplingRatio": 10,
+          "defaultScanLimitGbytes": 2000,
+          "enableSampling": false,
+          "maxResultMegaBytes": 10,
+          "maxResultRecords": 5000
+        },
+        "title": "OTLP volume by host",
+        "type": "data",
+        "visualization": "categoricalBarChart",
+        "visualizationSettings": {}
+      },
+      "8": {
+        "davis": {
+          "davisVisualization": {
+            "isAvailable": true
+          },
+          "enabled": false
+        },
+        "query": "timeseries avg(dt.host.cpu.usage), by:{host.name}, filter:{in(host.name, {\"dt02\", \"dt03.lindleyhome.com\"})}",
+        "querySettings": {
+          "defaultSamplingRatio": 10,
+          "defaultScanLimitGbytes": 2000,
+          "enableSampling": false,
+          "maxResultMegaBytes": 10,
+          "maxResultRecords": 5000
+        },
+        "title": "Collector hosts CPU (dt02/dt03)",
+        "type": "data",
+        "visualization": "lineChart",
+        "visualizationSettings": {}
+      },
+      "9": {
+        "davis": {
+          "davisVisualization": {
+            "isAvailable": true
+          },
+          "enabled": false
+        },
+        "query": "fetch logs\n| filter log.source == \"/opt/observiq-otel-collector/log/collector.log\"\n| filter contains(lower(content), \"error\") or contains(lower(content), \"warn\")\n| fields timestamp, host.name, content\n| sort timestamp desc\n| limit 40",
+        "querySettings": {
+          "defaultSamplingRatio": 10,
+          "defaultScanLimitGbytes": 2000,
+          "enableSampling": false,
+          "maxResultMegaBytes": 10,
+          "maxResultRecords": 5000
+        },
+        "title": "Recent collector error/warn",
+        "type": "data",
+        "visualization": "table",
+        "visualizationSettings": {}
+      }
+    },
+    "variables": [],
+    "version": 21
+  }
+}

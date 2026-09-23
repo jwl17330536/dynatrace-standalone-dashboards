@@ -1,0 +1,303 @@
+{
+  "name": "Proxmox Cluster",
+  "type": "dashboard",
+  "owner": "<YOUR_DYNATRACE_USER_ID>",
+  "isPrivate": true,
+  "description": "nuc40\u201346 \u2014 pveproxy access, proxmox-api extension freshness, host resources, product 9371 problems.",
+  "version": 1,
+  "modificationInfo": {
+    "createdBy": "",
+    "createdTime": "",
+    "lastModifiedBy": "",
+    "lastModifiedTime": ""
+  },
+  "content": {
+    "annotations": [],
+    "layouts": {
+      "0": {
+        "h": 4,
+        "w": 24,
+        "x": 0,
+        "y": 0
+      },
+      "1": {
+        "h": 4,
+        "w": 6,
+        "x": 0,
+        "y": 4
+      },
+      "2": {
+        "h": 4,
+        "w": 6,
+        "x": 6,
+        "y": 4
+      },
+      "3": {
+        "h": 4,
+        "w": 6,
+        "x": 12,
+        "y": 4
+      },
+      "4": {
+        "h": 4,
+        "w": 6,
+        "x": 18,
+        "y": 4
+      },
+      "5": {
+        "h": 8,
+        "w": 12,
+        "x": 0,
+        "y": 8
+      },
+      "6": {
+        "h": 8,
+        "w": 12,
+        "x": 12,
+        "y": 8
+      },
+      "7": {
+        "h": 8,
+        "w": 12,
+        "x": 0,
+        "y": 16
+      },
+      "8": {
+        "h": 10,
+        "w": 12,
+        "x": 12,
+        "y": 16
+      },
+      "9": {
+        "h": 8,
+        "w": 24,
+        "x": 0,
+        "y": 26
+      }
+    },
+    "settings": {
+      "defaultTimeframe": {
+        "enabled": true,
+        "value": {
+          "from": "now()-24h",
+          "to": "now()"
+        }
+      }
+    },
+    "tiles": {
+      "0": {
+        "content": "# Proxmox Cluster\n\nNUCs **nuc40\u2013nuc46** \u2014 Proxmox VE fabric (CMDB product `9371`).\n\n**Signals:** `/var/log/pveproxy/access.log` \u00b7 extension `custom:proxmox-api-monitoring` \u00b7 OneAgent host metrics.\n\n**Front-end:** pve.lindleyhome.com via utility29 HAProxy.\n\n**Automation:** Proxmox Cluster Sync v3 WF \u00b7 pveproxy silence detector.",
+        "title": "",
+        "type": "markdown"
+      },
+      "1": {
+        "davis": {
+          "davisVisualization": {
+            "isAvailable": true
+          },
+          "enabled": false
+        },
+        "query": "fetch logs\n| filter log.source == \"/var/log/pveproxy/access.log\"\n| summarize lines = count()",
+        "querySettings": {
+          "defaultSamplingRatio": 10,
+          "defaultScanLimitGbytes": 500,
+          "enableSampling": false,
+          "maxResultMegaBytes": 10,
+          "maxResultRecords": 1000
+        },
+        "title": "pveproxy lines",
+        "type": "data",
+        "visualization": "singleValue",
+        "visualizationSettings": {
+          "singleValue": {
+            "recordField": "lines"
+          }
+        }
+      },
+      "2": {
+        "davis": {
+          "davisVisualization": {
+            "isAvailable": true
+          },
+          "enabled": false
+        },
+        "query": "fetch logs\n| filter dt.openpipeline.source == \"extension:custom:proxmox-api-monitoring\"\n| summarize lines = count()",
+        "querySettings": {
+          "defaultSamplingRatio": 10,
+          "defaultScanLimitGbytes": 500,
+          "enableSampling": false,
+          "maxResultMegaBytes": 10,
+          "maxResultRecords": 1000
+        },
+        "title": "API extension lines",
+        "type": "data",
+        "visualization": "singleValue",
+        "visualizationSettings": {
+          "singleValue": {
+            "recordField": "lines"
+          }
+        }
+      },
+      "3": {
+        "davis": {
+          "davisVisualization": {
+            "isAvailable": true
+          },
+          "enabled": false
+        },
+        "query": "fetch logs\n| filter dt.openpipeline.source == \"extension:custom:proxmox-api-monitoring\"\n| summarize last_seen = max(timestamp)\n| fieldsAdd freshness_min = toDouble((now() - last_seen) / 60000000000)\n| fields freshness_min",
+        "querySettings": {
+          "defaultSamplingRatio": 10,
+          "defaultScanLimitGbytes": 500,
+          "enableSampling": false,
+          "maxResultMegaBytes": 10,
+          "maxResultRecords": 1000
+        },
+        "title": "Extension freshness (min)",
+        "type": "data",
+        "visualization": "singleValue",
+        "visualizationSettings": {
+          "singleValue": {
+            "recordField": "freshness_min"
+          }
+        }
+      },
+      "4": {
+        "davis": {
+          "davisVisualization": {
+            "isAvailable": true
+          },
+          "enabled": false
+        },
+        "query": "fetch logs\n| filter log.source == \"/var/log/pveproxy/access.log\"\n| summarize hosts = countDistinct(host.name)",
+        "querySettings": {
+          "defaultSamplingRatio": 10,
+          "defaultScanLimitGbytes": 500,
+          "enableSampling": false,
+          "maxResultMegaBytes": 10,
+          "maxResultRecords": 1000
+        },
+        "title": "NUC hosts seen",
+        "type": "data",
+        "visualization": "singleValue",
+        "visualizationSettings": {
+          "singleValue": {
+            "recordField": "hosts"
+          }
+        }
+      },
+      "5": {
+        "davis": {
+          "davisVisualization": {
+            "isAvailable": true
+          },
+          "enabled": false
+        },
+        "query": "fetch logs\n| filter log.source == \"/var/log/pveproxy/access.log\"\n| makeTimeseries lines=count(), by:{host.name}, interval:5m",
+        "querySettings": {
+          "defaultSamplingRatio": 10,
+          "defaultScanLimitGbytes": 2000,
+          "enableSampling": false,
+          "maxResultMegaBytes": 10,
+          "maxResultRecords": 5000
+        },
+        "title": "pveproxy volume by node",
+        "type": "data",
+        "visualization": "lineChart",
+        "visualizationSettings": {
+          "lineChart": {}
+        }
+      },
+      "6": {
+        "davis": {
+          "davisVisualization": {
+            "isAvailable": true
+          },
+          "enabled": false
+        },
+        "query": "timeseries avg(dt.host.cpu.usage), by:{host.name}, filter:{in(host.name, {\"nuc40.lindleyhome.com\", \"nuc41.lindleyhome.com\", \"nuc42.lindleyhome.com\", \"nuc43.lindleyhome.com\", \"nuc44.lindleyhome.com\", \"nuc45.lindleyhome.com\", \"nuc46.lindleyhome.com\"})}",
+        "querySettings": {
+          "defaultSamplingRatio": 10,
+          "defaultScanLimitGbytes": 2000,
+          "enableSampling": false,
+          "maxResultMegaBytes": 10,
+          "maxResultRecords": 5000
+        },
+        "title": "NUC CPU",
+        "type": "data",
+        "visualization": "lineChart",
+        "visualizationSettings": {
+          "lineChart": {}
+        }
+      },
+      "7": {
+        "davis": {
+          "davisVisualization": {
+            "isAvailable": true
+          },
+          "enabled": false
+        },
+        "query": "fetch logs\n| filter log.source == \"/var/log/pveproxy/access.log\"\n| summarize lines=count(), by:{host.name}\n| sort lines desc",
+        "querySettings": {
+          "defaultSamplingRatio": 10,
+          "defaultScanLimitGbytes": 2000,
+          "enableSampling": false,
+          "maxResultMegaBytes": 10,
+          "maxResultRecords": 5000
+        },
+        "title": "pveproxy by node",
+        "type": "data",
+        "visualization": "categoricalBarChart",
+        "visualizationSettings": {
+          "categoricalBarChart": {}
+        }
+      },
+      "8": {
+        "davis": {
+          "davisVisualization": {
+            "isAvailable": true
+          },
+          "enabled": false
+        },
+        "query": "fetch events\n| filter event.kind == \"DAVIS_PROBLEM\" and event.status == \"ACTIVE\"\n| filter contains(toString(event), \"9371\") or contains(toString(event), \"Proxmox\") or contains(toString(event), \"nuc4\")\n| fields timestamp, event.name, event.status\n| sort timestamp desc\n| limit 30",
+        "querySettings": {
+          "defaultSamplingRatio": 10,
+          "defaultScanLimitGbytes": 2000,
+          "enableSampling": false,
+          "maxResultMegaBytes": 10,
+          "maxResultRecords": 5000
+        },
+        "title": "Open problems (Proxmox product tag)",
+        "type": "data",
+        "visualization": "table",
+        "visualizationSettings": {
+          "table": {}
+        }
+      },
+      "9": {
+        "davis": {
+          "davisVisualization": {
+            "isAvailable": true
+          },
+          "enabled": false
+        },
+        "query": "fetch logs\n| filter dt.openpipeline.source == \"extension:custom:proxmox-api-monitoring\"\n| fields timestamp, content, log.source\n| sort timestamp desc\n| limit 30",
+        "querySettings": {
+          "defaultSamplingRatio": 10,
+          "defaultScanLimitGbytes": 2000,
+          "enableSampling": false,
+          "maxResultMegaBytes": 10,
+          "maxResultRecords": 5000
+        },
+        "title": "Recent proxmox-api extension events",
+        "type": "data",
+        "visualization": "table",
+        "visualizationSettings": {
+          "table": {}
+        }
+      }
+    },
+    "variables": [],
+    "version": 21
+  }
+}
