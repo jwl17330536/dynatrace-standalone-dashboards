@@ -21,6 +21,8 @@ Classifies RUM applications by their JavaScript agent policy status: on-target, 
 3. Upload `rum-version-compliance-dashboard.v3.json`
 4. The dashboard opens immediately
 
+> **Note:** The dashboard JSON has `isPrivate: true`, so after import it will only be visible to you. To share it with your team, open the dashboard, click the share icon, and update the visibility settings.
+
 ## Configuration
 
 No manual configuration is required. The dashboard reads directly from RUM telemetry events in Grail.

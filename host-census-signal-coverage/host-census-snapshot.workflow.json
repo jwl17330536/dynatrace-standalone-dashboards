@@ -1,0 +1,40 @@
+{
+  "title": "Host Census Snapshot v1",
+  "description": "Daily snapshot of active OneAgent hosts (metrics heartbeat + signal flags) as CUSTOM_ANNOTATION events for durable census history used by Host Census + Signal Coverage dashboard.",
+  "owner": "b9e9bf8e-04b6-4e36-b150-f5682599a21e",
+  "ownerType": "USER",
+  "isPrivate": false,
+  "isDeployed": true,
+  "tasks": {
+    "snapshot_and_ingest": {
+      "name": "snapshot_and_ingest",
+      "action": "dynatrace.automations:run-javascript",
+      "description": "Query active hosts + signal flags and ingest host.census.daily annotation events.",
+      "position": {
+        "x": 0,
+        "y": 1
+      },
+      "predecessors": [],
+      "input": {
+        "script": "import { execution } from '@dynatrace-sdk/automation-utils';\nimport { credentialVaultClient } from '@dynatrace-sdk/client-classic-environment-v2';\nimport { getEnvironmentUrl } from '@dynatrace-sdk/app-environment';\nimport { queryExecutionClient } from '@dynatrace-sdk/client-query';\n\nconst EVENTS_TOKEN_VAULT_ID = 'CREDENTIALS_VAULT-REPLACE_WITH_YOUR_VAULT_ID'; // Replace with your Credential Vault ID\n\nasync function resolveToken(id) {\n  const normalized = (id || '').trim();\n  if (!normalized.startsWith('CREDENTIALS_VAULT-')) {\n    throw new Error('EVENTS_TOKEN_VAULT_ID must be a Credential Vault ID');\n  }\n  const credentials = await credentialVaultClient.getCredentialsDetails({ id: normalized });\n  if (!credentials || !credentials.token) {\n    throw new Error(`No token found in vault entry ${normalized}`);\n  }\n  return credentials.token;\n}\n\nfunction classicBaseUrl() {\n  const envUrl = String(getEnvironmentUrl() || '').trim();\n  if (!envUrl) throw new Error('getEnvironmentUrl() returned empty');\n  const env = new URL(envUrl);\n  env.host = env.host.replace('.apps.', '.');\n  env.pathname = '';\n  env.search = '';\n  env.hash = '';\n  return env.toString().replace(/\\/$/, '');\n}\n\nasync function runDql(query) {\n  let response = await queryExecutionClient.queryExecute({\n    body: { query, requestTimeoutMilliseconds: 60000, fetchTimeoutSeconds: 60 },\n  });\n  let guard = 0;\n  while (response && response.state && response.state !== 'SUCCEEDED' && guard < 60) {\n    if (response.state === 'FAILED') {\n      throw new Error(`DQL failed: ${JSON.stringify(response.error || response)}`);\n    }\n    if (!response.requestToken) break;\n    await new Promise((r) => setTimeout(r, 1000));\n    response = await queryExecutionClient.queryPoll({ requestToken: response.requestToken });\n    guard += 1;\n  }\n  return (response && response.result && response.result.records) || [];\n}\n\nasync function ingest(baseUrl, token, event) {\n  const resp = await fetch(`${baseUrl}/api/v2/events/ingest`, {\n    method: 'POST',\n    headers: {\n      Authorization: `Api-Token ${token}`,\n      'Content-Type': 'application/json',\n    },\n    body: JSON.stringify(event),\n  });\n  const text = await resp.text();\n  if (!resp.ok) throw new Error(`events/ingest HTTP ${resp.status}: ${text}`);\n  return text ? JSON.parse(text) : {};\n}\n\nfunction yn(v) {\n  return v ? 'Y' : 'N';\n}\n\nfunction prop(v) {\n  if (v === null || v === undefined || v === '') return 'unknown';\n  return String(v);\n}\n\nexport default async function () {\n  await execution();\n\n  const censusQuery = `\ntimeseries {\n  cpu = avg(dt.host.cpu.usage),\n  disk = avg(dt.host.disk.used.percent),\n  net = avg(dt.host.net.nic.bytes_rx)\n}, by:{dt.entity.host}, from:now()-24h, interval:1h\n| fieldsAdd host = entityName(dt.entity.host)\n| fieldsAdd host_id = dt.entity.host\n| fieldsAdd has_host_metrics = isNotNull(arrayAvg(cpu))\n| fieldsAdd has_disk = isNotNull(arrayAvg(disk))\n| fieldsAdd has_network = isNotNull(arrayAvg(net))\n| lookup [\n  timeseries pcpu = avg(dt.process.cpu.usage), by:{dt.entity.host}, from:now()-24h, interval:1h\n  | fieldsAdd has_process = true\n  | fields host_id = dt.entity.host, has_process\n], sourceField:host_id, lookupField:host_id, fields:{has_process}\n| lookup [\n  fetch logs, from:now()-24h\n  | filter isNotNull(dt.entity.host)\n  | summarize log_count = count(), by:{host_id = dt.entity.host}\n], sourceField:host_id, lookupField:host_id, fields:{log_count}\n| lookup [\n  fetch spans, from:now()-24h\n  | filter isNotNull(dt.entity.host)\n  | summarize span_count = count(), by:{host_id = dt.entity.host}\n], sourceField:host_id, lookupField:host_id, fields:{span_count}\n| lookup [\n  fetch dt.entity.service\n  | fieldsAdd runs_on\n  | expand dt.entity.host = runs_on[dt.entity.host]\n  | filter isNotNull(dt.entity.host)\n  | summarize service_count = count(), by:{host_id = dt.entity.host}\n], sourceField:host_id, lookupField:host_id, fields:{service_count}\n| lookup [\n  fetch dt.entity.host\n  | fields host_id = id, installerVersion, monitoringMode, osType, tags\n], sourceField:host_id, lookupField:host_id, fields:{installerVersion, monitoringMode, osType, tags}\n| fields host_id, host, has_host_metrics, has_disk, has_network, has_process, log_count, span_count, service_count, installerVersion, monitoringMode, osType, tags\n| sort host asc\n`;\n\n  const records = await runDql(censusQuery);\n  const fetchedAt = new Date().toISOString();\n  const day = fetchedAt.slice(0, 10);\n  const baseUrl = classicBaseUrl();\n  const token = await resolveToken(EVENTS_TOKEN_VAULT_ID);\n\n  let ingested = 0;\n  for (const row of records) {\n    const hostId = String(row.host_id || '');\n    const host = String(row.host || hostId || 'unknown');\n    if (!hostId) continue;\n\n    const hasLogs = Number(row.log_count || 0) > 0;\n    const hasTraces = Number(row.span_count || 0) > 0;\n    const hasServices = Number(row.service_count || 0) > 0;\n    const hasProcess = Boolean(row.has_process);\n\n    await ingest(baseUrl, token, {\n      eventType: 'CUSTOM_ANNOTATION',\n      title: `host.census.daily|${host}|${day}`,\n      description: `Daily host census snapshot for ${host}`,\n      properties: {\n        source: 'host-census-snapshot-v1',\n        census_day: day,\n        fetched_at: fetchedAt,\n        host_id: hostId,\n        host_name: host,\n        installerVersion: prop(row.installerVersion),\n        monitoringMode: prop(row.monitoringMode),\n        osType: prop(row.osType),\n        signal_host_metrics: yn(row.has_host_metrics),\n        signal_disk: yn(row.has_disk),\n        signal_network: yn(row.has_network),\n        signal_process: yn(hasProcess),\n        signal_logs: yn(hasLogs),\n        signal_traces: yn(hasTraces),\n        signal_services: yn(hasServices),\n        log_count: String(Number(row.log_count || 0)),\n        span_count: String(Number(row.span_count || 0)),\n        service_count: String(Number(row.service_count || 0)),\n      },\n    });\n    ingested += 1;\n  }\n\n  await ingest(baseUrl, token, {\n    eventType: 'CUSTOM_ANNOTATION',\n    title: `host.census.summary|${ingested}|${day}`,\n    description: `Host census summary for ${day}`,\n    properties: {\n      source: 'host-census-snapshot-v1',\n      census_day: day,\n      fetched_at: fetchedAt,\n      host_count: String(ingested),\n    },\n  });\n\n  return { fetched_at: fetchedAt, census_day: day, host_count: ingested };\n}\n"
+      }
+    }
+  },
+  "trigger": {
+    "schedule": {
+      "isActive": true,
+      "timezone": "UTC",
+      "filterParameters": {
+        "earliestStart": "2026-08-02"
+      },
+      "inputs": {},
+      "rule": null,
+      "trigger": {
+        "type": "cron",
+        "cron": "27 6 * * *"
+      }
+    }
+  },
+  "actor": "b9e9bf8e-04b6-4e36-b150-f5682599a21e",
+  "id": "a2117875-d1f9-441c-b54a-5fc44b760122"
+}
